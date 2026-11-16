@@ -54,6 +54,20 @@ uvicorn backend.main:app --reload
 python -m pytest -q
 ```
 
+### ☁️ Vercel 배포 (팀원·심사위원에게 링크 공유용)
+설정 파일은 이미 들어 있다 — 루트 `index.py` 가 FastAPI `app` 을 내보내면 Vercel이 자동 인식한다.
+1. [vercel.com/new](https://vercel.com/new) → GitHub `jaeho222/bang-aeo-hwae` **Import** (빌드 설정은 건드리지 않음)
+2. *Environment Variables* 에 `ANTHROPIC_API_KEY`(있을 때만), `CLAUDE_MODEL` 추가 → **Deploy**
+3. 이후 `main` 에 push 할 때마다 자동 재배포, PR마다 미리보기 URL 생성
+
+> 키를 넣지 않으면 배포본도 데모(mock) 모드로 돈다. 공개 링크에 키를 넣을 땐 Anthropic 콘솔에서 **사용 한도**를 먼저 걸 것.
+
+### 📌 서버 없는 단일 HTML 데모 (노션 임베드·발표 백업용)
+```bash
+python scripts/build_static_demo.py   # → dist/demo.html
+```
+예시 질문의 결과를 미리 계산해 HTML 하나에 담는다. 노션 「구현 현황」 페이지의 미리보기가 이것.
+
 ---
 
 ## 🧭 어떻게 동작하나
@@ -119,6 +133,8 @@ bang-aeo-hwae/
 │  ├─ build/               # 실제 데이터 수집 스크립트 (TODO)
 │  └─ processed/           # build 결과 (실제 데이터)
 ├─ docs/  (DATA.md · COST_MODEL.md · screenshot.png)
+├─ scripts/build_static_demo.py   # 서버 없는 데모 HTML 생성
+├─ index.py                # Vercel 진입점
 ├─ tests/test_tools.py
 ├─ requirements.txt
 └─ .env.example

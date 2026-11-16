@@ -4,7 +4,8 @@
 
 const CFG = window.APP_CONFIG;
 const $ = (s) => document.querySelector(s);
-const api = (path, body) =>
+// window.STATIC_DEMO 가 있으면(노션 임베드용 정적 데모) 서버 대신 미리 계산된 결과를 쓴다 — scripts/build_static_demo.py
+const api = (path, body) => window.STATIC_DEMO ? Promise.resolve(window.STATIC_DEMO.handle(path, body)) :
   fetch(CFG.apiBase + path, body ? {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   } : undefined).then(async (r) => { if (!r.ok) throw new Error(await r.text()); return r.json(); });

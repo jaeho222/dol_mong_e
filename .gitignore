@@ -12,3 +12,6 @@ venv/
 data/raw/
 data/interim/
 *.xlsx
+
+# 정적 데모 빌드 결과
+dist/
