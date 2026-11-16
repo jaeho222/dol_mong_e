@@ -21,6 +21,7 @@ html = (FE / "index.html").read_text(encoding="utf-8")
 css = (FE / "assets" / "style.css").read_text(encoding="utf-8")
 cfg = (FE / "assets" / "config.js").read_text(encoding="utf-8")
 app = (FE / "assets" / "app.js").read_text(encoding="utf-8")
+imgs = (FE / "assets" / "region_images.js").read_text(encoding="utf-8")
 
 examples = re.findall(r'^\s*"([^"]+)",\s*$', cfg.split("examples:")[1], re.M)
 chats = {q: run_mock_agent(q) for q in examples}
@@ -38,7 +39,7 @@ def slim(ranked: dict) -> dict:
     for r in ranked["results"]:
         c = {k: r["cost"][k] for k in keep_cost}
         c["conditions"] = {"days": r["cost"]["conditions"]["days"]}
-        out["results"].append({k: r[k] for k in ("name", "zone", "score", "badges", "warnings", "lat", "lon")} | {"cost": c})
+        out["results"].append({k: r[k] for k in ("region_id", "name", "zone", "score", "badges", "warnings", "lat", "lon")} | {"cost": c})
     return out
 
 
@@ -64,6 +65,7 @@ window.STATIC_DEMO = (() => {{
 
 out = html.replace('<link rel="stylesheet" href="assets/style.css" />', f"<style>{css}</style>")
 out = out.replace('<script src="assets/config.js"></script>', f"<script>{cfg}</script>{static}")
+out = out.replace('<script src="assets/region_images.js"></script>', f"<script>{imgs}</script>")
 out = out.replace('<script src="assets/app.js"></script>', f"<script>{app}</script>")
 out = out.replace("<body>", '<body><div class="notice" style="border-radius:0;margin:0;text-align:center">📌 노션 미리보기용 정적 데모 — 예시 질문만 동작해요. 실제 계산은 서버 버전에서.</div>', 1)
 

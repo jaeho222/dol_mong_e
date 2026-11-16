@@ -189,9 +189,11 @@ function placeCard(r) {
   const sum = items.reduce((a, [, v]) => a + v, 0) || 1;
   const coord = r.lat ? `${(+r.lat).toFixed(2)}°N ${(+r.lon).toFixed(2)}°E` : r.zone;
   const short = r.name.replace(/(읍|면)$/, "");
+  const img = (window.REGION_IMAGES || {})[r.region_id];
   return `
   <article class="place">
-    <div class="thumb zone-${r.zone}">
+    <div class="thumb zone-${r.zone}${img ? " has-photo" : ""}">
+      ${img ? `<img class="photo" src="${img.src}" alt="${escapeHtml(img.place)}" loading="lazy" onerror="this.remove()">` : ""}
       ${r.rank <= 3 ? `<span class="ribbon">${r.rank}</span>` : ""}
       <span class="coord">${coord}</span>
       <span class="big">${escapeHtml(short)}</span>
@@ -206,6 +208,7 @@ function placeCard(r) {
         ${r.warnings.map((w) => `<span class="warn">${w}</span>`).join("")}
       </div>
       <div class="tier">${c.tier} 기준${c.alternatives.length ? ` · ${c.alternatives[0].tier}이면 숙소 ${won(c.alternatives[0].lodging)}원` : ""}</div>
+      ${img ? `<a class="credit" href="${img.page}" target="_blank" rel="noopener">사진 · ${escapeHtml(img.place)} · ${escapeHtml(img.artist)} · ${img.license}</a>` : ""}
     </div>
   </article>`;
 }

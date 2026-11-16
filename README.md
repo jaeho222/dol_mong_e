@@ -218,7 +218,8 @@ bang-aeo-hwae/
 - **배너·문구 수정:** `frontend/assets/config.js` — `topBanner`(맨 위 띠: 제주愛인 청춘 정거장 링크), `banners`(캐러셀 카드, 클릭 시 링크/질문/조건 프리셋)
 - **아이콘:** [Lucide](https://lucide.dev) (ISC 라이선스) 경로를 `index.html` 상단 SVG 스프라이트로 인라인 — 외부 요청 없음
 - **폰트:** Pretendard (CDN)
-- **TODO[FRONT]:** 동네 카드 썸네일을 실사 사진(한국관광콘텐츠랩 공공누리 이미지 등)으로 교체, 지도 탭
+- **동네 사진:** `frontend/assets/region_images.js` — 위키미디어 공용의 자유 이용 사진(CC0 / CC BY / CC BY-SA / 공공누리 1유형)을 원본 서버에서 바로 불러온다. 카드마다 장소·작가·라이선스를 표시하고 원본 페이지로 링크한다. 사진 교체·추가 방법은 파일 상단 주석. 비영리(NC) 조건 사진은 쓰지 않는다.
+- **TODO[FRONT]:** 지도 탭
 
 ## 📚 데이터 출처·이용조건
 
@@ -240,6 +241,7 @@ bang-aeo-hwae/
 - **API 키는 코드·제출물에 넣지 않는다.** 발급 방법만 매뉴얼에 적는다 (대회 규정).
 - 대회 제공 엑셀 2종은 **외부 배포·GitHub 업로드 금지** → `.gitignore` 에 `*.xlsx` 처리됨.
 - HIRA·기상청 데이터는 출처표시(공공누리 1유형) 필요.
+- 동네 사진 출처는 `frontend/assets/region_images.js` 에 사진별로 기록돼 있고 화면에도 표시된다 (위키미디어 공용, CC0·CC BY·CC BY-SA·공공누리 1유형).
 
 ---
 

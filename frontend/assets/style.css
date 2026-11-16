@@ -124,12 +124,19 @@ button { cursor: pointer; background: none; border: 0; }
   display: flex; flex-direction: column; justify-content: space-between; padding: 18px; color: #fff;
 }
 .thumb::after { content: ""; position: absolute; inset: 45% 0 0; background: linear-gradient(transparent, rgba(0,0,0,.35)); }
-.thumb .coord { font-size: 11px; letter-spacing: .06em; opacity: .7; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
-.thumb .big { font-size: 34px; font-weight: 800; letter-spacing: -0.05em; line-height: 1.1; position: relative; z-index: 1; }
-.thumb .price { position: relative; z-index: 1; font-weight: 600; font-size: 14px; }
+.thumb .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; z-index: 0; }
+.thumb.has-photo::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(rgba(0,0,0,.28), rgba(0,0,0,0) 30%, rgba(0,0,0,0) 45%, rgba(0,0,0,.55)); }
+.thumb.has-photo::after { display: none; }
+.place:hover .photo { transform: scale(1.04); }
+.thumb.has-photo .big { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+.credit { display: block; margin-top: 6px; font-size: 11px; color: var(--muted); opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.credit:hover { text-decoration: underline; }
+.thumb .coord { font-size: 11px; letter-spacing: .06em; opacity: .8; font-variant-numeric: tabular-nums; position: relative; z-index: 2; }
+.thumb .big { font-size: 34px; font-weight: 800; letter-spacing: -0.05em; line-height: 1.1; position: relative; z-index: 2; }
+.thumb .price { position: relative; z-index: 2; font-weight: 600; font-size: 14px; }
 .thumb .price b { font-size: 20px; font-weight: 800; }
 .ribbon {
-  position: absolute; top: 0; right: 16px; z-index: 2; width: 34px; padding: 8px 0 12px; text-align: center;
+  position: absolute; top: 0; right: 16px; z-index: 3; width: 34px; padding: 8px 0 12px; text-align: center;
   background: #e8792b; color: #fff; font-weight: 800; font-size: 14px;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
 }
