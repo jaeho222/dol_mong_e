@@ -246,6 +246,7 @@ function placeCard(r) {
     </div>
     <div class="place-body">
       <div class="place-title"><h4>${escapeHtml(r.name)}</h4><span class="zone">${r.zone}</span></div>
+      <div class="place-price">${won(c.range[0])}~${won(c.range[1])}원</div>
       <div class="place-line">${c.conditions.days}일 · 월 ${won(c.per_month)}원 · ${items.map(([k, v]) => `${k} ${v}`).join(" · ")} (만원)</div>
       <div class="bar">${items.map(([, v]) => `<i style="width:${(v / sum) * 100}%"></i>`).join("")}</div>
       <div class="tags">

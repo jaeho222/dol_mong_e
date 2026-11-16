@@ -18,6 +18,7 @@
   --sand: #b39a6f;
   --radius: 8px;
   --font: "Pretendard Variable", Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --font-display: "Jeju Hallasan", var(--font);   /* 제주한라산체: 로고·배너·동네 이름에만 */
   color-scheme: light;
 }
 [data-theme="dark"] {
@@ -33,6 +34,9 @@
   --tangerine-soft: #35281d;
   color-scheme: dark;
 }
+
+/* 제주한라산체 — 제주특별자치도 제주전용서체(웹 임베딩 포함 자유 이용, 유료 양도·판매 금지). KS X 1001 한글 2,350자로 줄인 파일 */
+@font-face { font-family: "Jeju Hallasan"; src: url("fonts/jeju-hallasan-sub.woff2") format("woff2"); font-display: swap; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--font); background: var(--bg); color: var(--text); padding-bottom: 72px; -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
@@ -83,7 +87,7 @@ button { cursor: pointer; background: none; border: 0; }
   color: #fff; text-align: left; cursor: pointer;
 }
 .banner .eyebrow { font-size: 13px; font-weight: 600; opacity: .8; letter-spacing: 0; margin-bottom: 8px; position: relative; }
-.banner h2 { font-size: 24px; line-height: 1.3; font-weight: 800; white-space: pre-line; letter-spacing: -0.03em; position: relative; }
+.banner h2 { font-family: var(--font-display); font-size: 27px; line-height: 1.3; font-weight: 400; white-space: pre-line; letter-spacing: -0.03em; position: relative; }
 .banner p { font-size: 14px; margin-top: 10px; opacity: .85; font-weight: 500; position: relative; }
 .banner .deco { position: absolute; top: 0; right: 0; width: 64%; height: 62%; pointer-events: none; }
 .tone-tangerine { background: #e8792b; }
@@ -121,6 +125,8 @@ button { cursor: pointer; background: none; border: 0; }
 .results-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
 .results-head h3 { font-size: 13px; font-weight: 600; color: var(--muted); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 28px 20px; }
+.place { min-width: 0; }
+.place-price { display: none; }
 .thumb {
   position: relative; aspect-ratio: 1 / 1; border-radius: var(--radius); overflow: hidden;
   display: flex; flex-direction: column; justify-content: space-between; padding: 18px; color: #fff;
@@ -134,7 +140,7 @@ button { cursor: pointer; background: none; border: 0; }
 .credit { display: block; margin-top: 6px; font-size: 11px; color: var(--muted); opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .credit:hover { text-decoration: underline; }
 .thumb .coord { font-size: 11px; letter-spacing: .06em; opacity: .8; font-variant-numeric: tabular-nums; position: relative; z-index: 2; }
-.thumb .big { font-size: 34px; font-weight: 800; letter-spacing: -0.05em; line-height: 1.1; position: relative; z-index: 2; }
+.thumb .big { font-family: var(--font-display); font-size: 38px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.1; position: relative; z-index: 2; }
 .thumb .price { position: relative; z-index: 2; font-weight: 600; font-size: 14px; }
 .thumb .price b { font-size: 20px; font-weight: 800; }
 .ribbon {
@@ -195,20 +201,63 @@ body.sheet-open .sheet-backdrop { opacity: 1; pointer-events: auto; }
 
 /* ⑧ 하단 내비 */
 .bottom-nav {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: 64px;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: calc(64px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
   display: grid; grid-template-columns: repeat(5, 1fr); background: var(--bg); border-top: 1px solid var(--line);
 }
 .bottom-nav a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 600; color: var(--muted); }
 .bottom-nav a.active { color: var(--moss); }
 .bottom-nav a.disabled { opacity: .4; pointer-events: none; }
 
+/* ── 모바일 ─────────────────────────────────────── */
 @media (max-width: 560px) {
+  body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .wrap { padding: 0 16px; }
+
+  .top-banner { min-height: 44px; font-size: 14px; gap: 6px; }
   .tb-sub { display: none; }
-  .grid { grid-template-columns: 1fr 1fr; gap: 20px 12px; }
-  .thumb .big { font-size: 24px; }
-  .thumb { padding: 14px; }
-  .banner h2 { font-size: 22px; }
+
+  .header-in { height: 56px; }
+  .tabs { top: 56px; }
+  .logo svg { height: 34px; }
+  .logo-sub { display: none; }
   .pill-btn { display: none; }
-  .conditions { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .cond, .toggle { flex: none; }
+
+  .carousel { grid-auto-columns: 84vw; gap: 12px; padding: 0 16px; scroll-padding-inline: 16px; }
+  .banner { aspect-ratio: 16 / 11; padding: 20px; }
+  .banner h2 { font-size: 24px; }
+  .banner p { font-size: 13px; }
+
+  .tabs-in { gap: 18px; }
+  .tab { font-size: 15px; }
+
+  /* 조건 칩: 한 줄 가로 스크롤 + 오른쪽 끝 흐림 처리 */
+  .conditions { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-right: 32px;
+    mask-image: linear-gradient(90deg, #000 85%, transparent); }
+  .conditions::-webkit-scrollbar { display: none; }
+  .conditions { padding-bottom: 8px; }
+  .cond, .toggle { flex: none; height: 40px; }
+  .cond input[type="month"] { width: 150px; }
+  .results { padding-top: 16px; }
+  .cond select, .cond input, .ask input { font-size: 16px; }   /* iOS 입력 시 화면 확대 방지 */
+
+  /* 동네 카드: 사진 왼쪽 + 정보 오른쪽 가로형 */
+  .grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .place { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: start;
+    padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .thumb { aspect-ratio: 1 / 1; padding: 10px; }
+  .thumb .coord, .thumb .price { display: none; }
+  .thumb .big { font-size: 22px; margin-top: auto; }
+  .thumb.has-photo .big { display: none; }   /* 사진이 있으면 이름은 오른쪽 정보에만 */
+  .ribbon { right: 8px; width: 26px; font-size: 12px; padding: 5px 0 9px; }
+  .place-body { padding-top: 0; }
+  .place-title h4 { font-size: 16px; }
+  .place-price { display: block; margin-top: 2px; font-size: 17px; font-weight: 800; color: var(--tangerine); font-variant-numeric: tabular-nums; }
+  .place-line { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .tags { font-size: 12px; gap: 2px 8px; }
+  .tier { display: none; }
+  .credit { font-size: 10px; }
+
+  .sheet { height: 92vh; }
+  .examples { padding: 4px 16px 12px; }
+  .msgs { padding: 4px 16px 12px; }
 }
