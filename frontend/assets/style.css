@@ -59,8 +59,10 @@ button { cursor: pointer; background: none; border: 0; }
 .header { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
 .header-in { display: flex; align-items: center; justify-content: space-between; height: 64px; }
 .header-left, .header-right { display: flex; align-items: center; gap: 6px; }
-.logo { font-size: 24px; font-weight: 800; letter-spacing: -0.04em; margin-left: 6px; }
-.logo .accent { color: var(--moss); }
+.logo { display: inline-flex; align-items: flex-end; gap: 8px; margin-left: 6px; color: #2b2f31; }
+[data-theme="dark"] .logo { color: #ecebe4; }
+.logo svg { height: 44px; width: auto; display: block; }
+.logo-sub { font-size: 12px; font-weight: 600; color: var(--muted); padding-bottom: 2px; letter-spacing: -0.02em; }
 .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; }
 .icon-btn:hover { background: var(--surface); }
 .pill-btn { padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; font-weight: 700; background: var(--card); }
@@ -80,10 +82,10 @@ button { cursor: pointer; background: none; border: 0; }
   overflow: hidden; padding: 24px; display: flex; flex-direction: column; justify-content: flex-end;
   color: #fff; text-align: left; cursor: pointer;
 }
-.banner .eyebrow { font-size: 13px; font-weight: 700; opacity: .85; margin-bottom: 8px; position: relative; }
+.banner .eyebrow { font-size: 13px; font-weight: 600; opacity: .8; letter-spacing: 0; margin-bottom: 8px; position: relative; }
 .banner h2 { font-size: 24px; line-height: 1.3; font-weight: 800; white-space: pre-line; letter-spacing: -0.03em; position: relative; }
 .banner p { font-size: 14px; margin-top: 10px; opacity: .85; font-weight: 500; position: relative; }
-.banner .deco { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.banner .deco { position: absolute; top: 0; right: 0; width: 64%; height: 62%; pointer-events: none; }
 .tone-tangerine { background: #e8792b; }
 .tone-moss { background: #5e7d4a; }
 .tone-basalt { background: #2b2f31; }

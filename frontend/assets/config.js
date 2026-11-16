@@ -1,46 +1,48 @@
-// 화면 문구·배너는 여기서만 고치면 됩니다. (서비스 이름 확정 전 가칭)
+// 화면 문구·배너는 여기서만 고친다.
 window.APP_CONFIG = {
-  name: { main: "제주살이", accent: "메이트" },
+  name: "숨비",
   apiBase: "",
 
-  // 맨 위 한 줄 띠 배너 (노트폴리오 상단 광고 자리)
+  // 맨 위 한 줄 띠 배너 (노트폴리오 상단 광고 자리) → 제주愛인 메인
   topBanner: {
     tag: "제주愛인",
-    text: "청년 제주 한달살이 지원 확인하기",
-    sub: "만 19~39세 · 최대 30만 원",
-    url: "https://www.jeju.go.kr/move/intro/list.htm?act=view&seq=1153232",
+    text: "제주 한달살이 지원 확인하기",
+    sub: "제주도 이주·체류 지원 안내",
+    url: "https://www.jeju.go.kr/move/index.htm",
   },
 
   // 가로 스크롤 배너 카드
+  //  eyebrow: 기능 설명(작은 글씨) / title: 메인 문장(큰 글씨, 줄바꿈 \n) / sub: 근거·조건
+  //  art: gyul(귤) | hareubang(돌하르방) | hallasan(한라산) | dotdam(돌담·초가)  — app.js 의 ART
   //  action: { type: "link", url } | { type: "ask", text } (Agent에게 질문) | { type: "preset", conditions }
   //  tone: tangerine | moss | basalt | sea | sand  (style.css 의 .tone-*)
   banners: [
     {
-      tone: "tangerine",
-      eyebrow: "청춘 정거장 in 제주",
-      title: "읍·면에 묵으면\n1박에 1만 원 지원",
-      sub: "도외 청년 · 14일 이상 체류 시 최대 30만 원 (2026년 5~11월)",
-      action: { type: "link", url: "https://www.jeju.go.kr/move/intro/list.htm?act=view&seq=1153232" },
+      tone: "tangerine", art: "gyul",
+      eyebrow: "제주愛인 · 청춘 정거장",
+      title: "읍·면 숙소에 묵으면\n1박에 1만 원",
+      sub: "도외 청년 · 14일 이상 체류 · 최대 30만 원",
+      action: { type: "link", url: "https://www.jeju.go.kr/move/index.htm" },
     },
     {
-      tone: "moss",
-      eyebrow: "물어보면 계산해요",
-      title: "1월에 석 달, 둘이서.\n어디가 제일 덜 들까?",
-      sub: "숙소·렌터카·식비·난방비까지 동네별로",
+      tone: "moss", art: "hareubang",
+      eyebrow: "말로 묻기",
+      title: "1월부터 석 달, 둘이서.\n제일 덜 드는 동네는",
+      sub: "숙소·렌터카·식비·난방비 합계 비교",
       action: { type: "ask", text: "1월부터 3개월, 둘이서, 차 없이, 원격근무, 월 300 이내" },
     },
     {
-      tone: "basalt",
-      eyebrow: "겨울 한 달이라면",
-      title: "1월 햇볕은\n남쪽이 두 배 길어요",
-      sub: "1월 일조 서귀포 154시간 · 제주시 70시간",
+      tone: "basalt", art: "hallasan",
+      eyebrow: "겨울 한 달",
+      title: "1월 볕은\n남쪽이 두 배",
+      sub: "1월 일조 시간 · 서귀포 154h · 제주시 70h",
       action: { type: "preset", conditions: { days: 30, start_month: 1 } },
     },
     {
-      tone: "sea",
-      eyebrow: "반년 넘게 있을 거라면",
-      title: "단기숙소 말고\n연세도 같이 따져봐요",
-      sub: "체류 기간을 바꾸면 숙소 형태별로 다시 계산해요",
+      tone: "sea", art: "dotdam",
+      eyebrow: "반년 이상 머문다면",
+      title: "단기숙소 대신\n연세라면 얼마",
+      sub: "체류 기간별 숙소비 비교",
       action: { type: "preset", conditions: { days: 180 } },
     },
   ],

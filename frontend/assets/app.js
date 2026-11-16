@@ -17,9 +17,6 @@ const state = { zone: "", last: null, toggles: { with_kids: false, remote_work: 
 
 // ① 초기화 ─────────────────────────────────────────
 function init() {
-  $("#logo-main").textContent = CFG.name.main;
-  $("#logo-accent").textContent = CFG.name.accent;
-
   const tb = CFG.topBanner;
   $("#top-banner").href = tb.url;
   $("#nav-support").href = tb.url;
@@ -76,7 +73,7 @@ function renderBanners() {
   const el = $("#carousel");
   el.innerHTML = CFG.banners.map((b, i) => `
     <button class="banner tone-${b.tone}" data-i="${i}">
-      ${bannerDeco(b.tone)}
+      ${ART[b.art] || ""}
       <span class="eyebrow">${escapeHtml(b.eyebrow)}</span>
       <h2>${escapeHtml(b.title)}</h2>
       <p>${escapeHtml(b.sub)}</p>
@@ -90,14 +87,62 @@ function renderBanners() {
   }, { passive: true });
 }
 
-// 배너 장식: 오름 실루엣과 해 — 색만 바꿔 반복하는 단순한 도형
-function bannerDeco(tone) {
-  return `<svg class="deco" viewBox="0 0 400 300" preserveAspectRatio="xMaxYMin slice" aria-hidden="true">
-    <path d="M150 150 Q260 30 370 150Z" fill="#fff" opacity=".10"/>
-    <path d="M250 160 Q330 80 430 160Z" fill="#fff" opacity=".08"/>
-    <circle cx="340" cy="62" r="22" fill="${tone === "basalt" ? "#f29b4b" : "#fff"}" opacity="${tone === "basalt" ? ".95" : ".22"}"/>
-  </svg>`;
-}
+// 배너 일러스트 — 제주 상징을 단순한 도형으로 직접 그림 (오른쪽 위에 배치)
+const ART = {
+  // 귤 두 알과 잎
+  gyul: `<svg class="deco" viewBox="0 0 400 300" preserveAspectRatio="xMaxYMin meet" aria-hidden="true">
+    <g transform="translate(266 104)">
+      <circle r="52" fill="#f6a65e"/><circle r="52" fill="url(#gyulShade)"/>
+      <g fill="#e07b24" opacity=".55"><circle cx="-18" cy="-6" r="2.4"/><circle cx="6" cy="14" r="2.2"/><circle cx="20" cy="-18" r="2"/><circle cx="-6" cy="28" r="2"/><circle cx="26" cy="12" r="2.2"/><circle cx="-28" cy="18" r="1.8"/></g>
+      <path d="M0 -50 q4 -10 2 -18" stroke="#3f5a30" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M2 -64 C 24 -86, 58 -78, 64 -60 C 40 -50, 16 -52, 2 -64 Z" fill="#5e7d4a"/>
+      <path d="M8 -62 C 26 -68, 44 -66, 58 -60" stroke="#3f5a30" stroke-width="2" fill="none" opacity=".6"/>
+    </g>
+    <g transform="translate(192 166)"><circle r="30" fill="#f8b673"/><circle cx="-8" cy="-4" r="1.8" fill="#e07b24" opacity=".5"/><circle cx="9" cy="8" r="1.6" fill="#e07b24" opacity=".5"/><path d="M0 -29 q2 -6 1 -10" stroke="#3f5a30" stroke-width="4" stroke-linecap="round"/></g>
+    <defs><radialGradient id="gyulShade" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#c85f15" stop-opacity=".35"/></radialGradient></defs>
+  </svg>`,
+
+  // 돌하르방: 벙거지 모자, 툭 튀어나온 눈, 큰 코, 배 위에 얹은 두 손
+  hareubang: `<svg class="deco" viewBox="0 0 400 300" preserveAspectRatio="xMaxYMin meet" aria-hidden="true">
+    <g transform="translate(300 22)" fill="#2b2f31">
+      <path d="M-46 40 C -46 6, 46 6, 46 40 Z"/>
+      <rect x="-54" y="36" width="108" height="12" rx="6"/>
+      <path d="M-42 48 C -50 110, -46 170, -40 200 L 40 200 C 46 170, 50 110, 42 48 Z"/>
+      <g fill="#4a5052"><circle cx="-18" cy="70" r="11"/><circle cx="18" cy="70" r="11"/></g>
+      <g fill="#7c8384"><circle cx="-16" cy="68" r="4"/><circle cx="20" cy="68" r="4"/></g>
+      <rect x="-9" y="74" width="18" height="34" rx="9" fill="#4a5052"/>
+      <path d="M-14 120 q14 6 28 0" stroke="#4a5052" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <rect x="-40" y="140" width="46" height="14" rx="7" fill="#4a5052"/>
+      <rect x="-4" y="158" width="44" height="14" rx="7" fill="#4a5052"/>
+      <g fill="#3a3f40" opacity=".9"><circle cx="-30" cy="96" r="2"/><circle cx="30" cy="104" r="2.2"/><circle cx="-26" cy="186" r="2"/><circle cx="24" cy="184" r="1.8"/><circle cx="-8" cy="30" r="1.8"/><circle cx="18" cy="24" r="1.6"/></g>
+    </g>
+  </svg>`,
+
+  // 한라산 능선 + 흰 눈 + 감귤빛 해
+  hallasan: `<svg class="deco" viewBox="0 0 400 300" preserveAspectRatio="xMaxYMin meet" aria-hidden="true">
+    <circle cx="328" cy="56" r="26" fill="#f29b4b"/>
+    <path d="M120 170 C 190 120, 230 82, 262 78 C 286 76, 300 86, 330 108 C 360 130, 390 150, 420 170 Z" fill="#3c4244"/>
+    <path d="M232 96 C 246 84, 256 78, 264 78 C 280 77, 292 84, 306 96 C 296 100, 290 94, 282 100 C 272 92, 262 102, 252 96 C 244 102, 238 98, 232 96 Z" fill="#ecebe4"/>
+    <path d="M150 170 Q 190 150 230 160 Q 270 148 310 162 Q 350 150 420 168 L 420 176 L 150 176 Z" fill="#4a5052"/>
+  </svg>`,
+
+  // 현무암 돌담과 초가
+  dotdam: `<svg class="deco" viewBox="0 0 400 300" preserveAspectRatio="xMaxYMin meet" aria-hidden="true">
+    <g transform="translate(210 46)">
+      <path d="M20 58 C 40 20, 120 14, 150 58 Z" fill="#c9b78f"/>
+      <path d="M30 46 Q 85 36 140 46 M44 34 Q 85 26 126 34" stroke="#a8946b" stroke-width="2.5" fill="none"/>
+      <rect x="34" y="56" width="104" height="44" fill="#ece3cf"/>
+      <rect x="74" y="70" width="22" height="30" fill="#7a6a4f"/>
+    </g>
+    <g fill="#2b2f31">
+      <ellipse cx="200" cy="164" rx="22" ry="15"/><ellipse cx="242" cy="160" rx="20" ry="17"/><ellipse cx="284" cy="165" rx="24" ry="14"/>
+      <ellipse cx="326" cy="161" rx="19" ry="16"/><ellipse cx="366" cy="164" rx="23" ry="15"/><ellipse cx="404" cy="161" rx="18" ry="15"/>
+      <ellipse cx="220" cy="136" rx="20" ry="14"/><ellipse cx="262" cy="134" rx="22" ry="15"/><ellipse cx="305" cy="137" rx="19" ry="13"/>
+      <ellipse cx="346" cy="134" rx="22" ry="15"/><ellipse cx="388" cy="136" rx="20" ry="14"/>
+    </g>
+    <g fill="#5f6567"><circle cx="196" cy="160" r="2.4"/><circle cx="248" cy="156" r="2"/><circle cx="290" cy="162" r="2.2"/><circle cx="330" cy="158" r="2"/><circle cx="226" cy="132" r="2"/><circle cx="268" cy="130" r="2.2"/><circle cx="350" cy="131" r="2"/><circle cx="370" cy="162" r="2.2"/></g>
+  </svg>`,
+};
 
 function bannerAction(a) {
   if (a.type === "link") window.open(a.url, "_blank", "noopener");

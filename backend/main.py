@@ -16,7 +16,7 @@ from backend.agent import run_agent
 from backend.tools.data_loader import data_is_dummy
 from backend.tools.region import list_regions, rank_regions
 
-app = FastAPI(title="제주 한달살이 코파일럿 (가칭)")
+app = FastAPI(title="숨비 — 제주 한달살이 동네 비교")
 
 
 class EstimateRequest(BaseModel):
