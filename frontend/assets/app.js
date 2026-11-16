@@ -1,21 +1,33 @@
 // 프론트엔드 로직 (빌드 도구 없는 바닐라 JS)
-// 구성: ① 초기화  ② 폼 → /api/estimate  ③ 대화 → /api/chat  ④ 결과 카드 렌더링
-// TODO[FRONT]: 지도(카카오/Leaflet) 위에 결과 표시, 카드 클릭 시 상세 모달, 기간별 비용 비교 차트
+// ① 초기화(배너·탭·조건)  ② 조건 바 → /api/estimate (바꿀 때마다 자동 재계산)
+// ③ Agent 시트 → /api/chat  ④ 카드 렌더링
+// TODO[FRONT]: 지도 탭(카카오/Leaflet), 카드 클릭 시 상세 시트, 기간별 비용 비교 차트
 
 const CFG = window.APP_CONFIG;
-const $ = (s) => document.querySelector(s);
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
 // window.STATIC_DEMO 가 있으면(노션 임베드용 정적 데모) 서버 대신 미리 계산된 결과를 쓴다 — scripts/build_static_demo.py
 const api = (path, body) => window.STATIC_DEMO ? Promise.resolve(window.STATIC_DEMO.handle(path, body)) :
   fetch(CFG.apiBase + path, body ? {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   } : undefined).then(async (r) => { if (!r.ok) throw new Error(await r.text()); return r.json(); });
 
+const state = { zone: "", last: null, toggles: { with_kids: false, remote_work: false, prefer_quiet: false } };
+
 // ① 초기화 ─────────────────────────────────────────
 function init() {
   $("#logo-main").textContent = CFG.name.main;
   $("#logo-accent").textContent = CFG.name.accent;
-  $("#tagline").textContent = CFG.tagline;
-  $("#hero-chip").textContent = CFG.heroChip;
+
+  const tb = CFG.topBanner;
+  $("#top-banner").href = tb.url;
+  $("#nav-support").href = tb.url;
+  $("#tb-tag").textContent = tb.tag;
+  $("#tb-text").textContent = tb.text;
+  $("#tb-sub").textContent = tb.sub;
+
+  renderBanners();
 
   const saved = safeGet("theme");
   if (saved) document.documentElement.dataset.theme = saved;
@@ -25,78 +37,125 @@ function init() {
     safeSet("theme", next);
   };
 
-  const d = new Date(); d.setMonth(d.getMonth() + 1, 1);   // 기본값: 다음 달 1일 (로컬 시간 기준)
-  $("#start").value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+  const d = new Date(); d.setMonth(d.getMonth() + 1, 1);  // 기본: 다음 달
+  $("#c-month").value = ym(d);
 
-  document.querySelectorAll(".chip[data-group]").forEach((el) => el.onclick = () => {
-    document.querySelectorAll(`.chip[data-group="${el.dataset.group}"]`).forEach((c) => c.setAttribute("aria-pressed", "false"));
-    el.setAttribute("aria-pressed", "true");
+  $$("#conditions select, #conditions input").forEach((el) => el.addEventListener("change", runEstimate));
+  $$(".toggle").forEach((el) => {
+    el.setAttribute("aria-pressed", "false");
+    el.onclick = () => {
+      const k = el.dataset.toggle;
+      state.toggles[k] = !state.toggles[k];
+      el.setAttribute("aria-pressed", String(state.toggles[k]));
+      runEstimate();
+    };
   });
-  document.querySelectorAll(".chip[data-toggle]").forEach((el) => el.onclick = () =>
-    el.setAttribute("aria-pressed", el.getAttribute("aria-pressed") === "true" ? "false" : "true"));
-
-  $("#examples").innerHTML = CFG.examples.map((e) => `<button class="chip">${e}</button>`).join("");
-  $("#examples").querySelectorAll(".chip").forEach((b) => b.onclick = () => { $("#chat-text").value = b.textContent; sendChat(); });
-
-  $("#estimate-btn").onclick = runEstimate;
-  $("#chat-send").onclick = sendChat;
-  $("#chat-text").addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendChat(); }
+  $$(".tab").forEach((t) => t.onclick = () => {
+    $$(".tab").forEach((x) => x.classList.toggle("active", x === t));
+    state.zone = t.dataset.zone;
+    if (state.last) renderResults(state.last, $("#results-title").textContent);
   });
 
-  api("/api/regions").then((r) => $("#region-count").textContent = r.length).catch(() => {});
+  // Agent 시트
+  $$("[data-open-agent]").forEach((b) => b.onclick = (e) => { e.preventDefault(); openSheet(); });
+  $("#sheet-close").onclick = closeSheet;
+  $("#sheet-backdrop").onclick = closeSheet;
+  $("#examples").innerHTML = CFG.examples.map((e) => `<button type="button">${escapeHtml(e)}</button>`).join("");
+  $$("#examples button").forEach((b) => b.onclick = () => ask(b.textContent));
+  $("#ask").onsubmit = (e) => { e.preventDefault(); ask($("#ask-text").value); };
+
   api("/api/health").then((h) => {
-    $("#mode-label").textContent = h.agent_mode === "claude" ? "Claude Agent" : "데모 모드 (API 키 없음)";
-    if (h.dummy_data) $("#notice").innerHTML = `<div class="notice">⚠️ 지금은 <b>더미 데이터</b>로 동작 중이에요. 숫자는 화면 확인용이에요.</div>`;
+    $("#mode-label").textContent = h.agent_mode === "claude" ? "Claude" : "데모 모드";
+    if (h.dummy_data) $("#data-note").textContent = "지금은 더미 데이터예요";
   }).catch(() => {});
+
+  runEstimate();
 }
 
-// ② 폼 경로 ────────────────────────────────────────
-function readForm() {
-  const pressed = (sel) => document.querySelector(sel)?.getAttribute("aria-pressed") === "true";
-  const budget = parseInt($("#budget").value, 10);
+function renderBanners() {
+  const el = $("#carousel");
+  el.innerHTML = CFG.banners.map((b, i) => `
+    <button class="banner tone-${b.tone}" data-i="${i}">
+      ${bannerDeco(b.tone)}
+      <span class="eyebrow">${escapeHtml(b.eyebrow)}</span>
+      <h2>${escapeHtml(b.title)}</h2>
+      <p>${escapeHtml(b.sub)}</p>
+    </button>`).join("");
+  $("#dots").innerHTML = CFG.banners.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("");
+  $$(".banner", el).forEach((b) => b.onclick = () => bannerAction(CFG.banners[b.dataset.i].action));
+  el.addEventListener("scroll", () => {
+    const w = el.firstElementChild.getBoundingClientRect().width + 16;
+    const idx = Math.round(el.scrollLeft / w);
+    $$("#dots i").forEach((d, i) => d.classList.toggle("on", i === idx));
+  }, { passive: true });
+}
+
+// 배너 장식: 오름 실루엣과 해 — 색만 바꿔 반복하는 단순한 도형
+function bannerDeco(tone) {
+  return `<svg class="deco" viewBox="0 0 400 300" preserveAspectRatio="xMaxYMin slice" aria-hidden="true">
+    <path d="M150 150 Q260 30 370 150Z" fill="#fff" opacity=".10"/>
+    <path d="M250 160 Q330 80 430 160Z" fill="#fff" opacity=".08"/>
+    <circle cx="340" cy="62" r="22" fill="${tone === "basalt" ? "#f29b4b" : "#fff"}" opacity="${tone === "basalt" ? ".95" : ".22"}"/>
+  </svg>`;
+}
+
+function bannerAction(a) {
+  if (a.type === "link") window.open(a.url, "_blank", "noopener");
+  else if (a.type === "ask") { openSheet(); ask(a.text); }
+  else if (a.type === "preset") {
+    const c = a.conditions;
+    if (c.days) $("#c-days").value = String(c.days);
+    if (c.start_month) {
+      const now = new Date();
+      const y = c.start_month <= now.getMonth() + 1 ? now.getFullYear() + 1 : now.getFullYear();
+      $("#c-month").value = `${y}-${String(c.start_month).padStart(2, "0")}`;
+    }
+    runEstimate();
+    $("#conditions").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+// ② 조건 바 → 계산 ──────────────────────────────────
+function readConditions() {
+  const budget = parseInt($("#c-budget").value, 10);
+  const m = $("#c-month").value;
   return {
-    start_date: $("#start").value || null,
-    days: parseInt($("#days").value, 10),
-    people: parseInt($("#people").value, 10),
-    car: document.querySelector('.chip[data-group="car"][aria-pressed="true"]').dataset.value === "true",
-    budget_total: Number.isFinite(budget) && budget > 0 ? budget : null,
-    with_kids: pressed('[data-toggle="with_kids"]'),
-    remote_work: pressed('[data-toggle="remote_work"]'),
-    prefer_quiet: pressed('[data-toggle="prefer_quiet"]'),
+    start_date: m ? `${m}-01` : null,
+    days: +$("#c-days").value,
+    people: +$("#c-people").value,
+    car: $("#c-car").value === "true",
+    budget_total: budget > 0 ? budget : null,
+    ...state.toggles,
   };
 }
 
 async function runEstimate() {
-  const btn = $("#estimate-btn");
-  btn.disabled = true; btn.textContent = "계산 중…";
   try {
-    renderResults(await api("/api/estimate", { conditions: readForm(), top_k: 6 }));
-    $("#results").scrollIntoView({ behavior: "smooth" });
+    renderResults(await api("/api/estimate", { conditions: readConditions(), top_k: 14 }));
   } catch (e) {
-    $("#result-grid").innerHTML = `<div class="empty card">계산에 실패했어요: ${escapeHtml(e.message)}</div>`;
-  } finally {
-    btn.disabled = false; btn.textContent = "🔍 동네 비교하기";
+    $("#grid").innerHTML = `<p class="empty">계산하지 못했어요. ${escapeHtml(e.message)}</p>`;
   }
 }
 
-// ③ 대화 경로 ──────────────────────────────────────
-async function sendChat() {
-  const text = $("#chat-text").value.trim();
+// ③ Agent ─────────────────────────────────────────
+function openSheet() { document.body.classList.add("sheet-open"); $("#sheet").setAttribute("aria-hidden", "false"); setTimeout(() => $("#ask-text").focus(), 200); }
+function closeSheet() { document.body.classList.remove("sheet-open"); $("#sheet").setAttribute("aria-hidden", "true"); }
+
+async function ask(text) {
+  text = (text || "").trim();
   if (!text) return;
-  $("#chat-text").value = "";
+  $("#ask-text").value = "";
   addMsg("user", text);
-  const loading = addMsg("bot loading", "동네별 비용을 계산하고 있어요…");
+  const loading = addMsg("bot loading", "계산하고 있어요…");
   try {
     const res = await api("/api/chat", { message: text });
     loading.remove();
     const el = addMsg("bot", "");
     el.innerHTML = mdLite(res.answer);
-    if (res.trace?.length) el.insertAdjacentHTML("beforeend",
-      `<div class="trace">🔧 사용한 도구: ${res.trace.map((t) => t.tool).join(" → ")}</div>`);
-    if (res.ranked) renderResults(res.ranked);
+    if (res.trace?.length) el.insertAdjacentHTML("beforeend", `<div class="trace">사용한 도구 · ${res.trace.map((t) => t.tool).join(" → ")}</div>`);
+    if (res.ranked) renderResults(res.ranked, "물어본 조건으로 본 동네");
   } catch (e) {
-    loading.textContent = "오류가 났어요: " + e.message;
+    loading.textContent = "답을 만들지 못했어요. " + e.message;
   }
 }
 
@@ -109,42 +168,53 @@ function addMsg(cls, text) {
   return el;
 }
 
-// ④ 결과 렌더링 ────────────────────────────────────
-function renderResults(data) {
-  const grid = $("#result-grid");
-  if (!data.results.length) {
-    const near = data.over_budget.slice(0, 3).map((o) => `${o.name} ${won(o.total)}`).join(", ");
-    grid.innerHTML = `<div class="empty card">예산 안에 맞는 동네가 없어요.${near ? "<br/>가장 가까운 곳: " + near : ""}</div>`;
+// ④ 카드 렌더링 ────────────────────────────────────
+function renderResults(data, title = "이번 조건으로 본 동네") {
+  state.last = data;
+  $("#results-title").textContent = title;
+  const list = data.results
+    .map((r, i) => ({ ...r, rank: i + 1 }))
+    .filter((r) => !state.zone || r.zone === state.zone);
+  if (!list.length) {
+    const near = (data.over_budget || []).slice(0, 3).map((o) => `${o.name} ${won(o.total)}원`).join(", ");
+    $("#grid").innerHTML = `<p class="empty">${data.results.length ? "이 권역엔 조건에 맞는 동네가 없어요." : "예산 안에 드는 동네가 없어요."}${near ? `<br/>가장 가까운 곳 · ${near}` : ""}</p>`;
     return;
   }
-  grid.innerHTML = data.results.map((r, i) => regionCard(r, i)).join("");
+  $("#grid").innerHTML = list.map(placeCard).join("");
 }
 
-function regionCard(r, i) {
+function placeCard(r) {
   const c = r.cost;
   const items = Object.entries(c.breakdown);
   const sum = items.reduce((a, [, v]) => a + v, 0) || 1;
+  const coord = r.lat ? `${(+r.lat).toFixed(2)}°N ${(+r.lon).toFixed(2)}°E` : r.zone;
+  const short = r.name.replace(/(읍|면)$/, "");
   return `
-  <article class="card region-card">
-    <div class="rank">추천 ${i + 1}위 · 적합도 ${r.score}</div>
-    <h4>${r.name}</h4><div class="zone">${r.zone}</div>
-    <div class="price"><b>${won(c.range[0])}~${won(c.range[1])}</b> <small>총 ${c.conditions.days}일 · 월 ${won(c.per_month)}</small></div>
-    <div class="bar">${items.map(([, v]) => `<i style="width:${(v / sum) * 100}%"></i>`).join("")}</div>
-    <div class="legend">${items.map(([k, v]) => `<span>${k} ${won(v)}</span>`).join("")}</div>
-    <div class="tier">숙소 형태: ${c.tier}${c.alternatives.length ? ` (비교: ${c.alternatives[0].tier} ${won(c.alternatives[0].lodging)})` : ""}</div>
-    <div class="badges">
-      ${r.badges.map((b) => `<span class="badge">${b}</span>`).join("")}
-      ${r.warnings.map((w) => `<span class="badge warn">${w}</span>`).join("")}
+  <article class="place">
+    <div class="thumb zone-${r.zone}">
+      ${r.rank <= 3 ? `<span class="ribbon">${r.rank}</span>` : ""}
+      <span class="coord">${coord}</span>
+      <span class="big">${escapeHtml(short)}</span>
+      <span class="price"><b>${won(c.range[0])}~${won(c.range[1])}</b>원</span>
+    </div>
+    <div class="place-body">
+      <div class="place-title"><h4>${escapeHtml(r.name)}</h4><span class="zone">${r.zone}</span></div>
+      <div class="place-line">${c.conditions.days}일 · 월 ${won(c.per_month)}원 · ${items.map(([k, v]) => `${k} ${v}`).join(" · ")} (만원)</div>
+      <div class="bar">${items.map(([, v]) => `<i style="width:${(v / sum) * 100}%"></i>`).join("")}</div>
+      <div class="tags">
+        ${r.badges.map((b) => `<span class="good">${b}</span>`).join("")}
+        ${r.warnings.map((w) => `<span class="warn">${w}</span>`).join("")}
+      </div>
+      <div class="tier">${c.tier} 기준${c.alternatives.length ? ` · ${c.alternatives[0].tier}이면 숙소 ${won(c.alternatives[0].lodging)}원` : ""}</div>
     </div>
   </article>`;
 }
 
 // ── 유틸 ──
 const won = (v) => `${Number(v).toLocaleString()}만`;
+const ym = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-function mdLite(s) { // **굵게**, _기울임_ 정도만 지원
-  return escapeHtml(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|\s)_(.+?)_(\s|$)/g, "$1<i>$2</i>$3");
-}
+function mdLite(s) { return escapeHtml(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|\s)_(.+?)_(\s|$)/g, "$1<i>$2</i>$3"); }
 function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
 function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 

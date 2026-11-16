@@ -38,7 +38,7 @@ def slim(ranked: dict) -> dict:
     for r in ranked["results"]:
         c = {k: r["cost"][k] for k in keep_cost}
         c["conditions"] = {"days": r["cost"]["conditions"]["days"]}
-        out["results"].append({k: r[k] for k in ("name", "zone", "score", "badges", "warnings")} | {"cost": c})
+        out["results"].append({k: r[k] for k in ("name", "zone", "score", "badges", "warnings", "lat", "lon")} | {"cost": c})
     return out
 
 

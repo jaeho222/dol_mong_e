@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,152 +9,120 @@
   <script src="assets/config.js"></script>
 </head>
 <body>
+  <!-- 아이콘: Lucide (ISC License, https://lucide.dev) 경로를 인라인 스프라이트로 사용 -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+      <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z"/></symbol>
+      <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></symbol>
+      <symbol id="i-message" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+      <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></symbol>
+      <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+      <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    </defs>
+  </svg>
+
+  <!-- ① 상단 띠 배너 -->
+  <a class="top-banner" id="top-banner" target="_blank" rel="noopener">
+    <span class="tb-tag" id="tb-tag"></span>
+    <span class="tb-text" id="tb-text"></span>
+    <span class="tb-sub" id="tb-sub"></span>
+    <svg class="ico sm"><use href="#i-chevron"/></svg>
+  </a>
+
+  <!-- ② 헤더 -->
   <header class="header">
-    <div class="container">
-      <a class="logo" href="#"><span id="logo-main">제주살이</span><span class="a" id="logo-accent">메이트</span></a>
-      <div class="header-actions">
-        <button class="icon-btn" id="theme-toggle" title="테마 전환">🌗</button>
+    <div class="wrap header-in">
+      <div class="header-left">
+        <button class="icon-btn" aria-label="메뉴"><svg class="ico"><use href="#i-menu"/></svg></button>
+        <a class="logo" href="#"><span id="logo-main"></span><span class="accent" id="logo-accent"></span></a>
+      </div>
+      <div class="header-right">
+        <button class="pill-btn" data-open-agent>물어보기</button>
+        <button class="icon-btn" id="theme-toggle" aria-label="테마 전환"><svg class="ico"><use href="#i-moon"/></svg></button>
+        <button class="icon-btn" data-open-agent aria-label="검색"><svg class="ico"><use href="#i-search"/></svg></button>
       </div>
     </div>
   </header>
 
-  <main class="container">
-    <!-- ── Hero ── -->
-    <section class="hero">
-      <div class="hero-visual">
-        <!-- 제주 풍경 일러스트: 한라산·오름·바다·현무암 돌담·귤나무 (직접 그린 SVG) -->
-        <svg viewBox="0 0 800 380" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <defs>
-            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#f6e2c6"/><stop offset=".55" stop-color="#e9d9c2"/><stop offset="1" stop-color="#d7dccb"/>
-            </linearGradient>
-            <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#6fa6a1"/><stop offset="1" stop-color="#3f7775"/>
-            </linearGradient>
-            <pattern id="stones" width="46" height="30" patternUnits="userSpaceOnUse">
-              <rect width="46" height="30" fill="#2b2e2f"/>
-              <ellipse cx="12" cy="9" rx="11" ry="7" fill="#3b3f40"/>
-              <ellipse cx="34" cy="11" rx="10" ry="8" fill="#353939"/>
-              <ellipse cx="22" cy="24" rx="12" ry="6" fill="#404445"/>
-              <circle cx="8" cy="8" r="1.4" fill="#25292a"/><circle cx="37" cy="9" r="1.2" fill="#25292a"/><circle cx="26" cy="24" r="1.3" fill="#25292a"/>
-            </pattern>
-          </defs>
-          <rect width="800" height="380" fill="url(#sky)"/>
-          <circle cx="640" cy="88" r="34" fill="#f7b56b" opacity=".85"/>
-          <!-- 한라산 -->
-          <path d="M0 230 Q180 150 330 120 Q400 108 470 122 Q620 152 800 220 L800 260 L0 260Z" fill="#9db08c" opacity=".55"/>
-          <!-- 오름들 -->
-          <path d="M-20 255 Q70 190 160 255Z" fill="#7f9a6b"/>
-          <path d="M120 258 Q230 170 340 258Z" fill="#8aa876"/>
-          <path d="M520 258 Q600 200 690 258Z" fill="#7f9a6b"/>
-          <path d="M640 260 Q730 214 820 260Z" fill="#6f8f5c"/>
-          <!-- 바다 -->
-          <rect y="252" width="800" height="50" fill="url(#sea)"/>
-          <path d="M0 270 Q40 264 80 270 T160 270 T240 270 T320 270 T400 270 T480 270 T560 270 T640 270 T720 270 T800 270" stroke="#cfe3df" stroke-width="2" fill="none" opacity=".6"/>
-          <!-- 들판 + 귤나무 -->
-          <rect y="296" width="800" height="90" fill="#6f8f5c"/>
-          <g>
-            <circle cx="90" cy="300" r="22" fill="#4f6d40"/><circle cx="80" cy="296" r="3.5" fill="#f29b4b"/><circle cx="98" cy="306" r="3.5" fill="#f29b4b"/><circle cx="92" cy="292" r="3" fill="#f29b4b"/>
-            <circle cx="720" cy="302" r="24" fill="#4f6d40"/><circle cx="710" cy="296" r="3.5" fill="#f29b4b"/><circle cx="728" cy="308" r="3.5" fill="#f29b4b"/><circle cx="734" cy="294" r="3" fill="#f29b4b"/>
-          </g>
-          <!-- 현무암 돌담 -->
-          <path d="M0 330 Q200 318 400 326 T800 322 L800 380 L0 380Z" fill="url(#stones)"/>
-        </svg>
-        <span class="hero-chip" id="hero-chip">STAY A LITTLE WHILE</span>
-        <div class="hero-caption">
-          <div class="ico">🍊</div>
-          <div><b id="tagline">잠깐 쉬어갈 제주, 얼마면 될까?</b><span>조건만 말하면 동네별 총비용을 계산해 드려요.</span></div>
-        </div>
+  <main>
+    <!-- ③ 배너 캐러셀 -->
+    <section class="carousel-wrap">
+      <div class="carousel" id="carousel"></div>
+      <div class="dots" id="dots"></div>
+    </section>
+
+    <!-- ④ 권역 탭 -->
+    <nav class="tabs" id="tabs">
+      <div class="wrap tabs-in">
+        <button class="tab active" data-zone="">전체</button>
+        <button class="tab" data-zone="제주시권">제주시</button>
+        <button class="tab" data-zone="서부">서부</button>
+        <button class="tab" data-zone="동부">동부</button>
+        <button class="tab" data-zone="서귀포권">서귀포</button>
+        <button class="tab" data-zone="남서부">남서부</button>
       </div>
+    </nav>
 
-      <span class="pill">한달살이 코파일럿</span>
-      <h1>기간·인원·차만 말하면<br/><em>동네별 총비용</em>까지 알려드려요</h1>
-      <p class="sub">숙소·렌터카·식비·난방비를 한 번에 계산하고, 교통·병원·날씨까지 비교해 나에게 맞는 제주 동네를 찾아드려요.</p>
-      <div class="stat"><span>지금 비교할 수 있는 제주 동네</span><strong><span class="n" id="region-count">–</span>곳</strong></div>
+    <!-- ⑤ 조건 바: 바꾸면 바로 다시 계산 -->
+    <section class="wrap conditions" id="conditions">
+      <label class="cond"><span>출발</span><input type="month" id="c-month" /></label>
+      <label class="cond"><span>기간</span>
+        <select id="c-days">
+          <option value="14">2주</option><option value="30" selected>한 달</option><option value="60">두 달</option>
+          <option value="90">석 달</option><option value="180">반년</option><option value="365">1년</option>
+        </select></label>
+      <label class="cond"><span>인원</span>
+        <select id="c-people"><option value="1">1명</option><option value="2" selected>2명</option><option value="3">3명</option><option value="4">4명</option></select></label>
+      <label class="cond"><span>이동</span>
+        <select id="c-car"><option value="true">렌터카</option><option value="false">버스</option></select></label>
+      <label class="cond"><span>예산</span><input type="number" id="c-budget" placeholder="제한 없음" min="0" step="50" /><em>만원</em></label>
+      <button class="toggle" data-toggle="with_kids">아이와 함께</button>
+      <button class="toggle" data-toggle="remote_work">원격근무</button>
+      <button class="toggle" data-toggle="prefer_quiet">한적한 곳</button>
     </section>
 
-    <!-- ── 조건 입력 (폼 경로: LLM 없이 즉시 계산) ── -->
-    <section id="form">
-      <div class="card panel">
-        <h3>어떻게 머물 계획인가요?</h3>
-        <div class="field-row">
-          <div class="field"><label for="start">입도 날짜</label><input type="date" id="start" /></div>
-          <div class="field">
-            <label for="days">기간</label>
-            <select id="days">
-              <option value="14">2주</option><option value="30" selected>한 달</option>
-              <option value="60">두 달</option><option value="90">3개월</option>
-              <option value="180">6개월</option><option value="365">1년</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="people">인원</label>
-            <select id="people"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
-          </div>
-          <div class="field"><label for="budget">총 예산 (만원, 선택)</label><input type="number" id="budget" placeholder="예: 400" min="0" /></div>
-        </div>
-        <div class="chips">
-          <span class="chips-label">이동</span>
-          <button class="chip" data-group="car" data-value="true" aria-pressed="true">🚗 렌터카</button>
-          <button class="chip" data-group="car" data-value="false" aria-pressed="false">🚌 차 없이</button>
-        </div>
-        <div class="chips">
-          <span class="chips-label">함께</span>
-          <button class="chip" data-toggle="with_kids" aria-pressed="false">👶 아이 동반</button>
-          <button class="chip" data-toggle="remote_work" aria-pressed="false">💻 원격근무</button>
-          <button class="chip" data-toggle="prefer_quiet" aria-pressed="false">🌿 한적한 곳</button>
-        </div>
-        <button class="btn btn-primary btn-block" id="estimate-btn">🔍 동네 비교하기</button>
+    <!-- ⑥ 결과 -->
+    <section class="wrap results">
+      <div class="results-head">
+        <h3 id="results-title">이번 조건으로 본 동네</h3>
+        <span class="muted" id="data-note"></span>
       </div>
+      <div class="grid" id="grid"></div>
+      <p class="muted foot-note">금액은 공개 데이터와 시장 조사로 낸 추정치예요. 실제 계약가와 다를 수 있어요.
+        · 데이터: 제주데이터허브, 공공데이터포털</p>
     </section>
-
-    <!-- ── 결과 ── -->
-    <section id="results">
-      <div class="section-head"><h2>내게 맞는 동네</h2><a href="#chat">Agent에게 묻기 ›</a></div>
-      <div id="notice"></div>
-      <div id="result-grid" class="grid"><div class="empty card">조건을 입력하면 여기에 동네별 비용이 나와요.</div></div>
-    </section>
-
-    <!-- ── Agent 대화 (자연어 경로) ── -->
-    <section id="chat">
-      <div class="section-head"><h2>말로 물어보기</h2><span class="trace" id="mode-label"></span></div>
-      <div class="card chat">
-        <div class="examples" id="examples"></div>
-        <div class="msgs" id="msgs">
-          <div class="msg bot">안녕하세요! 언제, 얼마나, 누구와, 차가 있는지 편하게 말해 주세요. 동네별 총비용을 계산해 드릴게요.</div>
-        </div>
-        <div class="chat-input">
-          <textarea id="chat-text" placeholder="예) 1월부터 3개월, 둘이서, 차 없이, 월 300 이내"></textarea>
-          <button class="btn btn-primary" id="chat-send">보내기</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── 기능 소개 ── -->
-    <section>
-      <div class="section-head"><h2>이렇게 도와드려요</h2></div>
-      <div class="features">
-        <div class="card feature"><div class="emoji">🧮</div><h4>총비용 계산기</h4>
-          <p>1박·주·월·연세로 흩어진 가격을 한 기준으로 맞추고, 성수기·겨울 난방비까지 반영해요.</p><span class="tag">숙소 · 렌터카 · 식비 · 공과금</span></div>
-        <div class="card feature"><div class="emoji">💬</div><h4>동네 추천 Agent</h4>
-          <p>"차 없이 아이랑"처럼 말하면 교통·소아과 가중치를 높여 순위를 다시 매겨요.</p><span class="tag">제주데이터허브 + 공공데이터</span></div>
-      </div>
-    </section>
-
-    <footer>
-      모든 금액은 공개 데이터와 시장 조사 기반의 <b>추정치</b>이며 실제 계약가와 다를 수 있어요.<br/>
-      데이터: 제주데이터허브 · 공공데이터포털 (출처 상세는 README)
-    </footer>
   </main>
 
-  <div class="cta-bar">
-    <div class="container">
-      <a class="btn btn-primary" href="#form">조건으로 비교하기</a>
-      <a class="btn btn-outline" href="#chat">Agent에게 물어보기</a>
+  <!-- ⑦ Agent 시트 -->
+  <div class="sheet-backdrop" id="sheet-backdrop"></div>
+  <aside class="sheet" id="sheet" aria-hidden="true">
+    <div class="sheet-head">
+      <div><b>말로 물어보기</b><span class="muted" id="mode-label"></span></div>
+      <button class="icon-btn" id="sheet-close" aria-label="닫기"><svg class="ico"><use href="#i-x"/></svg></button>
     </div>
-  </div>
+    <div class="examples" id="examples"></div>
+    <div class="msgs" id="msgs">
+      <div class="msg bot">언제, 얼마나, 누구와 오는지, 차는 빌릴지 편하게 적어 주세요. 동네별로 얼마 드는지 계산해 볼게요.</div>
+    </div>
+    <form class="ask" id="ask">
+      <input id="ask-text" autocomplete="off" placeholder="예) 1월부터 석 달, 둘이서, 차 없이" />
+      <button class="send" aria-label="보내기"><svg class="ico"><use href="#i-send"/></svg></button>
+    </form>
+  </aside>
+
+  <!-- ⑧ 하단 내비 -->
+  <nav class="bottom-nav">
+    <a class="active" href="#"><svg class="ico"><use href="#i-compass"/></svg><span>둘러보기</span></a>
+    <a href="#conditions"><svg class="ico"><use href="#i-sliders"/></svg><span>조건</span></a>
+    <a href="#" data-open-agent><svg class="ico"><use href="#i-message"/></svg><span>물어보기</span></a>
+    <a href="#" id="nav-support" target="_blank" rel="noopener"><svg class="ico"><use href="#i-flag"/></svg><span>지원사업</span></a>
+    <a href="#" class="disabled" title="준비 중"><svg class="ico"><use href="#i-map"/></svg><span>지도</span></a>
+  </nav>
 
   <script src="assets/app.js"></script>
 </body>

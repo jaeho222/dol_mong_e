@@ -37,7 +37,7 @@ def run_mock_agent(message: str, history: list | None = None) -> dict:
         if r["badges"]:
             line += " · " + ", ".join(r["badges"][:2])
         if r["warnings"]:
-            line += " · ⚠️ " + r["warnings"][0]
+            line += " · 주의: " + r["warnings"][0]
         lines.append(line)
 
     first = ranked["results"][0]["cost"] if ranked["results"] else None

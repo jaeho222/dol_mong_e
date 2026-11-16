@@ -59,23 +59,23 @@ def _badges(row: dict, scores: dict, cond: Conditions, w: dict) -> tuple[list[st
     good, warn = [], []
     winter = w["겨울날씨"] > 1
     if scores["교통"] >= 0.6:
-        good.append("🚌 차 없어도 OK")
+        good.append("차 없어도 괜찮아요")
     elif cond.car is False and scores["교통"] < 0.3:
-        warn.append("🚗 버스가 드물어요 — 차 필요")
+        warn.append("버스가 드물어요")
     if winter and scores["겨울날씨"] >= 0.7:
-        good.append("☀️ 겨울이 따뜻해요")
+        good.append("겨울이 따뜻해요")
     if row["pediatric_cnt"] > 0 and cond.with_kids:
-        good.append("🩺 소아과 있음")
+        good.append("소아과 있어요")
     if row["er_drive_min"] >= 40:
-        warn.append(f"🏥 응급실까지 약 {int(row['er_drive_min'])}분")
+        warn.append(f"응급실까지 {int(row['er_drive_min'])}분")
     if scores["한적함"] >= 0.7:
-        good.append("🌿 관광객이 적어요")
+        good.append("관광객이 적어요")
     if row["cowork_cnt"] >= 2 and cond.remote_work:
-        good.append("💻 공유오피스 있음")
+        good.append("공유오피스 있어요")
     if row["odor_flag"]:
-        warn.append("🐖 축산 악취 민원 지역")
+        warn.append("축산 악취 민원 지역")
     if winter and row["snow_road_flag"]:
-        warn.append("❄️ 폭설 시 산간도로 통제 영향")
+        warn.append("폭설 땐 산간도로 통제")
     return good, warn
 
 
