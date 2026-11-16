@@ -67,6 +67,7 @@ out = html.replace('<link rel="stylesheet" href="assets/style.css" />', f"<style
 out = out.replace('<script src="assets/config.js"></script>', f"<script>{cfg}</script>{static}")
 out = out.replace('<script src="assets/region_images.js"></script>', f"<script>{imgs}</script>")
 out = out.replace('<script src="assets/app.js"></script>', f"<script>{app}</script>")
+out = out.replace('<script src="assets/intro.js"></script>', "").replace('<link rel="stylesheet" href="assets/intro.css" />', "")  # 임베드엔 인트로 생략
 out = out.replace("<body>", '<body><div class="notice" style="border-radius:0;margin:0;text-align:center">📌 노션 미리보기용 정적 데모 — 예시 질문만 동작해요. 실제 계산은 서버 버전에서.</div>', 1)
 
 dist = ROOT / "dist"
