@@ -118,7 +118,7 @@ def build(with_sub: bool, ink: str = BASALT) -> str:
     ]
     height = 960
     if with_sub:
-        parts.append(text_run("숨 고를 한 달", 1620, 1110, 150, ink))
+        parts.append(text_run("모슬, 내 마음속 고향", 1620, 1110, 130, ink))
         height = 1150
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1660 {height}" role="img" aria-label="ᄆᆞ슬">'
             f'{"".join(parts)}</svg>')
