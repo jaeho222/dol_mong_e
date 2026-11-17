@@ -255,8 +255,8 @@ bang-aeo-hwae/
 ---
 
 ## 🔗 링크 미리보기 (카톡·슬랙·노션)
-- `frontend/index.html` 의 `og:*` 메타 태그와 `frontend/assets/og-image.png`(1200×630)가 미리보기 제목·설명·이미지다.
-- 미리보기 제목에는 옛한글(ᄆᆞ)을 쓰지 않는다 — 일부 휴대폰 글꼴에서 깨져 보임. 화면 로고는 그림이라 상관없음.
+- `frontend/index.html` 의 `og:*` 메타 태그와 `frontend/assets/og-dolmong.png`(1200×630)가 미리보기 제목·설명·이미지다.
+- 이미지를 바꿀 땐 **파일 이름도 바꾼다** (예: og-dolmong-2.png). 카톡은 이미지 주소별로 저장해 두기 때문에 같은 이름이면 예전 그림이 계속 뜬다.
 - **카카오톡은 한 번 읽은 미리보기를 한동안 저장해 둔다.** 정보를 바꿨다면
   [카카오 공유 디버거](https://developers.kakao.com/tool/debugger/sharing)에 주소를 넣고 '캐시 초기화'를 누르거나,
   임시로 주소 뒤에 `?v=2` 처럼 아무 값이나 붙여 공유한다.
