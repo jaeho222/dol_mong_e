@@ -6,7 +6,7 @@
   const CFG = window.APP_CONFIG;
   const STEPS = CFG.onboarding;
   const KEY = "dolmong.onboarded";
-  const QUESTIONS = STEPS.filter((s) => s.type !== "intro" && s.type !== "ready").length;
+  const QUESTIONS = STEPS.filter((s) => s.type !== "intro" && s.type !== "ready").length;  // 이름 묻기도 진행바에 포함
   let i = 0, picks = {}, root = null;
 
   const store = { get: () => { try { return localStorage.getItem(KEY); } catch { return "1"; } },
@@ -53,6 +53,7 @@
     STEPS.forEach((s, k) => {
       const p = picks[k];
       if (p === undefined) return;
+      if (s.type === "name") return;
       if (s.type === "month") c.month = p;
       else Object.assign(c, s.options[p].set);
     });
@@ -81,6 +82,28 @@
       next.textContent = s.cta;
       next.disabled = false;
       if (s.type === "ready") next.onclick = find;
+      return;
+    }
+
+    if (s.type === "name") {
+      main.innerHTML = `
+        <div class="ob-q">${pose(s.pose)}
+          <div class="ob-bubble"><p class="ob-say">${esc(s.say)}</p><p class="ob-sub">${esc(s.sub)}</p></div></div>
+        <input class="ob-name" id="ob-name" maxlength="12" autocomplete="nickname" placeholder="이름이나 별명" aria-label="부를 이름" />`;
+      const inp = main.querySelector("#ob-name");
+      inp.value = picks[i] || "";
+      const upd = () => {
+        const v = inp.value.trim();
+        picks[i] = v;
+        next.textContent = v ? "계속" : "건너뛰고 계속";
+        root.querySelector(".ob-say").textContent = v ? `${v}님, 반가워요!` : s.say;
+      };
+      inp.oninput = upd;
+      inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); next.click(); } };
+      next.disabled = false;
+      next.onclick = () => { try { localStorage.setItem("dolmong.name", (picks[i] || "").trim()); } catch {} go(i + 1); };
+      upd();
+      setTimeout(() => inp.focus(), 50);
       return;
     }
 
@@ -166,10 +189,8 @@
       with_kids: c.with_kids, with_pet: c.with_pet, remote_work: c.remote_work, prefer_quiet: c.prefer_quiet,
     };
     const job = api("/api/estimate", { conditions: req, top_k: 14 });
-    for (const step of CFG.onboardingLoading) {
-      main.innerHTML = `<div class="ob-hero ob-wait">${pose(step.pose, "big")}<h2>${esc(step.say)}</h2><div class="dots"><i></i><i></i><i></i></div></div>`;
-      await sleep(900);
-    }
+    main.innerHTML = `<div class="ob-hero ob-wait">${loaderHTML()}</div>`;
+    await sleep(CFG.loader.frameMs * CFG.loader.frames.length);  // 세 장면을 한 바퀴는 보여준다
     let data;
     try { data = await job; } catch (e) {
       main.innerHTML = `<div class="ob-hero">${pose("calc", "big")}<h2>계산하지 못했어요</h2><p>서버가 켜져 있는지 확인해 주세요. 본 화면에서 조건을 직접 넣어도 돼요.</p></div>`;
@@ -201,7 +222,7 @@
       <div class="ob-reveal">
         <div class="ob-q">
           ${pose("signature")}
-          <div class="ob-bubble"><p class="ob-say">찾았어요! 우리랑 제일 잘 맞는 동네는 <b>${esc(top.name)}</b>예요. 귤 하나 드릴게요!</p></div>
+          <div class="ob-bubble"><p class="ob-say">${userName() ? `${esc(userName())}님, ` : ""}찾았어요! 우리랑 제일 잘 맞는 동네는 <b>${esc(top.name)}</b>예요. 귤 하나 드릴게요!</p></div>
         </div>
         <article class="ob-card">
           <div class="ob-photo">${img ? `<img src="${img.src}" alt="${esc(img.place)}" onerror="this.remove()" />` : ""}<span>궁합 1위</span></div>
@@ -237,6 +258,7 @@
     if (e.key === "Escape") { close(); return; }
     const n = parseInt(e.key, 10);
     const btns = root.querySelectorAll(".ob-opt");
+    if (e.target.tagName === "INPUT") return;
     if (n >= 1 && n <= btns.length && STEPS[i].type !== "month") btns[n - 1].click();
     if (e.key === "Enter" && e.target.tagName !== "BUTTON") root.querySelector(".ob-next:not([disabled])")?.click();
   }

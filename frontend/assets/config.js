@@ -50,6 +50,7 @@ window.APP_CONFIG = {
   onboarding: [
     { type: "intro", pose: "hello", say: "안녕하세요! 저는 제주살이 동모 돌몽이에요!",
       sub: "동모는 제주말로 친구라는 뜻이에요. 몇 가지만 물어보고 우리가 같이 살 동네를 찾아볼게요.", cta: "좋아요, 같이 찾아요" },
+    { type: "name", pose: "front", say: "제가 뭐라고 부르면 될까요?", sub: "별명도 좋아요. 안 적고 넘어가도 돼요." },
     { type: "month", pose: "front", say: "언제쯤 제주에 올 거예요?", react: "그때 제주는 이런 모습이에요" },
     { pose: "three4", say: "얼마나 머물 거예요?", options: [
       { label: "2주", sub: "짧게 맛보기", set: { days: 14 }, react: "짧고 굵게! 좋아요." },
@@ -87,11 +88,17 @@ window.APP_CONFIG = {
     ] },
     { type: "ready", pose: "done", say: "거의 다 끝났어요! 이제 우리가 살 동네를 찾아볼까요?", cta: "우리 동네 찾기" },
   ],
-  onboardingLoading: [
-    { pose: "search", say: "제주 지도를 펼쳐 보는 중이에요" },
-    { pose: "calc", say: "동네마다 한 달 비용을 계산하고 있어요" },
-    { pose: "main", say: "거의 다 찾았어요" },
-  ],
+
+  // 로딩 화면: 세 장면을 frameMs 마다 넘긴다. {name} 은 문답에서 받은 이름 (없으면 nameless 문구)
+  loader: {
+    frameMs: 1000,
+    minMs: 1200,   // 결과가 너무 빨리 와도 이만큼은 보여준다 (깜빡임 방지)
+    frames: [
+      { img: "assets/dolmong/sd-run.webp", text: "돌몽이가 {name}님에게 줄 귤을 갖고 오고 있어요.", nameless: "돌몽이가 귤을 갖고 오고 있어요." },
+      { img: "assets/dolmong/sd-trip.webp", text: "돌몽이가 넘어졌나봐요. 잠시만 기다려주세요." },
+      { img: "assets/dolmong/sd-pick.webp", text: "돌몽이가 귤을 주워담고 있어요. 잠시만 기다려주세요." },
+    ],
+  },
 
   // 동네 성격: 생활 점수 상위 2개로 '겨울 볕 좋고 조용한 동네' 같은 이름을 만든다 (점수 0.6 이상만)
   //  [꾸미는 말, 이어 주는 말] — '겨울 볕 좋고' + '조용한' + ' 동네'

@@ -118,10 +118,11 @@ function readConditions() {
 }
 
 async function runEstimate(scroll) {
-  $("#rank").innerHTML = `<li class="loading-row"><img src="${CFG.pose.search}" alt="" />동네를 비교하고 있어요</li>`;
+  $("#rank").innerHTML = `<li>${loaderHTML()}</li>`;
   if (scroll) $("#result").scrollIntoView({ behavior: "smooth" });
   try {
-    renderResults(await api("/api/estimate", { conditions: readConditions(), top_k: 14 }));
+    const [data] = await Promise.all([api("/api/estimate", { conditions: readConditions(), top_k: 14 }), wait(CFG.loader.minMs)]);
+    renderResults(data);
   } catch (e) {
     $("#rank").innerHTML = `<li class="empty">추천을 계산하지 못했어요. 서버가 켜져 있는지 확인해 주세요. (${escapeHtml(e.message)})</li>`;
   }
@@ -312,7 +313,7 @@ async function ask(text) {
   $("#ask-text").value = "";
   addMsg("user").textContent = text;
   const loading = addMsg("bot loading");
-  loading.innerHTML = `<img src="${CFG.pose.calc}" alt="" />동네마다 계산하고 있어요`;
+  loading.innerHTML = loaderHTML("small");
   try {
     const res = await api("/api/chat", { message: text });
     loading.remove();
@@ -354,6 +355,35 @@ function seasonEvents(startMonth, days) {
   const list = (CFG.seasons || []).filter((e) => e.months.some((m) => months.has(m)));
   return days >= 365 ? list.filter((e) => !e.warn).slice(0, 6) : list;
 }
+
+// 로딩: 돌몽이 세 장면(뛰기 → 넘어지기 → 줍기)을 돌린다. 화면에 있는 .loader 를 한 타이머로 같이 넘긴다.
+const userName = () => { try { return (localStorage.getItem("dolmong.name") || "").trim(); } catch { return ""; } };
+function loaderText(f) {
+  const n = userName();
+  return n ? f.text.replace("{name}", n) : (f.nameless || f.text.replace("{name}님에게 ", ""));
+}
+function loaderHTML(size = "") {
+  const f = CFG.loader.frames[0];
+  return `<div class="loader ${size}" role="status" aria-live="polite" data-f="0">
+    <div class="loader-stage">${CFG.loader.frames.map((x, k) => `<img src="${x.img}" alt="" class="${k ? "" : "on"}" />`).join("")}</div>
+    <p>${escapeHtml(loaderText(f))}</p></div>`;
+}
+setInterval(() => {
+  $$(".loader").forEach((el) => {
+    const k = (+el.dataset.f + 1) % CFG.loader.frames.length;
+    el.dataset.f = k;
+    $$(".loader-stage img", el).forEach((im, j) => im.classList.toggle("on", j === k));
+    $("p", el).textContent = loaderText(CFG.loader.frames[k]);
+  });
+}, CFG.loader.frameMs);
+// 화면 넓이의 약 1/24 (1/16~1/32 사이)를 차지하도록 크기를 정한다
+function sizeLoader() {
+  const px = Math.round(Math.min(280, Math.max(110, Math.sqrt((innerWidth * innerHeight) / 24))));
+  document.documentElement.style.setProperty("--loader", `${px}px`);
+}
+sizeLoader();
+addEventListener("resize", sizeLoader);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ── 유틸 ──
 function summary(c) {
