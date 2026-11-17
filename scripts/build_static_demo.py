@@ -21,6 +21,7 @@ html = (FE / "index.html").read_text(encoding="utf-8")
 css = (FE / "assets" / "style.css").read_text(encoding="utf-8")
 cfg = (FE / "assets" / "config.js").read_text(encoding="utf-8")
 app = (FE / "assets" / "app.js").read_text(encoding="utf-8")
+onb = (FE / "assets" / "onboarding.js").read_text(encoding="utf-8")
 imgs = (FE / "assets" / "region_images.js").read_text(encoding="utf-8")
 
 examples = re.findall(r'^\s*"([^"]+)",\s*$', cfg.split("examples:")[1], re.M)
@@ -67,6 +68,7 @@ out = html.replace('<link rel="stylesheet" href="assets/style.css" />', f"<style
 out = out.replace('<script src="assets/config.js"></script>', f"<script>{cfg}</script>{static}")
 out = out.replace('<script src="assets/region_images.js"></script>', f"<script>{imgs}</script>")
 out = out.replace('<script src="assets/app.js"></script>', f"<script>{app}</script>")
+out = out.replace('<script src="assets/onboarding.js"></script>', f"<script>{onb}</script>")
 out = out.replace('<script src="assets/intro.js"></script>', "").replace('<link rel="stylesheet" href="assets/intro.css" />', "")  # 임베드엔 인트로 생략
 out = out.replace("<body>", '<body><div class="notice" style="border-radius:0;margin:0;text-align:center">미리보기용 정적 데모예요. 조건을 바꿔도 결과는 기본 조건 그대로고, 대화는 예시 질문만 답해요.</div>', 1)
 

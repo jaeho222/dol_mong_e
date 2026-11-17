@@ -49,7 +49,7 @@ function init() {
     </button>`).join("");
   $$("#quick .qt").forEach((b) => b.onclick = () => {
     const q = CFG.quick[b.dataset.i];
-    if (q.chat) openChat(); else applyPreset(q.preset);
+    if (q.chat) openChat(); else if (q.onboarding) window.startOnboarding?.(); else applyPreset(q.preset);
   });
 
   // 상담
@@ -148,7 +148,7 @@ function renderResults(data) {
     return `<li${i >= SHOW ? " hidden" : ""}><button type="button" class="row" data-id="${r.region_id}">
       <span class="thumb">${img ? `<img src="${img.src}" alt="" loading="lazy" onerror="this.remove()" />` : ""}<span class="rk">${i + 1}</span></span>
       <span><span class="row-name">${escapeHtml(r.name)}</span>
-        <span class="row-meta">${escapeHtml(r.zone)}, 맞춤 ${r.score}점</span>
+        <span class="row-meta">${escapeHtml(r.zone)}, ${escapeHtml(traitName(r))}</span>
         ${tags ? `<span class="row-tags">${tags}</span>` : ""}</span>
       <span class="row-price"><b>${won(r.cost.total)}</b><span>${period(r.cost.conditions.days)} 예상</span></span>
     </button></li>`;
@@ -231,6 +231,7 @@ function renderDetail(r) {
   const budget = cond.budget_total, diff = budget ? budget - c.total : null;
   const img = (window.REGION_IMAGES || {})[r.region_id];
   const say = dolmongSays(r);
+  const seasons = cond.start_date ? seasonEvents(+cond.start_date.slice(5, 7), cond.days) : [];
   const checks = [...r.warnings.map((w) => ["warn", "!", w]), ...r.badges.map((b) => ["good", "✓", b])];
 
   $("#detail-in").innerHTML = `
@@ -240,7 +241,7 @@ function renderDetail(r) {
           <figcaption>${escapeHtml(img.place)} 사진: ${escapeHtml(img.artist || "작자 미상")}, <a href="${img.page}" target="_blank" rel="noopener">${escapeHtml(img.license)}</a></figcaption>` : `<img alt="" />`}
       </figure>
       <div>
-        <p class="d-zone">${escapeHtml(r.zone)}</p>
+        <p class="d-zone">${escapeHtml(r.zone)} / ${escapeHtml(traitName(r))}</p>
         <h2 class="d-name">${escapeHtml(r.name)}</h2>
         <p class="d-score">조건에 맞는 정도 <b>${r.score}점</b> / 100점</p>
         <div class="d-price">
@@ -268,6 +269,8 @@ function renderDetail(r) {
       <div>
         <h3>세심 체크</h3>
         <ul class="checks">${checks.length ? checks.map(([cl, m, t]) => `<li class="${cl}"><span class="m">${m}</span>${escapeHtml(t)}</li>`).join("") : `<li>따로 챙길 점이 없어요.</li>`}</ul>
+        ${seasons.length ? `<h3 class="sub-h">머무는 동안 제주는</h3>
+        <ul class="checks">${seasons.map((e) => `<li class="${e.warn ? "warn" : "good"}"><span class="m">${e.warn ? "!" : "·"}</span>${escapeHtml(e.text)}</li>`).join("")}</ul>` : ""}
       </div>
       <div>
         <h3>동네 지수</h3>
@@ -334,6 +337,22 @@ function addMsg(cls) {
   $("#msgs").appendChild(el);
   requestAnimationFrame(() => { $("#msgs").scrollTop = $("#msgs").scrollHeight; });
   return el;
+}
+
+// 동네 성격: 생활 점수 상위 2개(0.6 이상)로 이름을 짓는다. 값에서만 만든다.
+function traitName(r) {
+  const top = Object.entries(r.living_scores || {}).filter(([k, v]) => v >= 0.6 && CFG.traits[k])
+    .sort((x, y) => y[1] - x[1]).slice(0, 2).map(([k]) => CFG.traits[k]);
+  if (!top.length) return "무난한 동네";
+  return top.length === 1 ? `${top[0][0]} 동네` : `${top[0][1]} ${top[1][0]} 동네`;
+}
+
+// 머무는 기간(시작 달부터 days 일)에 걸리는 계절 이벤트
+function seasonEvents(startMonth, days) {
+  const n = Math.min(12, Math.max(1, Math.ceil(days / 30)));
+  const months = new Set(Array.from({ length: n }, (_, k) => ((startMonth - 1 + k) % 12) + 1));
+  const list = (CFG.seasons || []).filter((e) => e.months.some((m) => months.has(m)));
+  return days >= 365 ? list.filter((e) => !e.warn).slice(0, 6) : list;
 }
 
 // ── 유틸 ──
