@@ -18,12 +18,30 @@ window.APP_CONFIG = {
     back: "assets/dolmong/back.webp",
   },
 
-  // 조건에서 고를 수 있는 것 (key 는 백엔드 conditions 필드 이름)
+  // 첫 화면 사진 (위키미디어 공용, 자유 이용) — 하나를 무작위로 띄운다
+  //  path: 위키미디어 파일 경로 'a/ab/파일명' / place: 장소 / artist / license
+  heroPhotos: [
+    { path: "f/f8/Seongsan,_Jeju_Island.jpg", place: "성산 마을", artist: "Bernard Gagnon", license: "CC0" },
+    { path: "0/0e/Hamdeok_Beach.jpg", place: "함덕 해변", artist: "Hong Da Hyeon", license: "CC0" },
+    { path: "c/ca/Sanbangsan_Mountain_01.jpg", place: "산방산과 마을", artist: "Bernard Gagnon", license: "CC0" },
+  ],
+
+  // 검색바 아래 체크 조건 (key 는 백엔드 conditions 필드 이름)
   options: [
-    { key: "remote_work", label: "원격근무", icon: "laptop" },
-    { key: "prefer_quiet", label: "한적한 곳", icon: "leaf" },
-    { key: "with_kids", label: "아이와 함께", icon: "baby" },
-    { key: "with_pet", label: "반려동물", icon: "paw" },
+    { key: "remote_work", label: "원격근무" },
+    { key: "prefer_quiet", label: "한적한 곳" },
+    { key: "with_kids", label: "아이와 함께" },
+    { key: "with_pet", label: "반려동물" },
+  ],
+
+  // 첫 화면 돌몽이 타일: 누르면 조건을 채워서 바로 찾거나(preset), 상담을 연다(chat)
+  //  preset 필드: month(1~12), days, people, car, budget, 그리고 options 의 key
+  quick: [
+    { pose: "front", title: "겨울 한 달", sub: "1월, 둘이서", preset: { month: 1, days: 30, people: 2 } },
+    { pose: "calc", title: "원격근무 석 달", sub: "노트북 들고", preset: { days: 90, people: 1, remote_work: true } },
+    { pose: "hello", title: "아이와 2주", sub: "여름방학에", preset: { month: 7, days: 14, people: 3, with_kids: true } },
+    { pose: "done", title: "1년 살아보기", sub: "연세 집 기준", preset: { days: 365, people: 2 } },
+    { pose: "search", title: "말로 물어보기", sub: "돌몽이 상담", chat: true },
   ],
 
   // 동네 지수 카드. 백엔드 결과에 indices[key] = { value: 0~100, text: "돌몽이 한마디" } 가 오면 채워지고,

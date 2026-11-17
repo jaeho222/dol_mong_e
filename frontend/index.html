@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#eceee8" />
-  <title>돌몽이 — 제주살이 AI Agent</title>
+  <meta name="theme-color" content="#ffffff" />
+  <title>돌몽이 — 제주 한 달 살기 동네 찾기</title>
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="돌몽이" />
   <meta property="og:url" content="https://bang-aeo-hwae.vercel.app/" />
-  <meta property="og:title" content="돌몽이 — 제주살이 AI Agent" />
-  <meta property="og:description" content="기간·예산·인원만 말하면 돌몽이가 제주 동네별 한 달 살이 비용과 생활 환경을 비교해 줘요." />
+  <meta property="og:title" content="돌몽이 — 제주 한 달 살기 동네 찾기" />
+  <meta property="og:description" content="기간·예산·인원을 넣으면 제주 동네별 한 달 살이 비용과 생활 환경을 비교해 줘요." />
   <meta property="og:image" content="https://bang-aeo-hwae.vercel.app/assets/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="description" content="제주 한 달 살기 동네 추천 AI Agent, 돌몽이" />
@@ -20,171 +20,160 @@
   <script src="assets/region_images.js"></script>
 </head>
 <body>
-  <!-- 아이콘: Lucide (ISC License, https://lucide.dev) -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
-      <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
-      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
-      <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
-      <symbol id="i-car" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.4 10 16 6H8L5.6 10l-2.1 1.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M9 17h6"/></symbol>
-      <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
-      <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
-      <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></symbol>
-      <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></symbol>
-      <symbol id="i-baby" viewBox="0 0 24 24"><path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></symbol>
-      <symbol id="i-paw" viewBox="0 0 24 24"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></symbol>
-      <symbol id="i-message" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
-      <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
       <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
-      <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></symbol>
-      <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
-      <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
-      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
-      <symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+      <symbol id="i-send" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></symbol>
     </defs>
   </svg>
 
-  <header class="top">
-    <div class="wrap top-in">
-      <a class="brand" href="#" aria-label="돌몽이 처음으로">
-        <img src="assets/dolmong/front.webp" alt="" width="40" height="40" />
-        <span class="brand-name">돌몽이</span>
-        <span class="brand-tag">제주살이 AI Agent</span>
+  <header class="gnb">
+    <div class="wrap gnb-in">
+      <a class="logo" href="#" aria-label="돌몽이 처음으로">
+        <img src="assets/dolmong/front.webp" alt="" width="34" height="34" />돌몽이
       </a>
-      <nav class="top-nav">
-        <a href="#plan">조건 입력</a>
-        <a href="#result">추천 동네</a>
+      <nav class="gnb-menu" aria-label="주요 메뉴">
+        <a href="#result">동네 추천</a>
+        <a href="#detail">비용 비교</a>
         <a href="#about">돌몽이 소개</a>
-        <a id="support-link" target="_blank" rel="noopener">지원사업</a>
+        <a id="support-link" target="_blank" rel="noopener">한달살이 지원사업</a>
       </nav>
-      <button class="btn-ask" data-open-chat><svg class="ico"><use href="#i-message"/></svg><span>돌몽이에게 묻기</span></button>
+      <button class="gnb-ask" data-open-chat>돌몽이에게 묻기</button>
     </div>
   </header>
 
   <main>
-    <!-- 1. 첫 화면: 조건 입력 + 돌몽이 -->
-    <section class="hero wrap">
-      <div class="hero-copy">
-        <h1>나한테 딱 맞는 제주 동네,<br />돌몽이가 찾아줄게요</h1>
-        <p class="lede">언제, 얼마 동안, 누구와 오는지 알려 주세요. 동네마다 한 달에 얼마 드는지, 살기엔 어떤지 데이터로 비교해 드려요.</p>
-      </div>
+    <!-- 히어로: 실사 사진 + 가로 검색바 -->
+    <section class="hero" id="hero">
+      <div class="hero-photo" id="hero-photo"></div>
+      <div class="wrap hero-in">
+        <h1>제주에서 한 달 살아볼까요?<br />어느 동네가 맞을지 비교해 드려요</h1>
 
-      <div class="rock" aria-hidden="true">
-        <div class="rock-body">
-          <img class="rock-dolmong" src="assets/dolmong/signature.webp" alt="" />
-        </div>
-        <p class="rock-say">귤 하나 드릴게요.<br />조건부터 같이 정해 봐요!</p>
-      </div>
-
-      <form class="plan" id="plan" autocomplete="off">
-        <div class="field">
-          <span class="label"><svg class="ico"><use href="#i-calendar"/></svg>언제부터</span>
-          <select id="f-month" aria-label="출발 달"></select>
-        </div>
-        <div class="field">
-          <span class="label"><svg class="ico"><use href="#i-clock"/></svg>얼마나</span>
-          <div class="seg" id="f-days" role="radiogroup" aria-label="머무는 기간">
-            <button type="button" data-v="14">2주</button>
-            <button type="button" data-v="30" class="on">한 달</button>
-            <button type="button" data-v="60">두 달</button>
-            <button type="button" data-v="90">석 달</button>
-            <button type="button" data-v="180">반년</button>
-            <button type="button" data-v="365">1년</button>
+        <form class="search" id="plan" autocomplete="off">
+          <div class="sf">
+            <label for="f-month">출발</label>
+            <select id="f-month"></select>
           </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <span class="label"><svg class="ico"><use href="#i-users"/></svg>몇 명</span>
-            <div class="stepper">
+          <div class="sf">
+            <label for="f-days">기간</label>
+            <select id="f-days">
+              <option value="14">2주</option>
+              <option value="30" selected>한 달</option>
+              <option value="60">두 달</option>
+              <option value="90">석 달</option>
+              <option value="180">반년</option>
+              <option value="365">1년</option>
+            </select>
+          </div>
+          <div class="sf">
+            <span class="sf-label" id="l-people">인원</span>
+            <div class="stepper" role="group" aria-labelledby="l-people">
               <button type="button" id="p-minus" aria-label="한 명 줄이기"><svg class="ico"><use href="#i-minus"/></svg></button>
               <output id="f-people">2명</output>
               <button type="button" id="p-plus" aria-label="한 명 늘리기"><svg class="ico"><use href="#i-plus"/></svg></button>
             </div>
           </div>
-          <div class="field">
-            <span class="label"><svg class="ico"><use href="#i-car"/></svg>이동</span>
-            <div class="seg" id="f-car" role="radiogroup" aria-label="이동 수단">
-              <button type="button" data-v="true" class="on">렌터카</button>
-              <button type="button" data-v="false">버스</button>
-            </div>
+          <div class="sf">
+            <label for="f-car">이동</label>
+            <select id="f-car">
+              <option value="true">렌터카</option>
+              <option value="false">버스·도보</option>
+            </select>
           </div>
-        </div>
-        <div class="field">
-          <span class="label"><svg class="ico"><use href="#i-wallet"/></svg>총 예산</span>
-          <select id="f-budget" aria-label="총 예산">
-            <option value="">정하지 않음</option>
-            <option value="150">150만 원까지</option>
-            <option value="200">200만 원까지</option>
-            <option value="300">300만 원까지</option>
-            <option value="400">400만 원까지</option>
-            <option value="600">600만 원까지</option>
-            <option value="1000">1,000만 원까지</option>
-            <option value="2000">2,000만 원까지</option>
-          </select>
-        </div>
-        <div class="field">
-          <span class="label"><svg class="ico"><use href="#i-heart"/></svg>중요한 것 <small>여러 개 골라도 돼요</small></span>
-          <div class="chips" id="f-opts"></div>
-        </div>
-        <button class="btn-primary" type="submit">동네 추천받기</button>
-      </form>
+          <div class="sf">
+            <label for="f-budget">총 예산</label>
+            <select id="f-budget">
+              <option value="">상관없음</option>
+              <option value="150">150만 원 이하</option>
+              <option value="200">200만 원 이하</option>
+              <option value="300">300만 원 이하</option>
+              <option value="400">400만 원 이하</option>
+              <option value="600">600만 원 이하</option>
+              <option value="1000">1,000만 원 이하</option>
+              <option value="2000">2,000만 원 이하</option>
+            </select>
+          </div>
+          <button class="search-btn" type="submit"><svg class="ico"><use href="#i-search"/></svg>동네 찾기</button>
+          <fieldset class="opts" id="f-opts">
+            <legend>함께 따져볼 조건</legend>
+          </fieldset>
+        </form>
+      </div>
+      <p class="credit wrap" id="hero-credit"></p>
     </section>
 
-    <!-- 2. 추천 결과 -->
-    <section class="result wrap" id="result">
+    <!-- 빠른 시작: 돌몽이 포즈 타일 -->
+    <section class="wrap quick" aria-label="자주 찾는 조건">
+      <div class="quick-row" id="quick"></div>
+    </section>
+
+    <!-- 추천 동네: 목록 + 지도 -->
+    <section class="wrap result" id="result">
       <div class="sec-head">
-        <h2>추천 동네</h2>
-        <p class="muted" id="cond-summary"></p>
+        <h2>이 조건으로 살기 좋은 동네</h2>
+        <span class="sec-sub" id="cond-summary"></span>
       </div>
-      <p class="notice" id="data-note" hidden></p>
+      <p class="data-note" id="data-note" hidden></p>
       <div class="result-grid">
-        <div class="map-card">
-          <svg class="map" id="map" role="img" aria-label="제주 지도 위 추천 동네"></svg>
-          <img class="map-dolmong" src="assets/dolmong/search.webp" alt="" />
+        <ol class="list" id="rank"></ol>
+        <div class="map-wrap">
+          <svg class="map" id="map" role="img" aria-label="제주 지도 위 추천 동네 위치"></svg>
+          <p class="map-cap">번호는 추천 순위예요. 핀을 누르면 그 동네를 자세히 볼 수 있어요.</p>
         </div>
-        <ol class="rank" id="rank"></ol>
       </div>
     </section>
 
-    <!-- 3. 선택한 동네 자세히 -->
-    <section class="detail wrap" id="detail" aria-live="polite"></section>
+    <!-- 선택한 동네 -->
+    <section class="detail-band" id="detail">
+      <div class="wrap" id="detail-in" aria-live="polite"></div>
+    </section>
 
-    <!-- 4. 돌몽이 소개 -->
-    <section class="about wrap" id="about">
-      <div class="about-copy">
-        <h2>돌몽이는요</h2>
-        <p class="about-line">제주 한 달 살기를 가장 잘 아는, 든든하고 따뜻한 AI 가이드예요.</p>
-        <dl class="traits">
-          <div><dt><i class="sw sw-basalt"></i>현무암 몸</dt><dd>구멍 송송 제주 돌에서 태어났어요</dd></div>
-          <div><dt><i class="sw sw-gyul"></i>귤 모자</dt><dd>배고픈 여행자에게 하나씩 나눠 줘요</dd></div>
-          <div><dt><i class="sw sw-moss"></i>이끼색 배낭</dt><dd>지도랑 계산기가 늘 들어 있어요</dd></div>
-        </dl>
+    <!-- 돌몽이 소개 -->
+    <section class="wrap about" id="about">
+      <div class="about-text">
+        <h2>돌몽이를 소개할게요</h2>
+        <p>제주 현무암에서 태어난 한 달 살기 안내원이에요. 귤 모자에는 여행자에게 나눠 줄 귤이, 이끼색 배낭에는 지도와 계산기가 들어 있어요.</p>
+        <p>돌몽이가 알려주는 금액과 점수는 제주데이터허브와 제주빅데이터센터의 공공데이터로 계산해요.</p>
       </div>
-      <div class="turn" aria-label="돌몽이 앞, 옆, 뒤 모습">
-        <figure><img src="assets/dolmong/front.webp" alt="돌몽이 정면" loading="lazy" /><figcaption>정면</figcaption></figure>
-        <figure><img src="assets/dolmong/three4.webp" alt="돌몽이 3/4 정면" loading="lazy" /><figcaption>비스듬히</figcaption></figure>
-        <figure><img src="assets/dolmong/side.webp" alt="돌몽이 측면" loading="lazy" /><figcaption>옆</figcaption></figure>
-        <figure><img src="assets/dolmong/back.webp" alt="돌몽이 후면" loading="lazy" /><figcaption>뒤</figcaption></figure>
-      </div>
+      <ul class="turn">
+        <li><img src="assets/dolmong/front.webp" alt="" loading="lazy" />앞</li>
+        <li><img src="assets/dolmong/three4.webp" alt="" loading="lazy" />비스듬히</li>
+        <li><img src="assets/dolmong/side.webp" alt="" loading="lazy" />옆</li>
+        <li><img src="assets/dolmong/back.webp" alt="" loading="lazy" />뒤</li>
+      </ul>
     </section>
   </main>
 
-  <footer class="foot wrap">
-    <p>금액은 공개 데이터와 시장 조사로 낸 추정치예요. 실제 계약가와 다를 수 있어요.</p>
-    <p>데이터 출처: 제주데이터허브, 제주빅데이터센터, 공공데이터포털</p>
-    <p>팀 고등어회 — 제주 AI·빅데이터 활용 AI Agent 개발 챌린지 출품작</p>
+  <footer class="footer">
+    <div class="wrap">
+      <p class="f-name">돌몽이 / 팀 고등어회</p>
+      <p>제주 AI·빅데이터 활용 AI Agent 개발 챌린지 출품작</p>
+      <p>금액은 공공데이터와 시장 조사로 낸 추정치이며 실제 계약가와 다를 수 있어요.</p>
+      <p>데이터: 제주데이터허브, 제주빅데이터센터, 공공데이터포털. 사진: 위키미디어 공용(사진마다 작가와 라이선스 표기)</p>
+    </div>
   </footer>
 
-  <!-- 대화창 -->
+  <!-- 돌몽이 상담 위젯 -->
+  <div class="helper" id="helper">
+    <p class="helper-tip">동네 고르기 어려우면 말로 물어보세요</p>
+    <button class="helper-btn" data-open-chat aria-label="돌몽이에게 묻기">
+      <img src="assets/dolmong/hello.webp" alt="" />
+      <span>돌몽이<br />상담</span>
+    </button>
+  </div>
+
   <div class="scrim" id="scrim"></div>
-  <aside class="chat" id="chat" aria-hidden="true" aria-label="돌몽이와 대화">
+  <aside class="chat" id="chat" aria-hidden="true" aria-label="돌몽이 상담">
     <div class="chat-head">
-      <img src="assets/dolmong/front.webp" alt="" width="40" height="40" />
-      <div><b>돌몽이</b><span class="muted" id="mode-label"></span></div>
-      <button class="icon-btn" id="chat-close" aria-label="대화창 닫기"><svg class="ico"><use href="#i-x"/></svg></button>
+      <img src="assets/dolmong/front.webp" alt="" width="36" height="36" />
+      <div><b>돌몽이 상담</b><span id="mode-label"></span></div>
+      <button class="chat-close" id="chat-close" aria-label="상담 닫기"><svg class="ico"><use href="#i-x"/></svg></button>
     </div>
     <div class="msgs" id="msgs">
-      <div class="msg bot">언제, 얼마나, 누구와 오는지, 차는 빌릴지 편하게 적어 주세요. 동네별로 얼마 드는지 계산해 볼게요.</div>
+      <div class="msg bot">언제, 얼마 동안, 누구와 오는지 적어 주세요. 차를 빌릴지, 예산은 얼마인지도 알려주면 동네별로 계산해 볼게요.</div>
     </div>
     <div class="examples" id="examples"></div>
     <form class="ask" id="ask">
@@ -192,10 +181,6 @@
       <button class="send" aria-label="보내기"><svg class="ico"><use href="#i-send"/></svg></button>
     </form>
   </aside>
-  <button class="fab" data-open-chat aria-label="돌몽이에게 묻기">
-    <img src="assets/dolmong/hello.webp" alt="" />
-    <span>물어보기</span>
-  </button>
 
   <script src="assets/app.js"></script>
 </body>
