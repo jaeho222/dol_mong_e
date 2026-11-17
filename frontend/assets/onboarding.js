@@ -241,7 +241,10 @@
     if (e.key === "Enter" && e.target.tagName !== "BUTTON") root.querySelector(".ob-next:not([disabled])")?.click();
   }
 
-  function pose(name, size = "") { return `<img class="ob-pose ${size}" src="${CFG.pose[name]}" alt="" />`; }
+  function pose(name, size = "") {
+    const img = `<img class="ob-pose ${size}" src="${CFG.pose[name]}" alt="" />`;
+    return size === "big" ? `<div class="ob-stage">${img}<div class="ob-wall"></div></div>` : img;  // 큰 돌몽이는 밭담 위에 세운다
+  }
   function bump() { const p = root.querySelector(".ob-pose"); p.classList.remove("bump"); void p.offsetWidth; p.classList.add("bump"); }
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));

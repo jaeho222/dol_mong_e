@@ -15,6 +15,7 @@
   <meta name="description" content="제주 한 달 살기 동네 추천 AI Agent, 돌몽이" />
   <link rel="icon" href="assets/dolmong/front.webp" type="image/webp" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="preload" href="assets/fonts/dolmong-hallasan.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="assets/style.css" />
   <script src="assets/config.js"></script>
   <script src="assets/region_images.js"></script>
@@ -53,6 +54,7 @@
         <h1>제주에서 한 달 살아볼까요?<br />어느 동네가 맞을지 비교해 드려요</h1>
 
         <form class="search" id="plan" autocomplete="off">
+          <img class="hero-dolmong" src="assets/dolmong/signature.webp" alt="" />
           <div class="sf">
             <label for="f-month">출발</label>
             <select id="f-month"></select>
@@ -103,6 +105,7 @@
         </form>
       </div>
       <p class="credit wrap" id="hero-credit"></p>
+      <div class="hero-wall" aria-hidden="true"></div>
     </section>
 
     <!-- 빠른 시작: 돌몽이 포즈 타일 -->
@@ -152,7 +155,7 @@
       <p class="f-name">돌몽이 / 팀 고등어회</p>
       <p>제주 AI·빅데이터 활용 AI Agent 개발 챌린지 출품작</p>
       <p>금액은 공공데이터와 시장 조사로 낸 추정치이며 실제 계약가와 다를 수 있어요.</p>
-      <p>데이터: 제주데이터허브, 제주빅데이터센터, 공공데이터포털. 사진: 위키미디어 공용(사진마다 작가와 라이선스 표기)</p>
+      <p>데이터: 제주데이터허브, 제주빅데이터센터, 공공데이터포털. 사진: 위키미디어 공용(사진마다 작가와 라이선스 표기). 글꼴: 제주한라산체(제주특별자치도, SIL OFL 1.1)</p>
     </div>
   </footer>
 

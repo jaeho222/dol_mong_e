@@ -207,7 +207,7 @@ function drawMap(results) {
       const on = r.region_id === state.selected;
       return `<g class="pin" tabindex="0" role="button" data-id="${r.region_id}" aria-label="${n}위 ${escapeHtml(r.name)}">
         ${on ? `<g class="label" data-cx="${x}"><rect y="${y - 58}" height="30" rx="6"/><text y="${y - 38}">${escapeHtml(r.name)}</text></g>` : ""}
-        <circle cx="${x}" cy="${y}" r="${on ? 16 : 12}" fill="${on ? "var(--ink)" : n <= 3 ? "var(--brand)" : "#6d7277"}"/>
+        <circle cx="${x}" cy="${y}" r="${on ? 16 : 12}" fill="${on ? "var(--cta)" : n === 1 ? "var(--gyul)" : n <= 3 ? "var(--brand)" : "#8a8f95"}"/>
         <text class="n" x="${x}" y="${y}">${n}</text>
       </g>`;
     }).join("")}`;
