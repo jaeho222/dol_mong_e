@@ -27,7 +27,7 @@ examples = re.findall(r'^\s*"([^"]+)",\s*$', cfg.split("examples:")[1], re.M)
 chats = {q: run_mock_agent(q) for q in examples}
 for v in chats.values():
     v["answer"] = v["answer"].replace("_(키 없이 도는 데모 모드 답변이에요)_", "_(노션 미리보기 — 예시 질문의 미리 계산된 결과예요)_")
-estimate = rank_regions({"days": 30, "people": 2, "car": True}, top_k=6)
+estimate = rank_regions({"days": 30, "people": 2, "car": True}, top_k=14)
 
 
 def slim(ranked: dict) -> dict:
@@ -35,11 +35,11 @@ def slim(ranked: dict) -> dict:
     if not ranked:
         return ranked
     keep_cost = ("tier", "total", "range", "per_month", "breakdown", "alternatives")
-    out = {"results": [], "over_budget": ranked["over_budget"]}
+    out = {"results": [], "over_budget": ranked["over_budget"], "conditions": ranked.get("conditions", {})}
     for r in ranked["results"]:
         c = {k: r["cost"][k] for k in keep_cost}
-        c["conditions"] = {"days": r["cost"]["conditions"]["days"]}
-        out["results"].append({k: r[k] for k in ("region_id", "name", "zone", "score", "badges", "warnings", "lat", "lon")} | {"cost": c})
+        c["conditions"] = {k: r["cost"]["conditions"][k] for k in ("start_date", "days", "people", "car", "budget_total")}
+        out["results"].append({k: r[k] for k in ("region_id", "name", "zone", "score", "living_scores", "badges", "warnings", "lat", "lon")} | {"cost": c})
     return out
 
 
@@ -68,7 +68,13 @@ out = out.replace('<script src="assets/config.js"></script>', f"<script>{cfg}</s
 out = out.replace('<script src="assets/region_images.js"></script>', f"<script>{imgs}</script>")
 out = out.replace('<script src="assets/app.js"></script>', f"<script>{app}</script>")
 out = out.replace('<script src="assets/intro.js"></script>', "").replace('<link rel="stylesheet" href="assets/intro.css" />', "")  # 임베드엔 인트로 생략
-out = out.replace("<body>", '<body><div class="notice" style="border-radius:0;margin:0;text-align:center">📌 노션 미리보기용 정적 데모 — 예시 질문만 동작해요. 실제 계산은 서버 버전에서.</div>', 1)
+out = out.replace("<body>", '<body><div class="notice" style="border-radius:0;margin:0;text-align:center">미리보기용 정적 데모예요. 조건을 바꿔도 결과는 기본 조건 그대로고, 대화는 예시 질문만 답해요.</div>', 1)
+
+# 돌몽이 이미지는 data URI 로 넣어 파일 하나로 열리게 한다
+import base64  # noqa: E402
+for img in sorted((FE / "assets" / "dolmong").glob("*.webp")):
+    uri = "data:image/webp;base64," + base64.b64encode(img.read_bytes()).decode()
+    out = out.replace(f"assets/dolmong/{img.name}", uri)
 
 dist = ROOT / "dist"
 dist.mkdir(exist_ok=True)

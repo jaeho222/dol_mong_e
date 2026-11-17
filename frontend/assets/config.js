@@ -1,57 +1,49 @@
-// 화면 문구·배너는 여기서만 고친다.
+// 화면 문구는 여기서만 고친다.
 window.APP_CONFIG = {
-  name: "ᄆᆞ슬",  // 제주어 '마을', 읽기 [모슬]
+  name: "돌몽이",
+  tagline: "제주살이 AI Agent",
   apiBase: "",
 
-  // 맨 위 한 줄 띠 배너 (노트폴리오 상단 광고 자리) → 제주愛인 메인
-  topBanner: {
-    tag: "제주愛인",
-    text: "제주 한달살이 지원 확인하기",
-    sub: "제주도 이주·체류 지원 안내",
-    url: "https://www.jeju.go.kr/move/index.htm",
+  // 돌몽이 포즈 이미지 (원본 SVG를 렌더링한 webp — frontend/assets/dolmong/)
+  pose: {
+    hello: "assets/dolmong/hello.webp",       // 인사하기
+    search: "assets/dolmong/search.webp",     // 찾아보기 (지도)
+    calc: "assets/dolmong/calc.webp",         // 계산하기
+    done: "assets/dolmong/done.webp",         // 완성하기
+    main: "assets/dolmong/main.webp",         // 원본 (지도 든 모습)
+    signature: "assets/dolmong/signature.webp", // 모자에서 귤 꺼내기
+    front: "assets/dolmong/front.webp",
+    three4: "assets/dolmong/three4.webp",
+    side: "assets/dolmong/side.webp",
+    back: "assets/dolmong/back.webp",
   },
 
-  // 가로 스크롤 배너 카드
-  //  eyebrow: 기능 설명(작은 글씨) / title: 메인 문장(큰 글씨, 줄바꿈 \n) / sub: 근거·조건
-  //  art: gyul(귤) | hareubang(돌하르방) | hallasan(한라산) | dotdam(돌담·초가)  — app.js 의 ART
-  //  action: { type: "link", url } | { type: "ask", text } (Agent에게 질문) | { type: "preset", conditions }
-  //  tone: tangerine | moss | basalt | sea | sand  (style.css 의 .tone-*)
-  banners: [
-    {
-      tone: "tangerine", art: "gyul",
-      eyebrow: "제주愛인 · 청춘 정거장",
-      title: "읍·면 숙소에 묵으면\n1박에 1만 원",
-      sub: "도외 청년 · 14일 이상 체류 · 최대 30만 원",
-      action: { type: "link", url: "https://www.jeju.go.kr/move/index.htm" },
-    },
-    {
-      tone: "moss", art: "hareubang",
-      eyebrow: "말로 묻기",
-      title: "1월부터 석 달, 둘이서.\n제일 덜 드는 동네는",
-      sub: "숙소·렌터카·식비·난방비 합계 비교",
-      action: { type: "ask", text: "1월부터 3개월, 둘이서, 차 없이, 원격근무, 월 300 이내" },
-    },
-    {
-      tone: "basalt", art: "hallasan",
-      eyebrow: "겨울 한 달",
-      title: "1월 볕은\n남쪽이 두 배",
-      sub: "1월 일조 시간 · 서귀포 154h · 제주시 70h",
-      action: { type: "preset", conditions: { days: 30, start_month: 1 } },
-    },
-    {
-      tone: "sea", art: "dotdam",
-      eyebrow: "반년 이상 머문다면",
-      title: "단기숙소 대신\n연세라면 얼마",
-      sub: "체류 기간별 숙소비 비교",
-      action: { type: "preset", conditions: { days: 180 } },
-    },
+  // 조건에서 고를 수 있는 것 (key 는 백엔드 conditions 필드 이름)
+  options: [
+    { key: "remote_work", label: "원격근무", icon: "laptop" },
+    { key: "prefer_quiet", label: "한적한 곳", icon: "leaf" },
+    { key: "with_kids", label: "아이와 함께", icon: "baby" },
+    { key: "with_pet", label: "반려동물", icon: "paw" },
   ],
 
-  // Agent 시트의 예시 질문
+  // 동네 지수 카드. 백엔드 결과에 indices[key] = { value: 0~100, text: "돌몽이 한마디" } 가 오면 채워지고,
+  // 없으면 '데이터 연결 전'으로 보인다. (재미-포인트-아이디어.md 참고)
+  indices: [
+    { key: "laundry", name: "빨래 지수", hint: "습도·바람·일조로 본 빨래 마르는 날" },
+    { key: "hair", name: "산발 지수", hint: "강풍이 부는 날이 얼마나 되는지" },
+    { key: "rentacar", name: "렌터카 습격 지수", hint: "관광 렌터카가 몰리는 정도" },
+    { key: "gyul", name: "귤 시즌", hint: "머무는 달에 동네에서 나는 귤" },
+    { key: "nopo", name: "노포 지수", hint: "오래 영업한 동네 식당 비율" },
+    { key: "oreum", name: "오름 부자 지수", hint: "가까이 있는 오름 수" },
+  ],
+
+  // Agent 대화창 예시 질문
   examples: [
     "1월부터 3개월, 둘이서, 차 없이, 원격근무, 월 300 이내",
     "여름방학에 아이랑 셋이 2주, 렌터카",
     "애월이랑 성산 비교해줘, 한 달 혼자",
     "내년 3월부터 1년 살아보고 싶어, 조용한 곳",
   ],
+
+  support: { text: "제주 한달살이 지원사업 보기", url: "https://www.jeju.go.kr/move/index.htm" },
 };
