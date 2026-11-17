@@ -91,7 +91,7 @@ window.APP_CONFIG = {
 
   // 로딩 화면: 세 장면을 frameMs 마다 넘긴다. {name} 은 문답에서 받은 이름 (없으면 nameless 문구)
   loader: {
-    frameMs: 1000,
+    frameMs: 2500,
     minMs: 1200,   // 결과가 너무 빨리 와도 이만큼은 보여준다 (깜빡임 방지)
     frames: [
       { img: "assets/dolmong/sd-run.webp", text: "돌몽이가 {name}님에게 줄 귤을 갖고 오고 있어요.", nameless: "돌몽이가 귤을 갖고 오고 있어요." },
