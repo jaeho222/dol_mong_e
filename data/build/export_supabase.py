@@ -25,7 +25,7 @@ QUERIES = {
     "gyul_month.csv": "select variety, month, share, total_qty from refined.gyul_month order by variety, month",
     # 내보낸 뒤 중복·비축제 행사는 손으로 정리 (26_more_indices.sql 끝 주석)
     # 오일장 개장일(extra)과 대정·고성 시장 매핑은 985 주소가 동네로 안 잡혀 csv에서 손으로 보탰다
-    "region_places.csv": "select region_id, kind, name, rating, reviews, null as extra from refined.region_places where region_id is not null order by region_id, kind",
+    "region_places.csv": "select region_id, kind, name, rating, reviews, null as extra, url from refined.region_places_url where region_id is not null order by region_id, kind",
     "festival.csv": "select name, start_md, end_md, days, region_id from refined.festival where region_id is not null order by region_id, start_md",
 }
 

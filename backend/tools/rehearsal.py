@@ -164,8 +164,11 @@ def rehearse(region_id: str, conditions: dict | Conditions) -> dict:
     if cond.with_kids:
         notes.append(f"응급실까지 약 {int(row['er_drive_min'])}분 (1046 응급실 보유 병원)")
 
+    url = {n: u for n, u in zip(_places().name, _places().get("url", pd.Series(dtype=str))) if isinstance(u, str) and u}
+
     def fmt(items):
-        return [{"time": t, "title": ti, "place": pl, "why": wy} for t, ti, pl, wy in items]
+        # 카페·식당은 구글 지도 링크 (reviews.restaurant_monthly.google_maps_url). 관광지 등은 링크 없음
+        return [{"time": t, "title": ti, "place": pl, "why": wy, "url": url.get(pl)} for t, ti, pl, wy in items]
 
     return {
         "region_id": rid, "region_name": name, "month": month,
