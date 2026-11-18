@@ -438,6 +438,14 @@ function drawRehearsal(which) {
   $("#rh-notes").textContent = [...res.notes, `${res.month}월 기준`].join(" · ");
 }
 
+// 받침에 따라 로/으로 (ㄹ 받침은 '로')
+function ro(word) {
+  const c = word.charCodeAt(word.length - 1) - 0xac00;
+  if (c < 0 || c > 11171) return "로";
+  const jong = c % 28;
+  return jong === 0 || jong === 8 ? "로" : "으로";
+}
+
 // 돌몽이 한마디: 결과 값으로만 만든다 (지어내지 않음)
 function dolmongSays(r) {
   const list = state.data.results;
@@ -449,7 +457,7 @@ function dolmongSays(r) {
   }
   const cheap = list.reduce((a, b) => (b.cost.total < a.cost.total ? b : a));
   if (cheap.region_id === r.region_id) out.push("추천 동네 중에 돈이 제일 덜 들어요.");
-  else out.push(`${escapeHtml(cheap.name)}로 가면 <b>${(c.total - cheap.cost.total).toLocaleString()}만 원</b> 아낄 수 있어요.`);
+  else out.push(`${escapeHtml(cheap.name)}${ro(cheap.name)} 가면 <b>${(c.total - cheap.cost.total).toLocaleString()}만 원</b> 아낄 수 있어요.`);
   const [bk, bv] = Object.entries(c.breakdown).sort((a, b) => b[1] - a[1])[0];
   out.push(`비용은 ${escapeHtml(bk)}가 ${won(bv)}으로 제일 커요.`);
   const best = Object.entries(r.living_scores || {}).sort((a, b) => b[1] - a[1])[0];
