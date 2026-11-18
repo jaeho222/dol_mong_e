@@ -32,3 +32,6 @@ def resolved_agent_mode() -> str:
     if AGENT_MODE in ("claude", "mock"):
         return AGENT_MODE
     return "claude" if ANTHROPIC_API_KEY else "mock"
+
+# 돌몽이 말투: 끝 어미만 제주어로 (backend/tools/jeju.py). 끄려면 DOLMONG_DIALECT=0
+DOLMONG_DIALECT = os.getenv("DOLMONG_DIALECT", "1") != "0"

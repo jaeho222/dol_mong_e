@@ -1,3 +1,5 @@
+// 돌몽이 대사는 끝 어미만 제주어로 (assets/jeju.js)
+const J = (t) => (window.jeju ? window.jeju(t) : t);
 // 첫 방문 문답: 돌몽이가 한 문항씩 묻고, 마지막에 '궁합 1위 동네'를 보여준 뒤 본 화면에 조건을 채운다.
 // - 처음 온 사람에게 한 번만 뜬다 (localStorage). 주소 뒤에 ?start=1 이면 다시 뜬다.
 // - 질문·답·돌몽이 대사는 config.js 의 onboarding 에서 고친다.
@@ -75,8 +77,8 @@
       main.innerHTML = `
         <div class="ob-hero">
           ${pose(s.pose, "big")}
-          <h2>${esc(s.say)}</h2>
-          ${s.sub ? `<p>${esc(s.sub)}</p>` : ""}
+          <h2>${esc(J(s.say))}</h2>
+          ${s.sub ? `<p>${esc(J(s.sub))}</p>` : ""}
           ${s.type === "ready" ? `<ul class="ob-sum">${summaryChips().map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : ""}
         </div>`;
       next.textContent = s.cta;
@@ -88,7 +90,7 @@
     if (s.type === "name") {
       main.innerHTML = `
         <div class="ob-q">${pose(s.pose)}
-          <div class="ob-bubble"><p class="ob-say">${esc(s.say)}</p><p class="ob-sub">${esc(s.sub)}</p></div></div>
+          <div class="ob-bubble"><p class="ob-say">${esc(J(s.say))}</p><p class="ob-sub">${esc(J(s.sub))}</p></div></div>
         <input class="ob-name" id="ob-name" maxlength="12" autocomplete="nickname" placeholder="이름이나 별명" aria-label="부를 이름" />`;
       const inp = main.querySelector("#ob-name");
       inp.value = picks[i] || "";
@@ -96,7 +98,7 @@
         const v = inp.value.trim();
         picks[i] = v;
         next.textContent = v ? "계속" : "건너뛰고 계속";
-        root.querySelector(".ob-say").textContent = v ? `${v}님, 반가워요!` : s.say;
+        root.querySelector(".ob-say").textContent = J(v ? `${v}님, 반가워요!` : s.say);
       };
       inp.oninput = upd;
       inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); next.click(); } };
@@ -111,7 +113,7 @@
     main.innerHTML = `
       <div class="ob-q">
         ${pose(s.pose)}
-        <div class="ob-bubble"><p class="ob-say">${esc(s.say)}</p>${s.sub ? `<p class="ob-sub">${esc(s.sub)}</p>` : ""}</div>
+        <div class="ob-bubble"><p class="ob-say">${esc(J(s.say))}</p>${s.sub ? `<p class="ob-sub">${esc(J(s.sub))}</p>` : ""}</div>
       </div>
       <div class="ob-opts ${s.type === "month" ? "grid" : ""}" role="radiogroup" aria-label="${esc(s.say)}">
         ${opts.map((o, k) => `
@@ -152,7 +154,7 @@
       react = ev ? `${+o.value.slice(5, 7)}월이면 ${ev.text}이에요!` : "좋아요, 그때 맞춰 볼게요.";
     }
     if (react) {
-      root.querySelector(".ob-say").textContent = react;
+      root.querySelector(".ob-say").textContent = J(react);
       const sub = root.querySelector(".ob-sub");
       if (sub) sub.remove();
       bump();
@@ -222,7 +224,7 @@
       <div class="ob-reveal">
         <div class="ob-q">
           ${pose("signature")}
-          <div class="ob-bubble"><p class="ob-say">${userName() ? `${esc(userName())}님, ` : ""}찾았어요! 우리랑 제일 잘 맞는 동네는 <b>${esc(top.name)}</b>예요. 귤 하나 드릴게요!</p></div>
+          <div class="ob-bubble"><p class="ob-say">${userName() ? `${esc(userName())}님, ` : ""}${J(`찾았어요! 우리랑 제일 잘 맞는 동네는 <b>${esc(top.name)}</b>예요. 귤 하나 드릴게요!`)}</p></div>
         </div>
         <article class="ob-card">
           <div class="ob-photo">${img ? `<img src="${img.src}" alt="${esc(img.place)}" onerror="this.remove()" />` : ""}<span>궁합 1위</span></div>
@@ -272,5 +274,6 @@
   const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 
   window.startOnboarding = open;
-  if (!store.get() || /[?&]start=1/.test(location.search)) open();
+  // 돌몽이 말투 규칙을 받은 뒤에 연다 (첫 대사부터 제주 어미)
+  if (!store.get() || /[?&]start=1/.test(location.search)) (window.jejuReady || Promise.resolve()).finally(open);
 })();
