@@ -23,7 +23,51 @@ def _place(rank_score: float, n: int = 14) -> str:
     return f"14곳 중 {pos}위"
 
 
-def living_evidence(row: dict, scores: dict) -> dict:
+# 한 줄 판단 근거: (컬럼, 높을수록 좋은가, 좋을 때 말, 나쁠 때 말)
+REASON_PARTS = {
+    "교통": [("bus_stops", True, "정류장이 많아요", "정류장이 적어요"), ("bus_routes", True, "다니는 노선이 많아요", "다니는 노선이 적어요")],
+    "생활편의": [("amenity_cnt", True, "마트·편의점·카페가 많아요", "마트·편의점·카페가 적어요")],
+    "의료": [("hospital_cnt", True, "병·의원이 많아요", "병·의원이 적어요"), ("pediatric_cnt", True, "소아 진료 병원이 많아요", "소아 진료 병원이 적어요"),
+             ("er_drive_min", False, "응급실이 가까워요", "응급실이 멀어요")],
+    "조용함": [("crowd_index", False, "관광객이 적어요", "관광객이 많이 오가요"), ("rentcar_index", False, "렌터카가 적게 머물러요", "렌터카가 많이 머물러요"),
+             ("amenity_cnt", False, "가게가 적은 한적한 동네예요", "가게가 몰린 도심이에요")],
+    "자연": [("oreum_cnt", True, "가까운 오름이 많아요", "오름이 적어요"), ("beach_cnt", True, "해변이 가까워요", "해변이 없어요"),
+             ("camping_cnt", True, "캠핑장이 많아요", "캠핑장이 적어요")],
+    "날씨": [("jan_temp", True, "겨울이 따뜻해요", "겨울이 추운 편이에요"), ("sunshine_jan", True, "겨울 해가 길어요", "겨울 해가 짧아요")],
+    "맛집": [("food_top", True, "평점 높은 식당이 많아요", "평점 높은 식당이 적어요"), ("nopo_ratio", True, "오래된 노포가 많아요", "노포가 적어요")],
+    "밤길안심": [("cctv_idx", True, "주민 대비 CCTV가 많아요", "주민 대비 CCTV가 적어요"),
+               ("police_call_idx", False, "112 신고가 적은 관할이에요", "112 신고가 많은 관할이에요")],
+}
+
+
+def _pct(all_df: pd.DataFrame, col: str, v, higher: bool) -> float | None:
+    if all_df is None or col not in all_df or pd.isna(v):
+        return None
+    vals = pd.to_numeric(all_df[col], errors="coerce").dropna()
+    if vals.nunique() < 2:
+        return None
+    p = (vals < float(v)).mean() + (vals == float(v)).mean() / 2
+    return p if higher else 1 - p
+
+
+def reason(factor: str, row: dict, score: float, all_df: pd.DataFrame | None) -> str:
+    """'밤길안심 2/5 — 주민 대비 CCTV가 적어요' 의 뒷부분."""
+    parts = [(p, good, bad) for col, hi, good, bad in REASON_PARTS.get(factor, [])
+             if (p := _pct(all_df, col, row.get(col), hi)) is not None]
+    if not parts:
+        return ""
+    best = max(parts, key=lambda x: x[0])
+    worst = min(parts, key=lambda x: x[0])
+    if score >= 0.6:
+        return best[1] if best[0] >= 0.5 else "제주 평균보다 나아요"
+    if score <= 0.4:
+        return worst[2] if worst[0] <= 0.5 else "제주 평균보다 못해요"
+    if best[0] >= 0.65 and worst[0] <= 0.35 and best is not worst:
+        return f"{best[1]}. 다만 {worst[2]}"
+    return "제주 평균 정도예요"
+
+
+def living_evidence(row: dict, scores: dict, all_df: pd.DataFrame | None = None) -> dict:
     """생활환경 항목별 {how, data}. how = 이 동네 값과 계산, data = 출처."""
     s = scores
     ev = {
@@ -64,7 +108,10 @@ def living_evidence(row: dict, scores: dict) -> dict:
             "data": f"{HUB} 846 CCTV 정보(2025-09), 491 제주경찰청 관서별 112신고(2025). 112는 경찰서 3곳 단위라 약하게 반영",
         },
     }
-    return {k: v for k, v in ev.items() if k in scores}
+    out = {k: v for k, v in ev.items() if k in scores}
+    for k, v in out.items():
+        v["reason"] = reason(k, row, float(scores[k]), all_df)
+    return out
 
 
 def cost_evidence(cost: dict, row: dict) -> dict:

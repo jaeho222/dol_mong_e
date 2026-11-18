@@ -93,3 +93,30 @@ def suggest_savings(region_id: str, conditions: dict | Conditions, target: int |
         "fixed_note": f"식비(1인 월 {COST['food_month_first']}만 원)는 취사 위주 기준이라 계산식에서 더 줄일 항목이 없어요.",
         "unit": "만원",
     }
+
+
+def budget_alternatives(conditions: dict | Conditions, limit: int = 3) -> dict:
+    """예산을 넘어 추천에서 빠진 동네 중 점수 높은 곳: 무엇을 바꾸면 예산 안에 들어오는지 (계산식 재계산)."""
+    from backend.tools.region import rank_regions
+
+    cond = conditions if isinstance(conditions, Conditions) else Conditions.from_dict(conditions)
+    if not cond.budget_total:
+        return {"budget": None, "items": []}
+    ranked = rank_regions(cond, top_k=14)
+    over = sorted(ranked["over_budget"], key=lambda o: -o["score"])[:limit]
+    items = []
+    for o in over:
+        s = suggest_savings(o["region_id"], cond, o["over"])
+        fixes = [{"label": x["label"], "saved": x["saved"], "new_total": x["new_total"], "how": x["how"]}
+                 for x in s["options"] if x["saved"] >= o["over"] and not x["key"].startswith("region:")]
+        if not fixes and s["combo"] and s["combo"]["saved"] >= o["over"]:
+            fixes = [{**s["combo"], "how": "두 가지를 같이 적용해 다시 계산"}]
+        items.append({**o, "fixes": fixes[:2]})
+    totals = sorted(o["total"] for o in ranked["over_budget"])
+    return {
+        "budget": cond.budget_total,
+        "in_budget": len(ranked["results"]),
+        "items": items,
+        # 예산을 조금 늘리면 몇 곳이 더 들어오는지
+        "raise": [{"plus": t - cond.budget_total, "count": i + 1} for i, t in enumerate(totals[:3])],
+    }

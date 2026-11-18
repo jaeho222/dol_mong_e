@@ -180,7 +180,7 @@ def rank_regions(conditions: dict | Conditions, top_k: int = 5) -> dict:
             # 눈에 띄는 동네 지수만 (임계값 못 넘으면 빠짐) — backend/tools/indices.py
             "indices": region_indices(row, all_regions, cond),
             # 화면의 '?'·'산정방식 보기'에 쓰는 근거 문장 (backend/tools/evidence.py)
-            "evidence": {"living": living_evidence(row, scores.loc[rid].to_dict()),
+            "evidence": {"living": living_evidence(row, scores.loc[rid].to_dict(), all_regions),
                          "cost": cost_evidence(costs[rid], row),
                          "weights": {k: round(v, 2) for k, v in w.items()}},
             "cost": costs[rid],
@@ -197,7 +197,8 @@ def rank_regions(conditions: dict | Conditions, top_k: int = 5) -> dict:
         "weights": w,
         "results": items[:top_k],
         "over_budget": sorted(
-            ({"region_id": i["region_id"], "name": i["name"], "total": i["cost"]["total"]} for i in over_budget),
+            ({"region_id": i["region_id"], "name": i["name"], "total": i["cost"]["total"], "score": i["score"],
+              "over": i["cost"]["total"] - cond.budget_total} for i in over_budget),
             key=lambda x: x["total"],
         ),
         "unit": "만원",

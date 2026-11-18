@@ -15,6 +15,8 @@ from backend import config
 from backend.agent.consult import greeting, run_consult
 from backend.agent import run_agent
 from backend.tools.data_loader import data_is_dummy
+from backend.tools.rehearsal import rehearse
+from backend.tools.savings import budget_alternatives
 from backend.tools.region import list_regions, rank_regions
 
 app = FastAPI(title="ᄆᆞ슬(모슬) — 제주 한달살이 동네 비교")
@@ -47,6 +49,26 @@ def consult(req: ConsultRequest):
         return run_consult(req.message, req.region_id, req.conditions, req.intent, req.history)
     except KeyError as e:
         raise HTTPException(400, str(e))
+
+
+class RegionCondRequest(BaseModel):
+    region_id: str = ""
+    conditions: dict = {}
+
+
+@app.post("/api/rehearsal")
+def rehearsal(req: RegionCondRequest):
+    """돌몽이의 한 달 살기 리허설: 평일·주말 하루 일과 (데이터 속 실제 장소로)."""
+    try:
+        return rehearse(req.region_id, req.conditions)
+    except KeyError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/api/budget-alternatives")
+def budget_alt(req: RegionCondRequest):
+    """예산 때문에 빠진 동네를 예산 안으로 넣는 방법."""
+    return budget_alternatives(req.conditions)
 
 
 @app.get("/api/health")

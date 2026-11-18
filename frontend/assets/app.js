@@ -57,6 +57,12 @@ function init() {
   });
 
   $("#plan").onsubmit = (e) => { e.preventDefault(); runEstimate(true); };
+  // 조건을 바꾸면 바로 다시 계산해서 이전 결과와 비교 (0.5초 동안 더 안 바뀌면)
+  const live = () => { clearTimeout(state.liveT); state.liveT = setTimeout(() => runEstimate(false, true), 500); };
+  $("#plan").addEventListener("change", live);
+  $("#plan").addEventListener("input", (e) => { if (e.target.id === "f-budget") live(); });
+  ["#p-minus", "#p-plus"].forEach((id) => $(id).addEventListener("click", live));
+  $("#f-prio").addEventListener("click", (e) => { if (e.target.closest(".pchip")) live(); });
 
   $("#quick").innerHTML = CFG.quick.map((q, i) => `
     <button type="button" class="qt" data-i="${i}">
@@ -82,6 +88,8 @@ function init() {
       $$("[data-ev-all]").forEach((b) => b.textContent = on ? "산정방식 닫기" : "산정방식 보기");
       return;
     }
+    const tab = e.target.closest("[data-rh]");
+    if (tab) { drawRehearsal(tab.dataset.rh); return; }
     const chip = e.target.closest("[data-qr]");
     if (chip) consultAsk("", chip.dataset.qr, chip.textContent);
   });
@@ -147,12 +155,23 @@ function readConditions() {
   };
 }
 
-async function runEstimate(scroll) {
-  $("#rank").innerHTML = `<li>${loaderHTML()}</li>`;
+async function runEstimate(scroll, live) {
+  // live: 조건만 바뀐 경우 — 목록을 지우지 않고 흐리게 둔 채 다시 계산, 바뀐 순위·금액을 표시
+  const prev = live && state.data?.results?.length
+    ? Object.fromEntries(state.data.results.map((r, i) => [r.region_id, { rank: i + 1, total: r.cost.total }])) : null;
+  const prevCond = state.data?.conditions;
+  if (live) $("#rank").classList.add("updating"); else $("#rank").innerHTML = `<li>${loaderHTML()}</li>`;
   if (scroll) $("#result").scrollIntoView({ behavior: "smooth" });
   try {
-    const [data] = await Promise.all([api("/api/estimate", { conditions: readConditions(), top_k: 14 }), wait(CFG.loader.minMs)]);
+    const seq = (state.seq = (state.seq || 0) + 1);
+    const req = api("/api/estimate", { conditions: readConditions(), top_k: 14 });
+    const [data] = live ? [await req] : await Promise.all([req, wait(CFG.loader.minMs)]);
+    if (seq !== state.seq) return;  // 더 최근 요청이 있으면 이 응답은 버린다
+    $("#rank").classList.remove("updating");
+    state.prev = prev;
     renderResults(data);
+    renderLiveNote(prev, prevCond, data);
+    renderBudgetAlt(data);
   } catch (e) {
     $("#rank").innerHTML = `<li class="empty">추천을 계산하지 못했어요. 서버가 켜져 있는지 확인해 주세요. (${escapeHtml(e.message)})</li>`;
   }
@@ -181,7 +200,7 @@ function renderResults(data) {
       <span><span class="row-name">${escapeHtml(r.name)}</span>
         <span class="row-meta">${escapeHtml(r.zone)}, ${escapeHtml(traitName(r))}</span>
         ${tags ? `<span class="row-tags">${tags}</span>` : ""}</span>
-      <span class="row-price"><b>${won(r.cost.total)}</b><span>${period(r.cost.conditions.days)} 예상</span></span>
+      <span class="row-price"><b>${won(r.cost.total)}</b><span>${period(r.cost.conditions.days)} 예상</span>${deltaHTML(r, i)}</span>
     </button></li>`;
   }).join("");
   if (data.results.length > SHOW) {
@@ -189,7 +208,66 @@ function renderResults(data) {
     $("#rank .more").onclick = (e) => { $$("#rank li[hidden]").forEach((li) => li.hidden = false); e.target.closest("li").remove(); };
   }
   $$("#rank .row").forEach((b) => b.onclick = () => select(b.dataset.id, true));
-  select(data.results[0].region_id, false);
+  const keep = data.results.find((r) => r.region_id === state.selected);
+  select((keep || data.results[0]).region_id, false);
+}
+
+// 조건 변경 전후 비교 ─────────────────────────────
+function deltaHTML(r, i) {
+  const p = state.prev?.[r.region_id];
+  if (!state.prev) return "";
+  if (!p) return `<em class="dl new">새로 들어옴</em>`;
+  const dr = p.rank - (i + 1), dc = r.cost.total - p.total;
+  const parts = [];
+  if (dr) parts.push(`<em class="dl ${dr > 0 ? "up" : "down"}">${dr > 0 ? "▲" : "▼"}${Math.abs(dr)}</em>`);
+  if (dc) parts.push(`<em class="dl ${dc < 0 ? "up" : "down"}">${dc > 0 ? "+" : ""}${dc.toLocaleString()}만</em>`);
+  return parts.join("");
+}
+
+const COND_LABEL = { start_date: "시작 달", days: "기간", people: "인원", car: "렌터카", budget_total: "예산",
+  with_kids: "아이", remote_work: "원격근무", with_pet: "반려동물", prefer_quiet: "조용한 곳", priorities: "중요한 것" };
+
+function renderLiveNote(prev, prevCond, data) {
+  const box = $("#live-note");
+  if (!prev || !prevCond) { box.hidden = true; return; }
+  const c = data.conditions;
+  const changed = Object.keys(COND_LABEL).filter((k) => JSON.stringify(prevCond[k] ?? null) !== JSON.stringify(c[k] ?? null)).map((k) => COND_LABEL[k]);
+  if (!changed.length) { box.hidden = true; return; }
+  const now = data.results;
+  if (!now.length) {
+    box.innerHTML = `<span class="live-dot"></span><b>${changed.join("·")}</b>을(를) 바꿨더니 조건에 맞는 동네가 없어요. 아래 대안을 확인해 보세요.`;
+    box.hidden = false; return;
+  }
+  const prevTop = Object.entries(prev).sort((a, b) => a[1].rank - b[1].rank)[0]?.[0];
+  const top = now[0];
+  const moved = now.map((r, i) => ({ r, d: prev[r.region_id] ? prev[r.region_id].rank - (i + 1) : null }))
+    .filter((x) => x.d).sort((a, b) => Math.abs(b.d) - Math.abs(a.d))[0];
+  const avg = (xs) => xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : 0;
+  const before = avg(Object.values(prev).map((p) => p.total)), after = avg(now.map((r) => r.cost.total));
+  const lines = [`<b>${changed.join("·")}</b>을(를) 바꿨더니`];
+  lines.push(top && top.region_id !== prevTop ? `1위가 <b>${escapeHtml(top.name)}</b>(으)로 바뀌었어요` : `1위는 그대로 ${escapeHtml(top.name)}`);
+  if (moved) lines.push(`${escapeHtml(moved.r.name)} ${moved.d > 0 ? "▲" : "▼"}${Math.abs(moved.d)}`);
+  if (after !== before) lines.push(`평균 비용 ${after > before ? "+" : ""}${(after - before).toLocaleString()}만 원`);
+  box.innerHTML = `<span class="live-dot"></span>${lines.join(" · ")}`;
+  box.hidden = false;
+}
+
+// 예산 초과 대안 ─────────────────────────────────
+async function renderBudgetAlt(data) {
+  const box = $("#budget-alt");
+  const b = data.conditions?.budget_total;
+  if (!b || !data.over_budget?.length) { box.hidden = true; box.innerHTML = ""; return; }
+  try {
+    const res = await api("/api/budget-alternatives", { conditions: data.conditions });
+    if (!res.items?.length) { box.hidden = true; return; }
+    box.innerHTML = `<h3>예산 ${won(b)}을 넘어서 빠진 동네 ${data.over_budget.length}곳</h3>
+      <p class="ba-sub">점수가 높은데 예산 때문에 빠진 곳이에요. 비용 계산식을 조건만 바꿔 다시 돌려 봤어요.</p>
+      <ul>${res.items.map((it) => `<li><div class="ba-head"><b>${escapeHtml(it.name)}</b> <span>${it.score}점 · ${won(it.total)} (예산 +${it.over.toLocaleString()}만)</span></div>
+        ${it.fixes.length ? `<ul class="ba-fix">${it.fixes.map((f) => `<li>${escapeHtml(f.label)} → <b>${won(f.new_total)}</b> <small>${escapeHtml(f.how)}</small></li>`).join("")}</ul>`
+          : `<p class="ba-none">조건을 한두 개 바꿔서는 예산 안에 들어오지 않아요.</p>`}</li>`).join("")}</ul>
+      ${res.raise?.length ? `<p class="ba-raise">예산을 <b>${res.raise[0].plus.toLocaleString()}만 원</b>만 늘리면 ${escapeHtml(res.items.find((i) => i.over === res.raise[0].plus)?.name || data.over_budget[0].name)}도 들어와요.</p>` : ""}`;
+    box.hidden = false;
+  } catch { box.hidden = true; }
 }
 
 function select(id, scroll) {
@@ -302,7 +380,7 @@ function renderDetail(r) {
         <h3>살기엔 어떤지</h3>
         <ul class="kv">${Object.entries(r.living_scores || {}).map(([k, v]) => `
           ${(() => { const [btn, box] = q(evHTML(ev.living[k]));
-            return `<li><span>${escapeHtml(k)} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${box}</li>`; })()}`).join("")}
+            return `<li><span>${escapeHtml(k)} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${ev.living[k]?.reason ? `<small class="why">${escapeHtml(ev.living[k].reason)}</small>` : ""}${box}</li>`; })()}`).join("")}
         </ul>
         <p class="note">제주 14개 동네끼리 순위로 비교한 점수예요. <button type="button" class="ev-all" data-ev-all>산정방식 보기</button></p>
       </div>
@@ -319,6 +397,13 @@ function renderDetail(r) {
             return `<li class="${escapeHtml(v.tone || "")}">${escapeHtml(ix.name)} ${btn}<b>${escapeHtml(v.value)}</b>${v.text ? `<small>${escapeHtml(v.text)}</small>` : ""}${box}</li>`; }).join("")}</ul>
       </div>` : ""}
     </div>
+    <section class="rehearsal" id="rehearsal" aria-label="돌몽이의 한 달 살기 리허설">
+      <div class="rh-head"><img src="${CFG.pose.search}" alt="" width="56" height="56" />
+        <div><h3>돌몽이의 한 달 살기 리허설</h3><p>${escapeHtml(r.name)}에 살면 하루가 이렇게 흘러가요. 장소는 전부 공공데이터에 있는 실제 이름이에요.</p></div>
+        <div class="rh-tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-rh="weekday">평일</button><button type="button" role="tab" aria-selected="false" data-rh="weekend">주말</button></div></div>
+      <ol class="rh-list" id="rh-list"><li>${loaderHTML("small")}</li></ol>
+      <p class="rh-notes" id="rh-notes"></p>
+    </section>
     <section class="consult" id="consult" aria-label="돌몽이 상담">
       <div class="cs-head"><img src="${CFG.pose.done}" alt="" width="40" height="40" />
         <div><b>돌몽이 상담</b><span>${escapeHtml(r.name)} 리포트 기준으로 답해요${state.agentMode === "claude" ? " · Claude" : ""}</span></div></div>
@@ -330,6 +415,26 @@ function renderDetail(r) {
       <p class="cs-foot">답은 비용 계산식과 공공데이터 지표로만 만들어요. 데이터로 답하기 어려운 건 제주120만덕콜센터(국번 없이 120)로 안내해요.</p>
     </section>`;
   startConsult(r);
+  startRehearsal(r);
+}
+
+// ⑤ 한 달 살기 리허설 ─────────────────────────────
+async function startRehearsal(r) {
+  const id = r.region_id;
+  try {
+    const res = await api("/api/rehearsal", { region_id: id, conditions: { ...r.cost.conditions, priorities: state.priorities || [] } });
+    if (state.selected !== id) return;
+    state.rehearsal = res;
+    drawRehearsal("weekday");
+  } catch { $("#rh-list").innerHTML = `<li class="empty">리허설을 불러오지 못했어요.</li>`; }
+}
+
+function drawRehearsal(which) {
+  const res = state.rehearsal; if (!res) return;
+  $$("[data-rh]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.rh === which)));
+  $("#rh-list").innerHTML = res[which].map((x) => `<li><time>${x.time}</time><div><b>${escapeHtml(x.title)}</b>
+    <span class="rh-place">${escapeHtml(x.place)}</span><small>${escapeHtml(x.why)}</small></div></li>`).join("");
+  $("#rh-notes").textContent = [...res.notes, `${res.month}월 기준`].join(" · ");
 }
 
 // 돌몽이 한마디: 결과 값으로만 만든다 (지어내지 않음)
