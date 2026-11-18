@@ -378,7 +378,7 @@ function renderDetail(r) {
     </div>
     <div class="d-cols">
       <div>
-        <h3>살기엔 어떤지</h3>
+        <h3>이 동네, 살아보면?</h3>
         <ul class="kv">${Object.entries(r.living_scores || {}).map(([k, v]) => `
           ${(() => { const [btn, box] = q(evHTML(ev.living[k]));
             return `<li><span>${escapeHtml(k)} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${ev.living[k]?.reason ? `<small class="why">${escapeHtml(ev.living[k].reason)}</small>` : ""}${box}</li>`; })()}`).join("")}
@@ -386,13 +386,13 @@ function renderDetail(r) {
         <p class="note">제주 14개 동네끼리 순위로 비교한 점수예요. <button type="button" class="ev-all" data-ev-all>산정방식 보기</button></p>
       </div>
       <div>
-        <h3>세심 체크</h3>
+        <h3>유의 사항</h3>
         <ul class="checks">${checks.length ? checks.map(([cl, m, t]) => `<li class="${cl}"><span class="m">${m}</span>${escapeHtml(t)}</li>`).join("") : `<li>따로 챙길 점이 없어요.</li>`}</ul>
         ${seasons.length ? `<h3 class="sub-h">머무는 동안 제주는</h3>
         <ul class="checks">${seasons.map((e) => `<li class="${e.warn ? "warn" : "good"}"><span class="m">${e.warn ? "!" : "·"}</span>${escapeHtml(e.text)}</li>`).join("")}</ul>` : ""}
       </div>
       ${shownIdx.length ? `<div>
-        <h3>동네 지수</h3>
+        <h3>돌몽's Tip이우다</h3>
         <ul class="idx">${shownIdx.map(([ix, v]) =>
           { const [btn, box] = q(v.source ? `<p class="src">데이터: ${escapeHtml(v.source)}</p>` : "");
             return `<li class="${escapeHtml(v.tone || "")}">${escapeHtml(ix.name)} ${btn}<b>${escapeHtml(v.value)}</b>${v.text ? `<small>${escapeHtml(v.text)}</small>` : ""}${box}</li>`; }).join("")}</ul>
@@ -400,7 +400,7 @@ function renderDetail(r) {
     </div>
     <section class="rehearsal" id="rehearsal" aria-label="돌몽이의 한 달 살기 리허설">
       <div class="rh-head"><img src="${CFG.pose.search}" alt="" width="56" height="56" />
-        <div><h3>돌몽이의 한 달 살기 리허설</h3><p>${escapeHtml(r.name)}에 살면 하루가 이렇게 흘러가요. 장소는 전부 공공데이터에 있는 실제 이름이에요.</p></div>
+        <div><h3>돌몽이랑 하루 살아보기</h3><p>${escapeHtml(r.name)}에 살면 하루가 이렇게 흘러가요. 장소는 전부 공공데이터에 있는 실제 이름이에요.</p></div>
         <div class="rh-tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-rh="weekday">평일</button><button type="button" role="tab" aria-selected="false" data-rh="weekend">주말</button></div></div>
       <ol class="rh-list" id="rh-list"><li>${loaderHTML("small")}</li></ol>
       <p class="rh-notes" id="rh-notes"></p>
