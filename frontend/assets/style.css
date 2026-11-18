@@ -480,3 +480,6 @@ body.ob-open { overflow: hidden; }
 .rh-place { margin-left: 6px; font-weight: 600; color: var(--ink); background: var(--brand-tint); padding: 1px 7px; border-radius: 4px; font-size: 13.5px; }
 .rh-list small { display: block; color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
 .rh-notes { margin: 0; font-size: 12.5px; color: var(--ink-3); }
+
+/* hidden 속성이 display:flex 에 덮이지 않도록 */
+.live-note[hidden], .budget-alt[hidden] { display: none; }
