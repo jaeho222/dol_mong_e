@@ -108,7 +108,8 @@ function init() {
 
   // 글꼴이 늦게 오면 지도 이름표 폭을 다시 잰다
   document.fonts?.ready.then(() => state.data?.results.length && drawMap(state.data.results));
-  runEstimate(false);
+  // 돌몽이 말투 규칙(jeju_rules.json)을 받은 뒤 첫 계산 → 한마디가 처음부터 제주 어미로
+  (window.jejuReady || Promise.resolve()).finally(() => runEstimate(false));
 }
 
 function heroPhoto() {
@@ -453,7 +454,7 @@ function dolmongSays(r) {
   out.push(`비용은 ${escapeHtml(bk)}가 ${won(bv)}으로 제일 커요.`);
   const best = Object.entries(r.living_scores || {}).sort((a, b) => b[1] - a[1])[0];
   if (best && best[1] >= 0.7) out.push(`${escapeHtml(best[0])} 점수가 특히 높아요.`);
-  return { text: out.join(" "), pose: budget && c.total > budget ? CFG.pose.calc : CFG.pose.done };
+  return { text: (window.jeju || String)(out.join(" ")), pose: budget && c.total > budget ? CFG.pose.calc : CFG.pose.done };
 }
 
 // ④ 상담 (리포트 맨 아래) ─────────────────────────

@@ -24,6 +24,7 @@ import pandas as pd
 from backend import config
 from backend.schema import Conditions
 from backend.tools.cost import COST, estimate_total_cost
+from backend.tools.jeju import jeju
 from backend.tools.data_loader import find_region_ids, load_regions
 from backend.tools.region import get_region_detail, rank_regions
 from backend.tools.savings import suggest_savings
@@ -657,12 +658,12 @@ def run_consult(message: str, region_id: str, conditions: dict, intent: str | No
         lines, sources, nxt = _answer_contact(region_id, cond, text, out_of_scope=True)
     else:
         lines, sources, nxt = HANDLERS[it](region_id, cond, text)
-    return {"answer": "\n".join(lines), "intent": it, "region_id": region_id, "sources": sources,
+    return {"answer": jeju("\n".join(lines)), "intent": it, "region_id": region_id, "sources": sources,
             "quick_replies": _qr(nxt), "mode": "rule"}
 
 
 def greeting(region_id: str, conditions: dict) -> dict:
     row = get_region_detail(region_id)
-    return {"answer": f"안녕하세요! **{row['name']}** 리포트를 같이 볼게요. 궁금한 걸 고르거나 편하게 물어보세요.\n"
-                      "예) \"예산을 30만원 정도 줄이고 싶은데, 어느 부분에서 줄여야 할까?\" · \"렌터카 추가하면 얼마 늘어?\" · \"근처에 빨래방 있어?\"",
+    return {"answer": jeju(f"안녕하세요! **{row['name']}** 리포트를 같이 볼게요. 궁금한 걸 고르거나 편하게 물어보세요.\n"
+                      "예) \"예산을 30만원 정도 줄이고 싶은데, 어느 부분에서 줄여야 할까?\" · \"렌터카 추가하면 얼마 늘어?\" · \"근처에 빨래방 있어?\""),
             "intent": "hello", "sources": [], "quick_replies": [q for q in QUICK if q["id"] in ("save", "why", "cons", "transit", "food", "lodging", "kids", "season")], "mode": "rule"}
