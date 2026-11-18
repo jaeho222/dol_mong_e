@@ -27,3 +27,9 @@ union all select region_id, 'oreum', name, null, rc::int from o_rk where rk <= 3
 union all select region_id, 'camping', name, null, null from camp_rk where rk <= 2 and region_id is not null
 union all select refined.region_of("주소"), 'library', "도서관명", null, null from raw.hub_888
 union all select refined.region_of("주소"), 'market', "시장명", null, null from raw.hub_985;
+
+-- 카페·식당 구글 지도 링크 (reviews.restaurant_monthly.google_maps_url, 팀원이 추가한 피처)
+create or replace view refined.region_places_url as
+select p.*, u.url from refined.region_places p
+left join (select place_name, max(google_maps_url) url from reviews.restaurant_monthly group by 1) u
+  on p.kind in ('cafe','food') and u.place_name = p.name;

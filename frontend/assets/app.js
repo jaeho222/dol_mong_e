@@ -433,7 +433,7 @@ function drawRehearsal(which) {
   const res = state.rehearsal; if (!res) return;
   $$("[data-rh]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.rh === which)));
   $("#rh-list").innerHTML = res[which].map((x) => `<li><time>${x.time}</time><div><b>${escapeHtml(x.title)}</b>
-    <span class="rh-place">${escapeHtml(x.place)}</span><small>${escapeHtml(x.why)}</small></div></li>`).join("");
+    ${x.url ? `<a class="rh-place" href="${escapeHtml(x.url)}" target="_blank" rel="noopener" title="구글 지도에서 보기">${escapeHtml(x.place)} ↗</a>` : `<span class="rh-place">${escapeHtml(x.place)}</span>`}<small>${escapeHtml(x.why)}</small></div></li>`).join("");
   $("#rh-notes").textContent = [...res.notes, `${res.month}월 기준`].join(" · ");
 }
 
