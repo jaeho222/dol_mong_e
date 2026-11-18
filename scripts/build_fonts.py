@@ -25,6 +25,17 @@ for p in ["frontend/index.html", "frontend/assets/config.js", "frontend/assets/a
     used |= set(re.findall(r"[가-힣ㄱ-ㅎ]", (ROOT / p).read_text(encoding="utf-8")))
 
 
+# 자주 쓰는 한글 2,350자(KS X 1001 완성형)를 통째로 넣는다 → 데이터에서 오는 동네·가게 이름, 새 문구도 안 깨짐
+ks = set()
+for hi in range(0xB0, 0xC9):
+    for lo in range(0xA1, 0xFF):
+        try:
+            ks.add(bytes([hi, lo]).decode("euc-kr"))
+        except UnicodeDecodeError:
+            pass
+used |= {c for c in ks if "가" <= c <= "힣"}
+
+
 def build(folder, name, family, text):
     src = CACHE / f"{name}.ttf"
     if not src.exists():

@@ -1,7 +1,7 @@
 /* 돌몽이 — 국내 여행 플랫폼 문법(흰 바탕, 실사 사진, 가로 검색바, 목록+지도)
    색 역할: 현무암 = 주요 버튼·글자 / 이끼 = 선택·진행·좋은 점 / 귤 = 1위 표시 같은 아주 작은 포인트만
    글꼴: 돌몽이 목소리(로고·제목·대사)는 제주한라산체, 나머지는 Pretendard */
-@font-face { font-family: "Dolmong Hallasan"; src: url("fonts/dolmong-hallasan.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Dolmong Hallasan"; src: url("fonts/dolmong-hallasan.woff2?v=2350") format("woff2"); font-display: swap; }
 :root {
   --brand: #4f6b3a;       /* 이끼: 선택, 진행, 강조 글자 */
   --brand-dark: #3e5530;
