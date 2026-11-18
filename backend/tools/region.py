@@ -72,12 +72,21 @@ def _weather_score(df: pd.DataFrame, cond: Conditions) -> pd.Series:
 
 
 # 생활환경 항목: (df, cond) → 0~1 Series. 사용자가 고르는 선택지 키와 같다.
+# 화면에 보이는 이름 (코드 안 키는 그대로 두고 여기서만 바꾼다). 프론트는 /api/estimate 응답의 labels 를 쓴다.
+FACTOR_LABELS = {"교통": "교통", "생활편의": "편의시설", "의료": "의료", "조용함": "한적함", "자연": "자연 환경",
+                 "날씨": "날씨", "맛집": "맛집", "밤길안심": "안전", "비용": "비용"}
+
+
+def label(k: str) -> str:
+    return FACTOR_LABELS.get(k, k)
+
+
 FACTORS = {
     "교통": lambda df, c: 0.6 * _rank(_col(df, "bus_stops")) + 0.4 * _rank(_col(df, "bus_routes")),
     "생활편의": lambda df, c: _rank(_col(df, "amenity_cnt")),
     "의료": lambda df, c: 0.4 * _rank(_col(df, "hospital_cnt")) + 0.3 * _rank(_col(df, "pediatric_cnt"))
     + 0.3 * _rank(-_col(df, "er_drive_min", 60)),
-    # 관광객 비율(583) + 렌터카 습격(1208) + 도심 정도(상가 수, 793) + 비행기 소음(783, 75 이상만 감점)
+    # 관광객 비율(583) + 렌터카 수(1208) + 도심 정도(상가 수, 793) + 비행기 소음(783, 75 이상만 감점)
     # 관광객 비율만 보면 원도심처럼 '관광객은 적지만 번화한' 곳이 조용하게 나와서 도심 정도를 넣었다
     "조용함": lambda df, c: 0.25 * _rank(-_col(df, "crowd_index")) + 0.2 * _rank(-_col(df, "rentcar_index", 1))
     + 0.4 * _rank(-_col(df, "amenity_cnt")) + 0.15 * (_col(df, "noise_wecpnl") < 75).astype(float),
@@ -195,6 +204,7 @@ def rank_regions(conditions: dict | Conditions, top_k: int = 5) -> dict:
     return {
         "conditions": cond.to_dict(),
         "weights": w,
+        "labels": FACTOR_LABELS,
         "results": items[:top_k],
         "over_budget": sorted(
             ({"region_id": i["region_id"], "name": i["name"], "total": i["cost"]["total"], "score": i["score"],

@@ -26,7 +26,7 @@ from backend.schema import Conditions
 from backend.tools.cost import COST, estimate_total_cost
 from backend.tools.jeju import jeju
 from backend.tools.data_loader import find_region_ids, load_regions
-from backend.tools.region import get_region_detail, rank_regions
+from backend.tools.region import get_region_detail, label, rank_regions
 from backend.tools.savings import suggest_savings
 
 P = config.ROOT_DIR / "data" / "processed"
@@ -241,12 +241,12 @@ def _answer_priority_cost(region_id, cond, text):
     _, ranked = _find(region_id, replace(cond, priorities=pri, budget_total=None))
     top = ranked["results"][0]
     best_f = max(ranked["results"], key=lambda r: r["living_scores"].get(factor, 0))
-    lines = [f"**{factor}**을(를) 가장 중요하게 놓고 다시 계산해 봤어요."]
-    lines.append(f"- 지금 동네 **{now['name']}**: {factor} {now['living_scores'][factor]:.2f}점, {_won(now['cost']['total'])}")
+    lines = [f"**{label(factor)}**을(를) 가장 중요하게 놓고 다시 계산해 봤어요."]
+    lines.append(f"- 지금 동네 **{now['name']}**: {label(factor)} {now['living_scores'][factor]:.2f}점, {_won(now['cost']['total'])}")
     for o in [top] + ([best_f] if best_f["region_id"] != top["region_id"] else []):
         d = o["cost"]["total"] - now["cost"]["total"]
-        tag = "새 1위" if o is top else f"{factor} 1위"
-        lines.append(f"- {tag} **{o['name']}**: {factor} {o['living_scores'][factor]:.2f}점, {_won(o['cost']['total'])} "
+        tag = "새 1위" if o is top else f"{label(factor)} 1위"
+        lines.append(f"- {tag} **{o['name']}**: {label(factor)} {o['living_scores'][factor]:.2f}점, {_won(o['cost']['total'])} "
                      f"({'+' if d >= 0 else ''}{d:,}만 원)")
         if o["evidence"]["living"].get(factor, {}).get("reason"):
             lines.append(f"   └ {o['evidence']['living'][factor]['reason']}")
@@ -260,8 +260,8 @@ def _pros_cons(r):
     ev = r["evidence"]["living"]
     best = sorted(ls, key=ls.get, reverse=True)[:2]
     worst = sorted(ls, key=ls.get)[:2]
-    pro = " / ".join(f"{k}({ev[k]['reason']})" if ev[k].get("reason") else k for k in best if ls[k] >= 0.6)
-    con = " / ".join(f"{k}({ev[k]['reason']})" if ev[k].get("reason") else k for k in worst if ls[k] <= 0.4)
+    pro = " / ".join(f"{label(k)}({ev[k]['reason']})" if ev[k].get("reason") else label(k) for k in best if ls[k] >= 0.6)
+    con = " / ".join(f"{label(k)}({ev[k]['reason']})" if ev[k].get("reason") else label(k) for k in worst if ls[k] <= 0.4)
     return pro or "눈에 띄는 강점 없음", con or "눈에 띄는 약점 없음"
 
 
@@ -291,7 +291,7 @@ def _answer_one_on_one(region_id, cond, text):
     for k in r["living_scores"]:
         a, b = r["living_scores"][k], o["living_scores"][k]
         mark = "◀" if a - b >= 0.15 else "▶" if b - a >= 0.15 else "＝"
-        lines.append(f"- {k}: {a:.2f} {mark} {b:.2f}")
+        lines.append(f"- {label(k)}: {a:.2f} {mark} {b:.2f}")
     wins_a = sum(1 for k in r["living_scores"] if r["living_scores"][k] - o["living_scores"][k] >= 0.15)
     wins_b = sum(1 for k in r["living_scores"] if o["living_scores"][k] - r["living_scores"][k] >= 0.15)
     lines.append(f"뚜렷하게 앞서는 항목: {r['name']} {wins_a}개, {o['name']} {wins_b}개 (0.15점 이상 차이)")
@@ -304,7 +304,7 @@ def _answer_cons(region_id, cond, text):
     weak = [k for k in sorted(ls, key=ls.get) if ls[k] <= 0.45][:3]
     lines = [f"**{r['name']}**에서 아쉬울 수 있는 점이에요:"]
     for k in weak:
-        lines.append(f"- **{k}** {ls[k]:.2f}점: {ev[k].get('reason') or ''}")
+        lines.append(f"- **{label(k)}** {ls[k]:.2f}점: {ev[k].get('reason') or ''}")
     for w in r["warnings"]:
         lines.append(f"- ⚠️ {w}")
     for key, v in r["indices"].items():
@@ -321,12 +321,12 @@ def _answer_why(region_id, cond, text):
     tot = sum(w.values()) or 1
     top_w = sorted(w.items(), key=lambda x: -x[1])[:3]
     lines = [f"**{_eun(r['name'])}** 100점 만점에 **{r['score']}점**이에요. 항목별 점수(0~1)를 가중치로 평균했어요."]
-    lines.append("가중치가 큰 항목: " + ", ".join(f"{k} {v / tot:.0%}" for k, v in top_w)
+    lines.append("가중치가 큰 항목: " + ", ".join(f"{label(k)} {v / tot:.0%}" for k, v in top_w)
                  + (" (직접 고른 우선순위)" if cond.priorities else " (조건으로 추정)"))
     lines.append(f"- 비용 점수 {r['cost_score']:.2f}: 추천 동네 중 가장 싼 곳 대비 % 차이로 매겨요 (50% 비싸면 0점)")
     for k, ev in r["evidence"]["living"].items():
         if w.get(k, 0) / tot >= 0.05:
-            lines.append(f"- **{k}** {r['living_scores'][k]:.2f}: {ev['how']}")
+            lines.append(f"- **{label(k)}** {r['living_scores'][k]:.2f}: {ev['how']}")
             lines.append(f"   └ 출처: {ev['data']}")
     return lines, ["docs/DATA.md '추천 점수'"], ["cons", "compare", "save"]
 
@@ -613,7 +613,7 @@ def _answer_season(region_id, cond, text):
 def _answer_safety(region_id, cond, text):
     r, _ = _ranked_result(region_id, cond)
     ev = r["evidence"]["living"]["밤길안심"]
-    lines = [f"**{r['name']}** 밤길 안심 점수는 {r['living_scores']['밤길안심']:.2f}점이에요. {ev['how']}.",
+    lines = [f"**{r['name']}** 안전 점수는 {r['living_scores']['밤길안심']:.2f}점이에요. {ev['how']}.",
              f"출처: {ev['data']}", "※ 112 신고 수는 범죄 건수가 아니라 교통·분실 신고까지 포함해요.",
              *_contact_lines(["emergency"])]
     return lines, [ev["data"]], ["priority_cost", "why", "contact"]
@@ -634,7 +634,7 @@ HANDLERS = {"compare_pc": None, "save": _answer_save, "car_cost": _answer_car_co
             "activity": _answer_activity, "activity_nodata": _answer_activity_nodata,
             "season": _answer_season, "safety": _answer_safety, "contact": _answer_contact}
 
-QR_EXTRA = {"car_cost": "🚗 렌터카 더하면 얼마?", "priority_cost": "🛡️ 치안 챙기면 얼마 더?", "one_on_one": "🥊 비슷한 예산 1대1",
+QR_EXTRA = {"car_cost": "🚗 렌터카 더하면 얼마?", "priority_cost": "🛡️ 안전 챙기면 얼마 더?", "one_on_one": "🥊 비슷한 예산 1대1",
             "amenity": "🧺 빨래방·헬스장", "hotplace": "🔥 핫플", "gyul": "🍊 귤", "activity": "🛥️ 해볼 만한 활동"}
 
 

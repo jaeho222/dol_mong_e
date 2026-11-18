@@ -112,16 +112,13 @@
       <div class="hero-wall" aria-hidden="true"></div>
     </section>
 
-    <!-- 빠른 시작: 돌몽이 포즈 타일 -->
-    <section class="wrap quick" aria-label="자주 찾는 조건">
-      <div class="quick-row" id="quick"></div>
-    </section>
-
     <!-- 추천 동네: 목록 + 지도 -->
     <section class="wrap result" id="result">
       <div class="sec-head">
+        <img class="sec-pose" src="assets/dolmong/hello.webp" alt="" width="64" height="64" />
         <h2>이 조건으로 살기 좋은 동네</h2>
         <span class="sec-sub" id="cond-summary"></span>
+        <button type="button" class="redo" id="redo-ob">돌몽이랑 다시 고르기</button>
       </div>
       <p class="data-note" id="data-note" hidden></p>
       <div class="live-note" id="live-note" hidden></div>
@@ -129,6 +126,7 @@
       <div class="result-grid">
         <ol class="list" id="rank"></ol>
         <div class="map-wrap">
+          <img class="map-pose" src="assets/dolmong/main.webp" alt="" width="84" height="84" />
           <svg class="map" id="map" role="img" aria-label="제주 지도 위 추천 동네 위치"></svg>
           <p class="map-cap">번호는 추천 순위예요. 핀을 누르면 그 동네를 자세히 볼 수 있어요.</p>
         </div>
