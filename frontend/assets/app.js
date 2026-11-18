@@ -400,7 +400,7 @@ function renderDetail(r) {
     </section>
     <section class="consult" id="consult" aria-label="돌몽이 상담">
       <div class="cs-head"><img src="${CFG.pose.done}" alt="" width="40" height="40" />
-        <div><b>돌몽이 상담</b><span>${escapeHtml(r.name)} 리포트 기준 · 공공데이터로만 답해요</span></div></div>
+        <div><b>돌몽이가 알려주쿠다</b><span>${escapeHtml(r.name)} 리포트 기준 · 공공데이터로만 답해요</span></div></div>
       <div class="cs-msgs" id="cs-msgs" aria-live="polite"></div>
       <form class="cs-ask" id="cs-form">
         <input id="cs-text" autocomplete="off" placeholder="예) 예산을 30만원 정도 줄이고 싶은데, 어디서 줄일까?" aria-label="돌몽이에게 물어볼 내용" />
