@@ -69,18 +69,10 @@ function init() {
 
   // 상담 (리포트 맨 아래)
   $$("[data-go-consult]").forEach((b) => b.onclick = (e) => { e.preventDefault(); goConsult(); });
-  // 근거 '?' 버튼, '산정방식 보기' (renderDetail 이 다시 그려도 동작하도록 위임)
+  // 근거 '?' 버튼 (renderDetail 이 다시 그려도 동작하도록 위임)
   $("#detail-in").addEventListener("click", (e) => {
     const q = e.target.closest("[data-ev]");
     if (q) { const box = $("#" + q.dataset.ev); box.hidden = !box.hidden; q.setAttribute("aria-expanded", String(!box.hidden)); return; }
-    const all = e.target.closest("[data-ev-all]");
-    if (all) {
-      const on = !$("#detail-in").classList.contains("ev-all");
-      $("#detail-in").classList.toggle("ev-all", on);
-      $$("#detail-in .ev-box").forEach((b) => b.hidden = !on);
-      $$("[data-ev-all]").forEach((b) => b.textContent = on ? "산정방식 닫기" : "산정방식 보기");
-      return;
-    }
     const tab = e.target.closest("[data-rh]");
     if (tab) { drawRehearsal(tab.dataset.rh); return; }
     const chip = e.target.closest("[data-qr]");
@@ -359,7 +351,7 @@ function renderDetail(r) {
           <p><span class="amt">${c.total.toLocaleString()}<small>만 원</small></span>${diff === null ? "" : diff >= 0
             ? `<span class="budget ok">예산보다 ${diff.toLocaleString()}만 원 적어요</span>`
             : `<span class="budget over">예산보다 ${(-diff).toLocaleString()}만 원 많아요</span>`}</p>
-          <p class="range"><button type="button" class="ev-all" data-ev-all>산정방식 보기</button> 실제로는 ${won(c.range[0])}~${won(c.range[1])} 사이${cond.days > 31 ? `, 한 달에 ${won(c.per_month)} 꼴` : ""}</p>
+          <p class="range">실제로는 ${won(c.range[0])}~${won(c.range[1])} 사이${cond.days > 31 ? `, 한 달에 ${won(c.per_month)} 꼴` : ""}</p>
         </div>
         <table class="bd"><tbody>
           ${items.map(([k, v]) => { const [btn, box] = q(evHTML(ev.cost[k]));
@@ -376,7 +368,7 @@ function renderDetail(r) {
           ${(() => { const [btn, box] = q(evHTML(ev.living[k]));
             return `<li><span>${escapeHtml(lab(k))} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${ev.living[k]?.reason ? `<small class="why">${escapeHtml(ev.living[k].reason)}</small>` : ""}${box}</li>`; })()}`).join("")}
         </ul>
-        <p class="note">제주 14개 동네끼리 순위로 비교한 점수예요. <button type="button" class="ev-all" data-ev-all>산정방식 보기</button></p>
+        <p class="note">제주 14개 동네끼리 순위로 비교한 점수예요.</p>
       </div>
       <div>
         <h3>유의 사항</h3>

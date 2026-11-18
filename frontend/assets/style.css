@@ -400,8 +400,6 @@ body.ob-open { overflow: hidden; }
 .ev-row td { padding: 0 0 6px !important; }
 .kv li .ev-box { grid-column: 1 / -1; margin-top: 0; }
 .idx li .ev-box { flex-basis: 100%; }
-.ev-all { border: 1px solid var(--brand); background: #fff; color: var(--brand); border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
-.ev-all:hover { background: var(--brand-tint); }
 
 /* ── 리포트 하단 돌몽이 상담 (은행 앱 상담 챗봇 형식) ── */
 .consult { margin-top: 40px; background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; scroll-margin-top: 80px; }
