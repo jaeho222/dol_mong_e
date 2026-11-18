@@ -64,15 +64,8 @@ function init() {
   ["#p-minus", "#p-plus"].forEach((id) => $(id).addEventListener("click", live));
   $("#f-prio").addEventListener("click", (e) => { if (e.target.closest(".pchip")) live(); });
 
-  $("#quick").innerHTML = CFG.quick.map((q, i) => `
-    <button type="button" class="qt" data-i="${i}">
-      <span class="qt-img"><img src="${CFG.pose[q.pose]}" alt="" /></span>
-      <b>${escapeHtml(q.title)}</b><span>${escapeHtml(q.sub)}</span>
-    </button>`).join("");
-  $$("#quick .qt").forEach((b) => b.onclick = () => {
-    const q = CFG.quick[b.dataset.i];
-    if (q.consult) goConsult(); else if (q.onboarding) window.startOnboarding?.(); else applyPreset(q.preset);
-  });
+  // 첫 방문 문답 다시 열기 (예전 '돌몽이랑 고르기' 타일)
+  $("#redo-ob").onclick = () => window.startOnboarding?.();
 
   // 상담 (리포트 맨 아래)
   $$("[data-go-consult]").forEach((b) => b.onclick = (e) => { e.preventDefault(); goConsult(); });
@@ -261,7 +254,7 @@ async function renderBudgetAlt(data) {
   try {
     const res = await api("/api/budget-alternatives", { conditions: data.conditions });
     if (!res.items?.length) { box.hidden = true; return; }
-    box.innerHTML = `<h3>예산 ${won(b)}을 넘어서 빠진 동네 ${data.over_budget.length}곳</h3>
+    box.innerHTML = `<img class="ba-pose" src="${CFG.pose.calc}" alt="" width="64" height="64" /><h3>예산 ${won(b)}을 넘어서 빠진 동네 ${data.over_budget.length}곳</h3>
       <p class="ba-sub">점수가 높은데 예산 때문에 빠진 곳이에요. 비용 계산식을 조건만 바꿔 다시 돌려 봤어요.</p>
       <ul>${res.items.map((it) => `<li><div class="ba-head"><b>${escapeHtml(it.name)}</b> <span>${it.score}점 · ${won(it.total)} (예산 +${it.over.toLocaleString()}만)</span></div>
         ${it.fixes.length ? `<ul class="ba-fix">${it.fixes.map((f) => `<li>${escapeHtml(f.label)} → <b>${won(f.new_total)}</b> <small>${escapeHtml(f.how)}</small></li>`).join("")}</ul>`
@@ -378,21 +371,21 @@ function renderDetail(r) {
     </div>
     <div class="d-cols">
       <div>
-        <h3>살기엔 어떤지</h3>
+        <h3>이 동네, 살아보면?</h3>
         <ul class="kv">${Object.entries(r.living_scores || {}).map(([k, v]) => `
           ${(() => { const [btn, box] = q(evHTML(ev.living[k]));
-            return `<li><span>${escapeHtml(k)} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${ev.living[k]?.reason ? `<small class="why">${escapeHtml(ev.living[k].reason)}</small>` : ""}${box}</li>`; })()}`).join("")}
+            return `<li><span>${escapeHtml(lab(k))} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${ev.living[k]?.reason ? `<small class="why">${escapeHtml(ev.living[k].reason)}</small>` : ""}${box}</li>`; })()}`).join("")}
         </ul>
         <p class="note">제주 14개 동네끼리 순위로 비교한 점수예요. <button type="button" class="ev-all" data-ev-all>산정방식 보기</button></p>
       </div>
       <div>
-        <h3>세심 체크</h3>
+        <h3>유의 사항</h3>
         <ul class="checks">${checks.length ? checks.map(([cl, m, t]) => `<li class="${cl}"><span class="m">${m}</span>${escapeHtml(t)}</li>`).join("") : `<li>따로 챙길 점이 없어요.</li>`}</ul>
         ${seasons.length ? `<h3 class="sub-h">머무는 동안 제주는</h3>
         <ul class="checks">${seasons.map((e) => `<li class="${e.warn ? "warn" : "good"}"><span class="m">${e.warn ? "!" : "·"}</span>${escapeHtml(e.text)}</li>`).join("")}</ul>` : ""}
       </div>
       ${shownIdx.length ? `<div>
-        <h3>동네 지수</h3>
+        <h3>돌몽's Tip이우다</h3>
         <ul class="idx">${shownIdx.map(([ix, v]) =>
           { const [btn, box] = q(v.source ? `<p class="src">데이터: ${escapeHtml(v.source)}</p>` : "");
             return `<li class="${escapeHtml(v.tone || "")}">${escapeHtml(ix.name)} ${btn}<b>${escapeHtml(v.value)}</b>${v.text ? `<small>${escapeHtml(v.text)}</small>` : ""}${box}</li>`; }).join("")}</ul>
@@ -400,14 +393,14 @@ function renderDetail(r) {
     </div>
     <section class="rehearsal" id="rehearsal" aria-label="돌몽이의 한 달 살기 리허설">
       <div class="rh-head"><img src="${CFG.pose.search}" alt="" width="56" height="56" />
-        <div><h3>돌몽이의 한 달 살기 리허설</h3><p>${escapeHtml(r.name)}에 살면 하루가 이렇게 흘러가요. 장소는 전부 공공데이터에 있는 실제 이름이에요.</p></div>
+        <div><h3>돌몽이랑 하루 살아보기</h3><p>${escapeHtml(r.name)}에 살면 하루가 이렇게 흘러가요. 장소는 전부 공공데이터에 있는 실제 이름이에요.</p></div>
         <div class="rh-tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-rh="weekday">평일</button><button type="button" role="tab" aria-selected="false" data-rh="weekend">주말</button></div></div>
       <ol class="rh-list" id="rh-list"><li>${loaderHTML("small")}</li></ol>
       <p class="rh-notes" id="rh-notes"></p>
     </section>
     <section class="consult" id="consult" aria-label="돌몽이 상담">
       <div class="cs-head"><img src="${CFG.pose.done}" alt="" width="40" height="40" />
-        <div><b>돌몽이 상담</b><span>${escapeHtml(r.name)} 리포트 기준 · 공공데이터로만 답해요</span></div></div>
+        <div><b>돌몽이가 알려주쿠다</b><span>${escapeHtml(r.name)} 리포트 기준 · 공공데이터로만 답해요</span></div></div>
       <div class="cs-msgs" id="cs-msgs" aria-live="polite"></div>
       <form class="cs-ask" id="cs-form">
         <input id="cs-text" autocomplete="off" placeholder="예) 예산을 30만원 정도 줄이고 싶은데, 어디서 줄일까?" aria-label="돌몽이에게 물어볼 내용" />
@@ -448,49 +441,24 @@ function ro(word) {
 
 // 돌몽이 한마디: 결과 값으로만 만든다 (지어내지 않음)
 function dolmongSays(r) {
-  // 4~5줄: ① 순위·예산 ② 돈 ③ 강점 ④ 약점 ⑤ 이 동네만의 특징(조건 맞춤 → 동네 지수 → 계절). 전부 결과 값에서만 만든다.
+  // 3줄: ① 순위 ② 가장 좋은 점 ③ 가장 아쉬운 점. 전부 결과 값(순위, 생활 점수, 한 줄 근거)에서만 만든다.
   const list = state.data.results;
-  const c = r.cost, cond = c.conditions, budget = cond.budget_total;
-  const name = escapeHtml(r.name);
+  const c = r.cost, budget = c.conditions.budget_total;
   const ev = r.evidence?.living || {};
   const why = (k) => (ev[k]?.reason ? ` ${escapeHtml(ev[k].reason)}.` : "");
-  const lines = [];
-
-  // ① 순위·예산
   const rank = list.findIndex((x) => x.region_id === r.region_id) + 1;
-  let l1 = `${name}${josa(r.name, "은", "는")} 조건에 맞는 동네 ${list.length}곳 중 <b>${rank}위</b>예요 (${r.score}점).`;
-  if (budget) {
-    const d = budget - c.total;
-    l1 += d >= 0 ? ` 예산보다 <b>${d.toLocaleString()}만 원</b> 적게 들어요.` : ` 다만 예산을 <b>${(-d).toLocaleString()}만 원</b> 넘어요.`;
-  }
-  lines.push(l1);
-
-  // ② 돈: 제일 큰 항목 + 더 싼 동네
-  const [bk, bv] = Object.entries(c.breakdown).sort((a, b) => b[1] - a[1])[0];
-  const cheap = list.reduce((a, b) => (b.cost.total < a.cost.total ? b : a));
-  let l2 = `${period(cond.days)} ${won(c.total)} 중에 ${escapeHtml(bk)}${josa(bk, "이", "가")} ${won(bv)}으로 제일 커요.`;
-  l2 += cheap.region_id === r.region_id ? " 추천 동네 중에 돈이 제일 덜 들어요."
-    : ` ${escapeHtml(cheap.name)}${ro(cheap.name)} 가면 <b>${(c.total - cheap.cost.total).toLocaleString()}만 원</b> 아낄 수 있어요.`;
-  lines.push(l2);
-
-  // ③ 강점 ④ 약점 (생활 점수 + 한 줄 근거)
   const ls = Object.entries(r.living_scores || {}).sort((a, b) => b[1] - a[1]);
-  if (ls.length && ls[0][1] >= 0.6) lines.push(`${escapeHtml(ls[0][0])}${josa(ls[0][0], "이", "가")} 제일 좋아요.${why(ls[0][0])}`);
-  const worst = ls.at(-1);
-  if (worst && worst[1] <= 0.4) lines.push(`대신 ${escapeHtml(worst[0])}${josa(worst[0], "은", "는")} 아쉬워요.${why(worst[0])}`);
-  else if (r.warnings?.length) lines.push(`${escapeHtml(r.warnings[0])}, 이건 미리 알아 두세요.`);
-
-  // ⑤ 이 동네만의 특징: 조건 맞춤 → 점수 높은 동네 지수 → 계절
-  const med = ev["의료"]?.how || "";
-  const kids = med.match(/소아 진료 (\d+)곳/), er = med.match(/응급실까지 약 (\d+)분/);
-  const idx = Object.values(r.indices || {}).filter((v) => v.text).sort((a, b) => (b.score || 0) - (a.score || 0))[0];
-  const season = cond.start_date ? seasonEvents(+cond.start_date.slice(5, 7), cond.days)[0] : null;
-  if (cond.with_kids && kids) lines.push(`아이랑 지내기엔 소아 진료 병·의원이 ${kids[1]}곳 있고${er ? `, 응급실까지 차로 약 ${er[1]}분이에요` : "요"}.`);
-  else if (idx) lines.push(escapeHtml(idx.text));
-  else if (season) lines.push(escapeHtml(season.text) + ".");
-
-  return { lines: lines.slice(0, 5).map((t) => (window.jeju || String)(t)), pose: budget && c.total > budget ? CFG.pose.calc : CFG.pose.done };
+  const lines = [`${escapeHtml(r.name)}${josa(r.name, "은", "는")} 조건에 맞는 동네 ${list.length}곳 중 <b>${rank}위</b>예요.`];
+  if (ls.length) {
+    const [bk] = ls[0], [wk] = ls.at(-1);
+    lines.push(`가장 좋은 점은 ${escapeHtml(lab(bk))}${josa(lab(bk), "이에요", "예요")}.${why(bk)}`);
+    lines.push(`가장 아쉬운 점은 ${escapeHtml(lab(wk))}${josa(lab(wk), "이에요", "예요")}.${why(wk)}`);
+  }
+  return { lines: lines.map((t) => (window.jeju || String)(t)), pose: budget && c.total > budget ? CFG.pose.calc : CFG.pose.done };
 }
+
+// 생활 점수 항목의 화면 이름 (백엔드 region.FACTOR_LABELS → /api/estimate 응답 labels)
+const lab = (k) => state.data?.labels?.[k] || k;
 
 // 받침에 따라 조사 (은/는, 이/가)
 function josa(word, withJong, without) {

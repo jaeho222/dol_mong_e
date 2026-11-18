@@ -4,17 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#ffffff" />
-  <title>돌몽이 — 제주 한 달 살기 동네 찾기</title>
+  <title>돌몽이 — 나의 제주 살이 동모, 돌모이</title>
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="돌몽이" />
   <meta property="og:url" content="https://bang-aeo-hwae.vercel.app/" />
-  <meta property="og:title" content="돌몽이 — 제주 한 달 살기 동네 찾기" />
+  <meta property="og:title" content="돌몽이 — 나의 제주 살이 동모, 돌몽이" />
   <meta property="og:description" content="기간·예산·인원을 넣으면 제주 동네별 한 달 살이 비용과 생활 환경을 비교해 줘요." />
   <meta property="og:image" content="https://bang-aeo-hwae.vercel.app/assets/og-dolmong.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="description" content="제주 한 달 살기 동네 추천 AI Agent, 돌몽이" />
+  <meta name="description" content="제주 살이 동네 추천 AI Agent, 돌몽이" />
   <link rel="icon" href="assets/dolmong/front.webp" type="image/webp" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
   <link rel="preload" href="assets/fonts/dolmong-hallasan.woff2" as="font" type="font/woff2" crossorigin />
@@ -42,7 +42,7 @@
         <a href="#result">동네 추천</a>
         <a href="#detail">비용 비교</a>
         <a href="#about">돌몽이 소개</a>
-        <a id="support-link" target="_blank" rel="noopener">한달살이 지원사업</a>
+        <a id="support-link" target="_blank" rel="noopener">제주 살이 지원사업</a>
       </nav>
     </div>
   </header>
@@ -52,7 +52,7 @@
     <section class="hero" id="hero">
       <div class="hero-photo" id="hero-photo"></div>
       <div class="wrap hero-in">
-        <h1>제주에서 한 달 살아볼까요?<br />어느 동네가 맞을지 비교해 드려요</h1>
+        <h1>쉼이 필요하신가요?<br />나에게 딱 맞는 제주도를 돌몽이와 함께 찾아봐요!</h1>
 
         <form class="search" id="plan" autocomplete="off">
           <img class="hero-dolmong" src="assets/dolmong/signature.webp" alt="" />
@@ -112,16 +112,13 @@
       <div class="hero-wall" aria-hidden="true"></div>
     </section>
 
-    <!-- 빠른 시작: 돌몽이 포즈 타일 -->
-    <section class="wrap quick" aria-label="자주 찾는 조건">
-      <div class="quick-row" id="quick"></div>
-    </section>
-
     <!-- 추천 동네: 목록 + 지도 -->
     <section class="wrap result" id="result">
       <div class="sec-head">
+        <img class="sec-pose" src="assets/dolmong/hello.webp" alt="" width="64" height="64" />
         <h2>이 조건으로 살기 좋은 동네</h2>
         <span class="sec-sub" id="cond-summary"></span>
+        <button type="button" class="redo" id="redo-ob">돌몽이랑 다시 고르기</button>
       </div>
       <p class="data-note" id="data-note" hidden></p>
       <div class="live-note" id="live-note" hidden></div>
@@ -129,6 +126,7 @@
       <div class="result-grid">
         <ol class="list" id="rank"></ol>
         <div class="map-wrap">
+          <img class="map-pose" src="assets/dolmong/main.webp" alt="" width="84" height="84" />
           <svg class="map" id="map" role="img" aria-label="제주 지도 위 추천 동네 위치"></svg>
           <p class="map-cap">번호는 추천 순위예요. 핀을 누르면 그 동네를 자세히 볼 수 있어요.</p>
         </div>
@@ -143,8 +141,8 @@
     <!-- 돌몽이 소개 -->
     <section class="wrap about" id="about">
       <div class="about-text">
-        <h2>돌몽이를 소개할게요</h2>
-        <p>제주 현무암에서 태어난 한 달 살기 안내원이에요. 귤 모자에는 여행자에게 나눠 줄 귤이, 이끼색 배낭에는 지도와 계산기가 들어 있어요.</p>
+        <h2>나 돌몽이를 소개허쿠다!</h2>
+        <p>제주 현무암에서 태어난 뜨거운 남자, 돌몽이수꽝. 열정 가득 돌몽이가 제주에 대해 알려 드리겟수다!</p>
         <p>돌몽이가 알려주는 금액과 점수는 제주데이터허브와 제주빅데이터센터의 공공데이터로 계산해요.</p>
       </div>
       <ul class="turn">
@@ -158,7 +156,7 @@
 
   <footer class="footer">
     <div class="wrap">
-      <p class="f-name">돌몽이 / 팀 고등어회</p>
+      <p class="f-name">돌몽이 - 나의 제주 살이 동모</p>
       <p>제주 AI·빅데이터 활용 AI Agent 개발 챌린지 출품작</p>
       <p>금액은 공공데이터와 시장 조사로 낸 추정치이며 실제 계약가와 다를 수 있어요.</p>
       <p>데이터: 제주데이터허브, 제주빅데이터센터, 공공데이터포털. 사진: 위키미디어 공용(사진마다 작가와 라이선스 표기). 글꼴: 제주한라산체(제주특별자치도, SIL OFL 1.1)</p>
