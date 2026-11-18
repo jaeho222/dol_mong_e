@@ -34,8 +34,8 @@ REASON_PARTS = {
     "자연": [("oreum_cnt", True, "가까운 오름이 많아요", "오름이 적어요"), ("beach_cnt", True, "해변이 가까워요", "해변이 없어요"),
              ("camping_cnt", True, "캠핑장이 많아요", "캠핑장이 적어요")],
     "날씨": [("jan_temp", True, "겨울이 따뜻해요", "겨울이 추운 편이에요"), ("sunshine_jan", True, "겨울 해가 길어요", "겨울 해가 짧아요")],
-    "맛집": [("food_top", True, "평점 높은 식당이 많아요", "평점 높은 식당이 적어요"), ("nopo_ratio", True, "오래된 노포가 많아요", "노포가 적어요")],
-    "밤길안심": [("cctv_idx", True, "주민 대비 CCTV가 많아요", "주민 대비 CCTV가 적어요"),
+    "맛집": [("food_top", True, "평점 높은 식당이 많아요", "평점 높은 식당이 적어요"), ("nopo_ratio", True, "평이 좋은 가게가 많아요", "노포가 적어요")],
+    "밤길안심": [("cctv_idx", True, "인구 대비 CCTV가 많아요", "인구 대비 CCTV가 적어요"),
                ("police_call_idx", False, "112 신고가 적은 관할이에요", "112 신고가 많은 관할이에요")],
 }
 
@@ -103,7 +103,7 @@ def living_evidence(row: dict, scores: dict, all_df: pd.DataFrame | None = None)
             "data": f"{HUB} 906 구글 음식점 리뷰(2021), 780 음식점 목록(인허가 1960~2025)",
         },
         "밤길안심": {
-            "how": f"공공 CCTV {_n(row.get('cctv_cams'))}대(주민 대비 제주 평균의 {_n(row.get('cctv_idx'), '{:.2f}')}배, 70%), "
+            "how": f"공공 CCTV {_n(row.get('cctv_cams'))}대(인구 대비 제주 평균의 {_n(row.get('cctv_idx'), '{:.2f}')}배, 70%), "
                    f"{row.get('police_station')} 관할 1인당 112 신고 제주 평균의 {_n(row.get('police_call_idx'), '{:.2f}')}배(적을수록 좋음, 30%) → {_place(s['밤길안심'])}",
             "data": f"{HUB} 846 CCTV 정보(2025-09), 491 제주경찰청 관서별 112신고(2025). 112는 경찰서 3곳 단위라 약하게 반영",
         },
