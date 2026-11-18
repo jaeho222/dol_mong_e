@@ -134,6 +134,13 @@ window.APP_CONFIG = {
     { key: "nopo", name: "노포 지수", hint: "오래 영업한 동네 식당 비율" },
     { key: "oreum", name: "오름 부자 지수", hint: "가까이 있는 오름 수" },
     { key: "trend", name: "요즘 뜨는 동네", hint: "최근 3년 새로 연 가게 비율" },
+    { key: "gyul_sweet", name: "귤 당도", hint: "동네 고품질 감귤 당도 평균" },
+    { key: "food", name: "맛집 지수", hint: "구글 평점 4.5 이상 식당 수" },
+    { key: "festival", name: "동네 축제", hint: "머무는 동안 열리는 동네 축제" },
+    { key: "pet", name: "댕댕이 지수", hint: "동물병원 수 (반려동물 동반 시)" },
+    { key: "noise", name: "비행기 소리", hint: "공항 인근 항공기 소음도" },
+    { key: "flood", name: "침수 주의", hint: "장마철 침수위험지구" },
+    { key: "snow", name: "폭설 주의", hint: "눈 오면 통제되는 산간 도로" },
   ],
 
   // Agent 대화창 예시 질문

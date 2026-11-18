@@ -26,11 +26,25 @@ RENTCAR_HIGH = 1.5       # 렌터카: 거주자당 렌터카 체류가 제주 �
 RENTCAR_LOW = 0.7        #         0.7배 이하면 '조용함'으로 표시
 TOP_RANK = 0.75          # 노포·오름·요즘 뜨는: 14개 권역 중 상위 25%
 GYUL_PEAK = 0.30         # 귤: 머무는 달에 그 품종 연간 출하의 30% 이상이 몰릴 때
+NOISE_WECPNL = 75        # 항공기 소음: 공항소음방지법 소음대책지역 기준(WECPNL 75)
+BRIX_DIFF = 0.4          # 귤 당도: 제주 평균보다 0.4 Brix 이상 달 때 (측정 농가 8곳 이상)
+BRIX_MIN_SAMPLES = 8
+GYUL_MONTHS = {10, 11, 12, 1, 2, 3}
+RAINY_MONTHS = {6, 7, 8, 9}
+SNOW_MONTHS = {12, 1, 2}
+FOOD_TOP_MIN = 5         # 맛집: 구글 평점 4.5 이상(리뷰 20건↑) 식당이 5곳 이상
+FESTIVAL_MAX = 3         # 축제: 머무는 동안 열리는 것 최대 3개까지 이름 표시
 
 
 @lru_cache(maxsize=1)
 def _weather() -> pd.DataFrame | None:
     p = PROCESSED / "weather_month.csv"
+    return pd.read_csv(p) if p.exists() else None
+
+
+@lru_cache(maxsize=1)
+def _festival() -> pd.DataFrame | None:
+    p = PROCESSED / "festival.csv"
     return pd.read_csv(p) if p.exists() else None
 
 
@@ -48,6 +62,29 @@ def stay_months(cond: Conditions) -> list[int]:
         if m not in months:
             months.append(m)
     return months
+
+
+def _festivals_in_stay(region_id: str, cond: Conditions) -> list[str]:
+    """축제 날짜(월-일)를 머무는 해에 다시 놓고 체류 기간과 겹치는지 본다. 연말에 걸친 축제도 처리."""
+    f = _festival()
+    if f is None:
+        return []
+    start = cond.resolved_start()
+    end = start + timedelta(days=max(cond.days, 1) - 1)
+    names = []
+    for _, r in f[f["region_id"] == region_id].iterrows():
+        for year in range(start.year - 1, end.year + 1):
+            try:
+                s = start.replace(year=year, month=int(r.start_md[:2]), day=int(r.start_md[3:]))
+                e = start.replace(year=year, month=int(r.end_md[:2]), day=int(r.end_md[3:]))
+            except ValueError:  # 2월 29일
+                continue
+            if e < s:
+                e = e.replace(year=year + 1)
+            if s <= end and e >= start:
+                names.append(r["name"])
+                break
+    return names
 
 
 def _rank(s: pd.Series) -> pd.Series:
@@ -100,9 +137,59 @@ def region_indices(row: dict, all_regions: pd.DataFrame, cond: Conditions) -> di
                 value, text = fmt(row[col])
                 out[key] = {"value": value, "tone": "info", "score": round(r * 100), "text": text}
 
-    # 귤 시즌 — 머무는 달에 출하가 몰리는 품종 (제주 전체 기준, 동네 구분 없음)
+    # ✈️ 항공기 소음 — 2022년 WECPNL, 공항 소음대책지역 기준(75) 이상인 측정소가 있는 권역
+    nz = row.get("noise_wecpnl")
+    if pd.notna(nz) and nz >= NOISE_WECPNL:
+        out["noise"] = {"value": f"{nz:.0f}", "tone": "warn", "score": round(min(nz, 100)),
+                        "text": f"공항 가까운 {row.get('noise_stations')} 측정소에서 소음도(WECPNL)가 높아요. 75 이상이면 소음대책지역 기준이에요."}
+
+    # 🍊 귤 당도 — 귤철에만, 측정 농가가 충분하고 제주 평균보다 확실히 달 때
+    gb, gn = row.get("gyul_brix"), row.get("gyul_samples")
+    if set(months) & GYUL_MONTHS and pd.notna(gb) and pd.notna(gn) and gn >= BRIX_MIN_SAMPLES and "gyul_brix" in all_regions:
+        valid = all_regions.dropna(subset=["gyul_brix", "gyul_samples"])
+        avg = (valid["gyul_brix"] * valid["gyul_samples"]).sum() / valid["gyul_samples"].sum()
+        if gb - avg >= BRIX_DIFF:
+            out["gyul_sweet"] = {"value": f"{gb:.1f}Brix", "tone": "good", "score": round(gb * 5),
+                                 "text": f"이 동네 귤 당도 평균 {gb:.1f}Brix로 제주 평균({avg:.1f})보다 달아요. (2020년 측정 {int(gn)}농가)"}
+
+    # 🐶 댕댕이 — 반려동물과 갈 때만
+    vc = row.get("vet_cnt")
+    if cond.with_pet and pd.notna(vc) and "vet_cnt" in all_regions:
+        r = _rank(all_regions["vet_cnt"].fillna(0))[row["region_id"]]
+        if r >= TOP_RANK:
+            out["pet"] = {"value": f"{int(vc)}곳", "tone": "good", "score": round(r * 100), "text": f"동물병원이 {int(vc)}곳 있어요."}
+        elif vc <= 1:
+            out["pet"] = {"value": f"{int(vc)}곳", "tone": "warn", "score": round(r * 100), "text": "동물병원이 1곳 이하예요. 가까운 시내 병원을 미리 알아두세요."}
+
+    # 🌧 침수 — 장마·태풍철에 정비가 덜 끝난 침수위험지구가 있으면 (제주시 자료만 있음)
+    fz = row.get("flood_zones")
+    if set(months) & RAINY_MONTHS and pd.notna(fz) and fz >= 1:
+        out["flood"] = {"value": f"{int(fz)}곳", "tone": "warn", "score": min(int(fz) * 25, 100),
+                        "text": f"비 많이 오는 철엔 {row.get('flood_names')} 쪽 침수위험지구를 피하세요."}
+
+    # ❄️ 폭설 — 겨울에 산간 통제 도로가 지나가는 권역
+    sr = row.get("snow_roads")
+    if set(months) & SNOW_MONTHS and isinstance(sr, str) and sr:
+        out["snow"] = {"value": sr.split(", ")[0], "tone": "warn", "score": 50,
+                       "text": f"눈 오면 {sr}가 자주 통제돼요. 한라산 넘어가는 길은 미리 확인하세요."}
+
+    # ⭐ 맛집 — 구글 평점 4.5 이상 식당이 많은 동네
+    ft = row.get("food_top")
+    if pd.notna(ft) and ft >= FOOD_TOP_MIN:
+        out["food"] = {"value": f"{int(ft)}곳", "tone": "info", "score": round(_rank(all_regions["food_top"].fillna(0))[row["region_id"]] * 100),
+                       "text": f"구글 평점 4.5 이상(리뷰 20건↑) 식당이 {int(ft)}곳이에요. (2020~2021 리뷰)"}
+
+    # 🎉 축제 — 머무는 동안 이 동네에서 열리는 축제 (이름에 동네 이름이 든 것만)
+    fest = _festivals_in_stay(row["region_id"], cond)
+    if fest:
+        out["festival"] = {"value": f"{len(fest)}개", "tone": "good", "score": min(len(fest) * 20, 100),
+                           "text": "머무는 동안 " + ", ".join(fest[:FESTIVAL_MAX])
+                           + (f" 등 {len(fest)}개 축제가 열려요." if len(fest) > FESTIVAL_MAX else " 축제가 열려요.")}
+
+    # 귤 시즌 — 머무는 달에 출하가 몰리는 품종. 출하 통계(855)는 제주 전체라서,
+    #   귤 농가가 있는 동네(당도 측정 농가 3곳 이상, 857)에만 띄운다 → 시내권엔 안 뜸
     g = _gyul()
-    if g is not None:
+    if g is not None and pd.notna(gn) and gn >= 3:
         share = g[g["month"].isin(months)].groupby("variety")["share"].sum()
         peak = share[share >= GYUL_PEAK].sort_values(ascending=False)
         if not peak.empty:
