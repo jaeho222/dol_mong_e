@@ -85,7 +85,7 @@ def living_evidence(row: dict, scores: dict, all_df: pd.DataFrame | None = None)
             "data": f"{HUB} 859 병·의원 정보(2025-09), 1046 응급실 보유 병원(2021-08). 응급실 거리는 직선거리×1.3, 시속 45km로 추정",
         },
         "조용함": {
-            "how": f"관광객 비율 {_n(row.get('crowd_index'), '{:.2f}')}(25%), 렌터카 습격 {_n(row.get('rentcar_index'), '{:.1f}')}배(20%), "
+            "how": f"관광객 비율 {_n(row.get('crowd_index'), '{:.2f}')}(25%), 렌터카 수 {_n(row.get('rentcar_index'), '{:.1f}')}배(20%), "
                    f"상가 수(도심 정도, 40%), 비행기 소음 {('WECPNL ' + _n(row.get('noise_wecpnl'))) if pd.notna(row.get('noise_wecpnl')) else '해당 없음'}(15%) → {_place(s['조용함'])}",
             "data": f"{HUB} 583 읍면동 유동인구(2025-10), 1208 렌터카 체류(2021 하반기), 793 상가정보, 783 항공기 소음(2022)",
         },

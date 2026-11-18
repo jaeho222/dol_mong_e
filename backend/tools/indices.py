@@ -140,7 +140,7 @@ def _region_indices(row: dict, all_regions: pd.DataFrame, cond: Conditions) -> d
                 out["hair"] = {"value": f"{hair:.0%}", "tone": "warn", "score": round(hair * 100),
                                "text": f"{mtxt}엔 강풍 부는 날이 {hair:.0%}예요. 머리 묶을 끈 챙기세요."}
 
-    # 렌터카 습격 — 거주자당 렌터카 체류 (제주 평균 = 1)
+    # 렌터카 수 — 거주자당 렌터카 체류 (제주 평균 = 1)
     rc = row.get("rentcar_index")
     if pd.notna(rc):
         if rc >= RENTCAR_HIGH:

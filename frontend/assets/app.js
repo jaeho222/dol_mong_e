@@ -374,7 +374,7 @@ function renderDetail(r) {
         <h3>이 동네, 살아보면?</h3>
         <ul class="kv">${Object.entries(r.living_scores || {}).map(([k, v]) => `
           ${(() => { const [btn, box] = q(evHTML(ev.living[k]));
-            return `<li><span>${escapeHtml(k)} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${ev.living[k]?.reason ? `<small class="why">${escapeHtml(ev.living[k].reason)}</small>` : ""}${box}</li>`; })()}`).join("")}
+            return `<li><span>${escapeHtml(lab(k))} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${ev.living[k]?.reason ? `<small class="why">${escapeHtml(ev.living[k].reason)}</small>` : ""}${box}</li>`; })()}`).join("")}
         </ul>
         <p class="note">제주 14개 동네끼리 순위로 비교한 점수예요. <button type="button" class="ev-all" data-ev-all>산정방식 보기</button></p>
       </div>
@@ -468,9 +468,9 @@ function dolmongSays(r) {
 
   // ③ 강점 ④ 약점 (생활 점수 + 한 줄 근거)
   const ls = Object.entries(r.living_scores || {}).sort((a, b) => b[1] - a[1]);
-  if (ls.length && ls[0][1] >= 0.6) lines.push(`${escapeHtml(ls[0][0])}${josa(ls[0][0], "이", "가")} 제일 좋아요.${why(ls[0][0])}`);
+  if (ls.length && ls[0][1] >= 0.6) lines.push(`${escapeHtml(lab(ls[0][0]))}${josa(lab(ls[0][0]), "이", "가")} 제일 좋아요.${why(ls[0][0])}`);
   const worst = ls.at(-1);
-  if (worst && worst[1] <= 0.4) lines.push(`대신 ${escapeHtml(worst[0])}${josa(worst[0], "은", "는")} 아쉬워요.${why(worst[0])}`);
+  if (worst && worst[1] <= 0.4) lines.push(`대신 ${escapeHtml(lab(worst[0]))}${josa(lab(worst[0]), "은", "는")} 아쉬워요.${why(worst[0])}`);
   else if (r.warnings?.length) lines.push(`${escapeHtml(r.warnings[0])}, 이건 미리 알아 두세요.`);
 
   // ⑤ 이 동네만의 특징: 조건 맞춤 → 점수 높은 동네 지수 → 계절
@@ -484,6 +484,9 @@ function dolmongSays(r) {
 
   return { lines: lines.slice(0, 5).map((t) => (window.jeju || String)(t)), pose: budget && c.total > budget ? CFG.pose.calc : CFG.pose.done };
 }
+
+// 생활 점수 항목의 화면 이름 (백엔드 region.FACTOR_LABELS → /api/estimate 응답 labels)
+const lab = (k) => state.data?.labels?.[k] || k;
 
 // 받침에 따라 조사 (은/는, 이/가)
 function josa(word, withJong, without) {
