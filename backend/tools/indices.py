@@ -91,7 +91,32 @@ def _rank(s: pd.Series) -> pd.Series:
     return (s.rank(method="average") - 1) / max(len(s) - 1, 1)
 
 
+SOURCES = {
+    "laundry": "제주데이터허브 877 일간 기후(2000~2021) — 습도 65% 미만인 날 비율, 가까운 관측소 기준",
+    "hair": "제주데이터허브 877 일간 기후(2000~2021) — 일 최대풍속 10m/s 이상인 날 비율",
+    "rentacar": "제주데이터허브 1208 렌터카 체류 위치(2021 하반기) ÷ 583 거주 인구(2025-10)",
+    "nopo": "제주데이터허브 780 음식점 목록 — 영업 중 식당 중 2006년 이전 인허가 비율",
+    "oreum": "제주데이터허브 811 오름 위치 — 지번주소 기준",
+    "trend": "제주데이터허브 830 읍면동 사업체 생멸 — 2021~2023 신생 ÷ 활동 사업체",
+    "gyul": "제주데이터허브 855 신고소별 감귤 출하량(2018~2025-03) — 품종별 월 출하 비중",
+    "gyul_sweet": "제주데이터허브 857 고품질 감귤 당도(2020-11~12)",
+    "noise": "제주데이터허브 783 공항 인근 항공기 소음도(2022, WECPNL)",
+    "pet": "공공데이터포털(허브 542) 제주 동물병원 현황",
+    "flood": "공공데이터포털(허브 435) 제주시 자연재해위험개선지구 — 정비 미완료 침수위험지구",
+    "snow": "공공데이터포털(허브 131) 제설 모래주머니 적치 노선 — 지나가는 권역은 수동 매핑",
+    "food": "제주데이터허브 906 구글 음식점 리뷰 × 780 음식점 목록(상호 매칭)",
+    "festival": "제주데이터허브 761 VISIT JEJU 축제행사 — 이름에 동네 이름이 든 축제만",
+}
+
+
 def region_indices(row: dict, all_regions: pd.DataFrame, cond: Conditions) -> dict:
+    out = _region_indices(row, all_regions, cond)
+    for k, v in out.items():
+        v["source"] = SOURCES.get(k, "")
+    return out
+
+
+def _region_indices(row: dict, all_regions: pd.DataFrame, cond: Conditions) -> dict:
     out: dict = {}
     months = stay_months(cond)
     mtxt = f"{months[0]}월" if len(months) == 1 else f"{months[0]}~{months[-1]}월"

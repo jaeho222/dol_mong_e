@@ -169,7 +169,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .d-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; margin-top: 44px; }
 .d-cols h3 { font-size: 17px; font-weight: 700; padding-bottom: 10px; border-bottom: 2px solid var(--ink); margin-bottom: 4px; }
 .kv { list-style: none; margin: 0; padding: 0; }
-.kv li { display: grid; grid-template-columns: 76px 1fr 36px; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+.kv li { display: grid; grid-template-columns: 100px 1fr 36px; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
 .kv .s { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
 .kv .s i { height: 8px; background: #dfe1e4; border-radius: 2px; }
 .kv .s i.on { background: var(--moss); }
@@ -200,37 +200,13 @@ h1, h2, h3, h4, p { margin: 0; }
 .f-name { font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
 
 /* ── 상담 위젯 ── */
-.helper { position: fixed; right: 20px; bottom: 24px; z-index: 35; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.helper-tip { background: var(--brand); color: #fff; font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 8px; position: relative; }
-.helper-tip::after { content: ""; position: absolute; right: 34px; bottom: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: var(--brand); }
-.helper-btn { width: 84px; border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 8px 4px 10px; display: grid; justify-items: center; gap: 2px; font-size: 12px; font-weight: 700; line-height: 1.25; box-shadow: 0 2px 10px rgb(0 0 0 / .1); }
-.helper-btn img { width: 50px; height: 50px; object-fit: contain; }
-body.chat-open .helper { display: none; }
 
-.scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .3); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40; }
-.chat { position: fixed; z-index: 50; right: 20px; bottom: 20px; width: min(400px, calc(100% - 24px)); height: min(640px, calc(100dvh - 100px)); background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgb(0 0 0 / .22); display: flex; flex-direction: column; overflow: hidden;
-  opacity: 0; transform: translateY(16px); pointer-events: none; transition: opacity .18s, transform .18s; }
-body.chat-open .scrim { opacity: 1; pointer-events: auto; }
-body.chat-open .chat { opacity: 1; transform: none; pointer-events: auto; }
-.chat-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
-.chat-head img { width: 36px; height: 36px; object-fit: contain; }
-.chat-head b { display: block; font-size: 16px; }
-.chat-head span { font-size: 12px; color: var(--ink-3); }
-.chat-close { margin-left: auto; border: 0; background: none; padding: 6px; display: grid; }
 .msgs { flex: 1; overflow: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 10px; background: var(--bg-2); }
-.msg { max-width: 86%; padding: 10px 13px; border-radius: 10px; font-size: 14.5px; line-height: 1.6; white-space: pre-wrap; }
+.msg { max-width: 86%; padding: 10px 13px; border-radius: 10px; font-size: 14.5px; line-height: 1.6; }
 .msg.bot { background: #fff; border: 1px solid var(--line); align-self: flex-start; }
-.msg.user { background: var(--brand); color: #fff; align-self: flex-end; }
+.msg.user { background: var(--brand); color: #fff; align-self: flex-end; white-space: pre-wrap; }
 .msg.loading { display: flex; align-items: center; gap: 8px; color: var(--ink-2); }
 .msg.loading img { width: 40px; }
-.trace { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); }
-.trace ol { margin: 2px 0 0; padding-left: 18px; }
-.see { margin-top: 10px; border: 1px solid var(--brand); background: #fff; color: var(--brand); border-radius: 6px; padding: 7px 12px; font-weight: 700; font-size: 13.5px; }
-.examples { display: flex; gap: 6px; overflow-x: auto; padding: 10px 14px 0; }
-.examples button { flex: none; border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 6px 10px; font-size: 13px; color: var(--ink-2); }
-.ask { display: flex; gap: 6px; padding: 10px 14px 14px; }
-.ask input { flex: 1; min-width: 0; height: 44px; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; }
-.ask input:focus { border-color: var(--ink); outline: none; }
 .send { width: 44px; border: 0; border-radius: 8px; background: var(--brand); color: #fff; display: grid; place-items: center; }
 
 /* ── 반응형 ── */
@@ -269,10 +245,6 @@ body.chat-open .chat { opacity: 1; transform: none; pointer-events: auto; }
   .row-name { font-size: 16px; }
   .row-price b { font-size: 17px; }
   .d-name { font-size: 26px; }
-  .helper-tip { display: none; }
-  .helper-btn { width: 64px; padding: 6px 2px 8px; }
-  .helper-btn img { width: 40px; height: 40px; }
-  .chat { right: 0; bottom: 0; width: 100%; height: 88dvh; border-radius: 14px 14px 0 0; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 
@@ -281,7 +253,6 @@ body.chat-open .chat { opacity: 1; transform: none; pointer-events: auto; }
 
 /* ── 첫 방문 문답 ── */
 body.ob-open { overflow: hidden; }
-body.ob-open .helper { display: none; }
 .ob { position: fixed; inset: 0; z-index: 100; background: #fff; display: flex; flex-direction: column; }
 .ob-top { display: flex; align-items: center; gap: 16px; width: min(760px, 100% - 32px); margin: 0 auto; padding: 22px 0 8px; }
 .ob-back { border: 0; background: none; font-size: 32px; line-height: 1; color: var(--ink-3); width: 32px; padding: 0 0 4px; }
@@ -365,7 +336,7 @@ body.ob-open .helper { display: none; }
 
 /* ── 색·글꼴 역할 덮어쓰기 ── */
 .logo { font-family: var(--voice); font-weight: 400; font-size: 27px; letter-spacing: 0; }
-.hero h1, .sec-head h2, .about h2, .d-name, .ob-hero h2, .ob-say, .say p, .helper-tip, .ob-card h3 { font-family: var(--voice); font-weight: 400; letter-spacing: 0; }
+.hero h1, .sec-head h2, .about h2, .d-name, .ob-hero h2, .ob-say, .say p, .ob-card h3 { font-family: var(--voice); font-weight: 400; letter-spacing: 0; }
 .hero h1 { font-size: 40px; line-height: 1.3; }
 .sec-head h2, .about h2 { font-size: 28px; }
 .d-name { font-size: 34px; }
@@ -377,8 +348,6 @@ body.ob-open .helper { display: none; }
 .search-btn:hover, .send:hover { background: var(--cta-dark); }
 .gnb-ask { border-color: var(--cta); color: var(--cta); }
 .gnb-ask:hover { background: #f1f2f0; }
-.helper-tip { background: var(--cta); font-size: 16px; padding: 8px 14px 6px; }
-.helper-tip::after { border-top-color: var(--cta); }
 .list li:first-child .rk, .ob-photo span { background: var(--gyul); }
 .list li:nth-child(2) .rk, .list li:nth-child(3) .rk { background: var(--brand); }
 .ob-next { background: var(--cta); box-shadow: 0 4px 0 var(--cta-dark); }
@@ -430,3 +399,37 @@ body.ob-open .helper { display: none; }
 .pchip.on { border-color: var(--brand); color: var(--brand); font-weight: 600; }
 .pchip.on::after { content: attr(data-n); position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; border-radius: 50%;
   background: var(--brand); color: #fff; font-size: 11px; line-height: 16px; text-align: center; }
+
+
+/* ── 근거(산정방식) ───────────────────── */
+.evq { width: 18px; height: 18px; padding: 0; margin-left: 2px; border: 1px solid var(--ink-3); border-radius: 50%; background: #fff; color: var(--ink-2); font-size: 11px; font-weight: 700; line-height: 1; vertical-align: 1px; cursor: pointer; }
+.evq[aria-expanded="true"], .evq:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+.ev-box { flex-basis: 100%; margin: 6px 0 2px; padding: 9px 11px; background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: 6px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); font-weight: 400; text-align: left; }
+.ev-box p { margin: 0; }
+.ev-box .src { margin-top: 4px; color: var(--ink-3); }
+.ev-row td { padding: 0 0 6px !important; }
+.kv li .ev-box { grid-column: 1 / -1; margin-top: 0; }
+.idx li .ev-box { flex-basis: 100%; }
+.ev-all { border: 1px solid var(--brand); background: #fff; color: var(--brand); border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.ev-all:hover { background: var(--brand-tint); }
+
+/* ── 리포트 하단 돌몽이 상담 (은행 앱 상담 챗봇 형식) ── */
+.consult { margin-top: 40px; background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; scroll-margin-top: 80px; }
+.cs-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--brand-tint); }
+.cs-head img { width: 40px; height: 40px; object-fit: contain; }
+.cs-head b { display: block; font-size: 17px; font-family: var(--voice); font-weight: 400; }
+.cs-head span { font-size: 12.5px; color: var(--ink-3); }
+.cs-msgs { max-height: 560px; min-height: 180px; overflow: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; background: var(--bg-2); }
+.cs-msgs .msg { max-width: min(640px, 92%); }
+.cs-msgs .msg.bot p { margin: 0 0 3px; color: var(--ink); font-weight: 400; font-family: inherit; font-size: 14.5px; }
+.cs-msgs .msg.bot p b { font-weight: 700; }
+.cs-msgs .msg.bot p.sub { padding-left: 14px; font-size: 13px; color: var(--ink-3); }
+.cs-src { margin-top: 8px !important; padding-top: 6px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--ink-3); }
+.qr { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; max-width: 92%; }
+.qr button { border: 1px solid var(--brand); background: #fff; color: var(--brand); border-radius: 999px; padding: 7px 13px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.qr button:hover { background: var(--brand); color: #fff; }
+.cs-ask { display: flex; gap: 6px; padding: 12px 18px; border-top: 1px solid var(--line); }
+.cs-ask input { flex: 1; min-width: 0; height: 46px; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; font-size: 15px; }
+.cs-ask input:focus { border-color: var(--ink); outline: none; }
+.send { width: 46px; border: 0; border-radius: 8px; background: var(--cta); color: #fff; display: grid; place-items: center; }
+.cs-foot { margin: 0; padding: 0 18px 14px; font-size: 12px; color: var(--ink-3); }

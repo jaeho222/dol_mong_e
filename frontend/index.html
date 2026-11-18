@@ -44,7 +44,7 @@
         <a href="#about">돌몽이 소개</a>
         <a id="support-link" target="_blank" rel="noopener">한달살이 지원사업</a>
       </nav>
-      <button class="gnb-ask" data-open-chat>돌몽이에게 묻기</button>
+      <a class="gnb-ask" href="#consult" data-go-consult>돌몽이에게 묻기</a>
     </div>
   </header>
 
@@ -164,31 +164,6 @@
     </div>
   </footer>
 
-  <!-- 돌몽이 상담 위젯 -->
-  <div class="helper" id="helper">
-    <p class="helper-tip">동네 고르기 어려우면 말로 물어보세요</p>
-    <button class="helper-btn" data-open-chat aria-label="돌몽이에게 묻기">
-      <img src="assets/dolmong/hello.webp" alt="" />
-      <span>돌몽이<br />상담</span>
-    </button>
-  </div>
-
-  <div class="scrim" id="scrim"></div>
-  <aside class="chat" id="chat" aria-hidden="true" aria-label="돌몽이 상담">
-    <div class="chat-head">
-      <img src="assets/dolmong/front.webp" alt="" width="36" height="36" />
-      <div><b>돌몽이 상담</b><span id="mode-label"></span></div>
-      <button class="chat-close" id="chat-close" aria-label="상담 닫기"><svg class="ico"><use href="#i-x"/></svg></button>
-    </div>
-    <div class="msgs" id="msgs">
-      <div class="msg bot">언제, 얼마 동안, 누구와 오는지 적어 주세요. 차를 빌릴지, 예산은 얼마인지도 알려주면 동네별로 계산해 볼게요.</div>
-    </div>
-    <div class="examples" id="examples"></div>
-    <form class="ask" id="ask">
-      <input id="ask-text" autocomplete="off" placeholder="예) 1월부터 석 달, 둘이서, 차 없이" aria-label="돌몽이에게 물어볼 내용" />
-      <button class="send" aria-label="보내기"><svg class="ico"><use href="#i-send"/></svg></button>
-    </form>
-  </aside>
 
   <script src="assets/app.js"></script>
   <script src="assets/onboarding.js"></script>

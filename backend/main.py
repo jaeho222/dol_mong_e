@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from backend import config
+from backend.agent.consult import greeting, run_consult
 from backend.agent import run_agent
 from backend.tools.data_loader import data_is_dummy
 from backend.tools.region import list_regions, rank_regions
@@ -27,6 +28,25 @@ class EstimateRequest(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: list = []  # TODO[AGENT]: 멀티턴 대화 시 프론트에서 이전 메시지 전달
+
+
+class ConsultRequest(BaseModel):
+    region_id: str
+    conditions: dict = {}
+    message: str = ""
+    intent: str | None = None  # 빠른 버튼 id (save, why, transit, compare, medical, contact)
+    history: list = []
+
+
+@app.post("/api/consult")
+def consult(req: ConsultRequest):
+    """리포트 하단 돌몽이 상담. message·intent 둘 다 없으면 인사 + 빠른 버튼."""
+    try:
+        if not req.message.strip() and not req.intent:
+            return greeting(req.region_id, req.conditions)
+        return run_consult(req.message, req.region_id, req.conditions, req.intent, req.history)
+    except KeyError as e:
+        raise HTTPException(400, str(e))
 
 
 @app.get("/api/health")

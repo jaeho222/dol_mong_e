@@ -65,20 +65,33 @@ function init() {
     </button>`).join("");
   $$("#quick .qt").forEach((b) => b.onclick = () => {
     const q = CFG.quick[b.dataset.i];
-    if (q.chat) openChat(); else if (q.onboarding) window.startOnboarding?.(); else applyPreset(q.preset);
+    if (q.consult) goConsult(); else if (q.onboarding) window.startOnboarding?.(); else applyPreset(q.preset);
   });
 
-  // 상담
-  $$("[data-open-chat]").forEach((b) => b.onclick = (e) => { e.preventDefault(); openChat(); });
-  $("#chat-close").onclick = closeChat;
-  $("#scrim").onclick = closeChat;
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeChat(); });
-  $("#examples").innerHTML = CFG.examples.map((e) => `<button type="button">${escapeHtml(e)}</button>`).join("");
-  $$("#examples button").forEach((b) => b.onclick = () => ask(b.textContent));
-  $("#ask").onsubmit = (e) => { e.preventDefault(); ask($("#ask-text").value); };
+  // 상담 (리포트 맨 아래)
+  $$("[data-go-consult]").forEach((b) => b.onclick = (e) => { e.preventDefault(); goConsult(); });
+  // 근거 '?' 버튼, '산정방식 보기' (renderDetail 이 다시 그려도 동작하도록 위임)
+  $("#detail-in").addEventListener("click", (e) => {
+    const q = e.target.closest("[data-ev]");
+    if (q) { const box = $("#" + q.dataset.ev); box.hidden = !box.hidden; q.setAttribute("aria-expanded", String(!box.hidden)); return; }
+    const all = e.target.closest("[data-ev-all]");
+    if (all) {
+      const on = !$("#detail-in").classList.contains("ev-all");
+      $("#detail-in").classList.toggle("ev-all", on);
+      $$("#detail-in .ev-box").forEach((b) => b.hidden = !on);
+      $$("[data-ev-all]").forEach((b) => b.textContent = on ? "산정방식 닫기" : "산정방식 보기");
+      return;
+    }
+    const chip = e.target.closest("[data-qr]");
+    if (chip) consultAsk("", chip.dataset.qr, chip.textContent);
+  });
+  $("#detail-in").addEventListener("submit", (e) => {
+    if (e.target.id !== "cs-form") return;
+    e.preventDefault(); const t = $("#cs-text").value.trim(); if (t) consultAsk(t);
+  });
 
   api("/api/health").then((h) => {
-    $("#mode-label").textContent = h.agent_mode === "claude" ? "Claude가 답해요" : "데모 모드";
+    state.agentMode = h.agent_mode;
     if (h.dummy_data) {
       $("#data-note").hidden = false;
       $("#data-note").textContent = "지금은 동네 지표가 더미 데이터예요. 제주데이터허브 실제 데이터로 바꾸는 중이에요.";
@@ -252,6 +265,11 @@ function renderDetail(r) {
   const seasons = cond.start_date ? seasonEvents(+cond.start_date.slice(5, 7), cond.days) : [];
   const checks = [...r.warnings.map((w) => ["warn", "!", w]), ...r.badges.map((b) => ["good", "✓", b])];
   // 백엔드가 임계값을 넘긴 지수만 보낸다 → config 순서대로 그것만 그린다
+  const ev = r.evidence || { living: {}, cost: {} };
+  let evN = 0;
+  const q = (box) => { const id = `ev-${++evN}`; return [`<button type="button" class="evq" data-ev="${id}" aria-expanded="false" aria-label="산정 근거 보기">?</button>`,
+    box ? `<div class="ev-box" id="${id}" hidden>${box}</div>` : ""]; };
+  const evHTML = (e) => e ? `<p>${escapeHtml(e.how)}</p><p class="src">데이터: ${escapeHtml(e.data)}</p>` : "";
   const shownIdx = CFG.indices.filter((ix) => r.indices?.[ix.key]).map((ix) => [ix, r.indices[ix.key]]);
 
   $("#detail-in").innerHTML = `
@@ -269,10 +287,11 @@ function renderDetail(r) {
           <p><span class="amt">${c.total.toLocaleString()}<small>만 원</small></span>${diff === null ? "" : diff >= 0
             ? `<span class="budget ok">예산보다 ${diff.toLocaleString()}만 원 적어요</span>`
             : `<span class="budget over">예산보다 ${(-diff).toLocaleString()}만 원 많아요</span>`}</p>
-          <p class="range">실제로는 ${won(c.range[0])}~${won(c.range[1])} 사이${cond.days > 31 ? `, 한 달에 ${won(c.per_month)} 꼴` : ""}</p>
+          <p class="range"><button type="button" class="ev-all" data-ev-all>산정방식 보기</button> 실제로는 ${won(c.range[0])}~${won(c.range[1])} 사이${cond.days > 31 ? `, 한 달에 ${won(c.per_month)} 꼴` : ""}</p>
         </div>
         <table class="bd"><tbody>
-          ${items.map(([k, v]) => `<tr><th>${escapeHtml(k)}</th><td><div class="bar"><i style="width:${(v / max) * 100}%"></i></div></td><td class="v">${won(v)}</td></tr>`).join("")}
+          ${items.map(([k, v]) => { const [btn, box] = q(evHTML(ev.cost[k]));
+            return `<tr><th>${escapeHtml(k)} ${btn}</th><td><div class="bar"><i style="width:${(v / max) * 100}%"></i></div></td><td class="v">${won(v)}</td></tr>${box ? `<tr class="ev-row"><td colspan="3">${box}</td></tr>` : ""}`; }).join("")}
         </tbody></table>
         ${c.alternatives?.length ? `<p class="alt">${escapeHtml(c.alternatives[0].tier)}로 구하면 숙소비가 ${won(c.alternatives[0].lodging)}이에요.</p>` : ""}
         <div class="say"><img src="${say.pose}" alt="" /><div><b class="who">돌몽이 한마디</b><p>${say.text}</p></div></div>
@@ -282,9 +301,10 @@ function renderDetail(r) {
       <div>
         <h3>살기엔 어떤지</h3>
         <ul class="kv">${Object.entries(r.living_scores || {}).map(([k, v]) => `
-          <li><span>${escapeHtml(k)}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span></li>`).join("")}
+          ${(() => { const [btn, box] = q(evHTML(ev.living[k]));
+            return `<li><span>${escapeHtml(k)} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${box}</li>`; })()}`).join("")}
         </ul>
-        <p class="note">추천 동네끼리 비교한 점수예요.</p>
+        <p class="note">제주 14개 동네끼리 순위로 비교한 점수예요. <button type="button" class="ev-all" data-ev-all>산정방식 보기</button></p>
       </div>
       <div>
         <h3>세심 체크</h3>
@@ -295,9 +315,21 @@ function renderDetail(r) {
       ${shownIdx.length ? `<div>
         <h3>동네 지수</h3>
         <ul class="idx">${shownIdx.map(([ix, v]) =>
-          `<li class="${escapeHtml(v.tone || "")}" title="${escapeHtml(v.text || ix.hint)}">${escapeHtml(ix.name)}<b>${escapeHtml(v.value)}</b>${v.text ? `<small>${escapeHtml(v.text)}</small>` : ""}</li>`).join("")}</ul>
+          { const [btn, box] = q(v.source ? `<p class="src">데이터: ${escapeHtml(v.source)}</p>` : "");
+            return `<li class="${escapeHtml(v.tone || "")}">${escapeHtml(ix.name)} ${btn}<b>${escapeHtml(v.value)}</b>${v.text ? `<small>${escapeHtml(v.text)}</small>` : ""}${box}</li>`; }).join("")}</ul>
       </div>` : ""}
-    </div>`;
+    </div>
+    <section class="consult" id="consult" aria-label="돌몽이 상담">
+      <div class="cs-head"><img src="${CFG.pose.done}" alt="" width="40" height="40" />
+        <div><b>돌몽이 상담</b><span>${escapeHtml(r.name)} 리포트 기준으로 답해요${state.agentMode === "claude" ? " · Claude" : ""}</span></div></div>
+      <div class="cs-msgs" id="cs-msgs" aria-live="polite"></div>
+      <form class="cs-ask" id="cs-form">
+        <input id="cs-text" autocomplete="off" placeholder="예) 예산을 30만원 정도 줄이고 싶은데, 어디서 줄일까?" aria-label="돌몽이에게 물어볼 내용" />
+        <button class="send" aria-label="보내기"><svg class="ico"><use href="#i-send"/></svg></button>
+      </form>
+      <p class="cs-foot">답은 비용 계산식과 공공데이터 지표로만 만들어요. 데이터로 답하기 어려운 건 제주120만덕콜센터(국번 없이 120)로 안내해요.</p>
+    </section>`;
+  startConsult(r);
 }
 
 // 돌몽이 한마디: 결과 값으로만 만든다 (지어내지 않음)
@@ -319,41 +351,56 @@ function dolmongSays(r) {
   return { text: out.join(" "), pose: budget && c.total > budget ? CFG.pose.calc : CFG.pose.done };
 }
 
-// ④ 상담 ─────────────────────────────────────────
-function openChat() { document.body.classList.add("chat-open"); $("#chat").setAttribute("aria-hidden", "false"); setTimeout(() => $("#ask-text").focus(), 150); }
-function closeChat() { document.body.classList.remove("chat-open"); $("#chat").setAttribute("aria-hidden", "true"); }
+// ④ 상담 (리포트 맨 아래) ─────────────────────────
+// 은행 앱 상담 챗봇처럼: 인사 + 빠른 버튼 → 자유 질문. 지금 보는 동네와 조건을 같이 보낸다.
+const consult = { region: null, history: [] };
 
-async function ask(text) {
-  text = (text || "").trim();
-  if (!text) return;
-  openChat();
-  $("#ask-text").value = "";
-  addMsg("user").textContent = text;
-  const loading = addMsg("bot loading");
-  loading.innerHTML = loaderHTML("small");
+function goConsult() {
+  const el = $("#consult");
+  if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(() => $("#cs-text")?.focus(), 400); }
+}
+
+function consultBody(extra) {
+  const r = consult.region;
+  return { region_id: r.region_id, conditions: { ...r.cost.conditions, priorities: state.priorities || [] }, history: consult.history.slice(-8), ...extra };
+}
+
+async function startConsult(r) {
+  consult.region = r; consult.history = [];
+  try { csBot(await api("/api/consult", consultBody({}))); } catch (e) { csAdd("bot").textContent = "상담을 불러오지 못했어요."; }
+}
+
+async function consultAsk(text, intent, label) {
+  if (!consult.region) return;
+  $("#cs-text").value = "";
+  csAdd("user").textContent = text || label;
+  $$("#cs-msgs .qr").forEach((x) => x.remove());   // 지난 빠른 버튼은 치운다
+  const loading = csAdd("bot loading"); loading.innerHTML = loaderHTML("small");
   try {
-    const res = await api("/api/chat", { message: text });
-    loading.remove();
-    const el = addMsg("bot");
-    el.innerHTML = mdLite(res.answer);
-    if (res.trace?.length) {
-      el.insertAdjacentHTML("beforeend", `<div class="trace">돌몽이가 한 일<ol>${res.trace.map((t) => `<li>${escapeHtml(TOOL_LABEL[t.tool] || t.tool)}</li>`).join("")}</ol></div>`);
-    }
-    if (res.ranked?.results) {
-      el.insertAdjacentHTML("beforeend", `<button type="button" class="see">추천 동네 목록에서 보기</button>`);
-      $(".see", el).onclick = () => { renderResults(res.ranked); closeChat(); $("#result").scrollIntoView({ behavior: "smooth" }); };
-    }
+    const res = await api("/api/consult", consultBody({ message: text || "", intent: intent || null }));
+    loading.remove(); csBot(res);
+    consult.history.push({ role: "user", content: text || label }, { role: "assistant", content: res.answer });
   } catch (e) {
     loading.classList.remove("loading");
-    loading.textContent = `답을 만들지 못했어요. 잠시 뒤 다시 물어봐 주세요. (${e.message})`;
+    loading.textContent = `답을 만들지 못했어요. 제주120만덕콜센터(국번 없이 120)로 물어봐 주세요. (${e.message})`;
   }
 }
 
-function addMsg(cls) {
+function csBot(res) {
+  const el = csAdd("bot");
+  el.innerHTML = res.answer.split("\n").map((l) => `<p class="${/^\s+└/.test(l) ? "sub" : ""}">${mdLite(l.trim())}</p>`).join("");
+  if (res.sources?.length) el.insertAdjacentHTML("beforeend", `<p class="cs-src">근거: ${res.sources.map(escapeHtml).join(" · ")}</p>`);
+  if (res.quick_replies?.length) {
+    el.insertAdjacentHTML("afterend", `<div class="qr">${res.quick_replies.map((q) => `<button type="button" data-qr="${q.id}">${escapeHtml(q.label)}</button>`).join("")}</div>`);
+  }
+  const box = $("#cs-msgs"); requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+}
+
+function csAdd(cls) {
   const el = document.createElement("div");
   el.className = "msg " + cls;
-  $("#msgs").appendChild(el);
-  requestAnimationFrame(() => { $("#msgs").scrollTop = $("#msgs").scrollHeight; });
+  $("#cs-msgs").appendChild(el);
+  const box = $("#cs-msgs"); requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
   return el;
 }
 

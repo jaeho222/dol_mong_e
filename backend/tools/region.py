@@ -18,6 +18,7 @@ import pandas as pd
 from backend.schema import Conditions
 from backend.tools.cost import estimate_total_cost
 from backend.tools.data_loader import get_region, load_regions
+from backend.tools.evidence import cost_evidence, living_evidence
 from backend.tools.indices import region_indices, stay_months, _weather
 
 COST_ZERO_AT = 0.5   # 가장 싼 동네보다 50% 비싸면 비용 점수 0
@@ -178,6 +179,10 @@ def rank_regions(conditions: dict | Conditions, top_k: int = 5) -> dict:
             "fun_scores": fun.loc[rid].round(2).to_dict() if not fun.empty else {},
             # 눈에 띄는 동네 지수만 (임계값 못 넘으면 빠짐) — backend/tools/indices.py
             "indices": region_indices(row, all_regions, cond),
+            # 화면의 '?'·'산정방식 보기'에 쓰는 근거 문장 (backend/tools/evidence.py)
+            "evidence": {"living": living_evidence(row, scores.loc[rid].to_dict()),
+                         "cost": cost_evidence(costs[rid], row),
+                         "weights": {k: round(v, 2) for k, v in w.items()}},
             "cost": costs[rid],
             "badges": good,
             "warnings": warn,
