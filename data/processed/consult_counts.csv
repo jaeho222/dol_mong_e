@@ -1,0 +1,231 @@
+region_id,kind,n
+aewol,amenity:독서실/스터디 카페,1
+aewol,amenity:동물병원,7
+aewol,amenity:목욕탕/사우나,3
+aewol,amenity:빵/도넛,38
+aewol,amenity:세탁소,21
+aewol,amenity:셀프 빨래방,10
+aewol,amenity:수영장,2
+aewol,amenity:슈퍼마켓,49
+aewol,amenity:애완동물/애완용품 소매업,14
+aewol,amenity:약국,11
+aewol,amenity:요가/필라테스 학원,29
+aewol,amenity:편의점,99
+aewol,amenity:헬스장,2
+aewol,hospital,32
+aewol,minbak,658
+aewol,museum,5
+aewol,playground,2
+andeok,amenity:독서실/스터디 카페,1
+andeok,amenity:목욕탕/사우나,5
+andeok,amenity:빵/도넛,17
+andeok,amenity:세탁소,4
+andeok,amenity:셀프 빨래방,4
+andeok,amenity:슈퍼마켓,33
+andeok,amenity:애완동물/애완용품 소매업,3
+andeok,amenity:약국,4
+andeok,amenity:요가/필라테스 학원,18
+andeok,amenity:편의점,47
+andeok,hospital,13
+andeok,leisure,1
+andeok,museum,16
+andeok,playground,1
+daejeong,amenity:독서실/스터디 카페,1
+daejeong,amenity:동물병원,3
+daejeong,amenity:목욕탕/사우나,8
+daejeong,amenity:빵/도넛,25
+daejeong,amenity:세탁소,12
+daejeong,amenity:셀프 빨래방,3
+daejeong,amenity:슈퍼마켓,47
+daejeong,amenity:애완동물/애완용품 소매업,5
+daejeong,amenity:약국,13
+daejeong,amenity:요가/필라테스 학원,32
+daejeong,amenity:편의점,38
+daejeong,amenity:헬스장,14
+daejeong,hospital,47
+daejeong,museum,4
+daejeong,night_pharmacy,1
+daejeong,playground,4
+gujwa,amenity:동물병원,2
+gujwa,amenity:목욕탕/사우나,2
+gujwa,amenity:빵/도넛,30
+gujwa,amenity:세탁소,4
+gujwa,amenity:셀프 빨래방,6
+gujwa,amenity:수영장,1
+gujwa,amenity:슈퍼마켓,46
+gujwa,amenity:애완동물/애완용품 소매업,4
+gujwa,amenity:약국,8
+gujwa,amenity:요가/필라테스 학원,12
+gujwa,amenity:편의점,49
+gujwa,amenity:헬스장,1
+gujwa,hospital,21
+gujwa,leisure,1
+gujwa,minbak,561
+gujwa,museum,5
+gujwa,night_pharmacy,1
+gujwa,playground,1
+hallim,amenity:독서실/스터디 카페,1
+hallim,amenity:동물병원,8
+hallim,amenity:목욕탕/사우나,7
+hallim,amenity:빵/도넛,28
+hallim,amenity:세탁소,7
+hallim,amenity:셀프 빨래방,6
+hallim,amenity:슈퍼마켓,41
+hallim,amenity:애완동물/애완용품 소매업,1
+hallim,amenity:약국,11
+hallim,amenity:요가/필라테스 학원,14
+hallim,amenity:편의점,59
+hallim,amenity:헬스장,4
+hallim,hospital,34
+hallim,minbak,464
+hallim,museum,8
+hallim,night_pharmacy,1
+hangyeong,amenity:목욕탕/사우나,1
+hangyeong,amenity:빵/도넛,15
+hangyeong,amenity:세탁소,5
+hangyeong,amenity:셀프 빨래방,1
+hangyeong,amenity:슈퍼마켓,24
+hangyeong,amenity:약국,3
+hangyeong,amenity:요가/필라테스 학원,12
+hangyeong,amenity:편의점,19
+hangyeong,amenity:헬스장,2
+hangyeong,hospital,12
+hangyeong,leisure,1
+hangyeong,minbak,284
+hangyeong,museum,9
+jeju_new,amenity:독서실/스터디 카페,33
+jeju_new,amenity:동물병원,18
+jeju_new,amenity:목욕탕/사우나,29
+jeju_new,amenity:볼링장,7
+jeju_new,amenity:빵/도넛,124
+jeju_new,amenity:세탁소,72
+jeju_new,amenity:셀프 빨래방,26
+jeju_new,amenity:수영장,5
+jeju_new,amenity:슈퍼마켓,168
+jeju_new,amenity:애완동물/애완용품 소매업,35
+jeju_new,amenity:약국,80
+jeju_new,amenity:요가/필라테스 학원,112
+jeju_new,amenity:편의점,252
+jeju_new,amenity:헬스장,63
+jeju_new,er,2
+jeju_new,hospital,273
+jeju_new,leisure,1
+jeju_new,minbak,185
+jeju_new,museum,8
+jeju_new,playground,45
+jeju_old,amenity:독서실/스터디 카페,50
+jeju_old,amenity:동물병원,27
+jeju_old,amenity:목욕탕/사우나,37
+jeju_old,amenity:볼링장,8
+jeju_old,amenity:빵/도넛,234
+jeju_old,amenity:세탁소,138
+jeju_old,amenity:셀프 빨래방,55
+jeju_old,amenity:수영장,1
+jeju_old,amenity:슈퍼마켓,341
+jeju_old,amenity:애완동물/애완용품 소매업,42
+jeju_old,amenity:약국,124
+jeju_old,amenity:요가/필라테스 학원,163
+jeju_old,amenity:편의점,363
+jeju_old,amenity:헬스장,86
+jeju_old,er,3
+jeju_old,hospital,385
+jeju_old,minbak,96
+jeju_old,museum,24
+jeju_old,playground,85
+jocheon,amenity:독서실/스터디 카페,1
+jocheon,amenity:동물병원,3
+jocheon,amenity:목욕탕/사우나,3
+jocheon,amenity:빵/도넛,26
+jocheon,amenity:세탁소,10
+jocheon,amenity:셀프 빨래방,3
+jocheon,amenity:슈퍼마켓,39
+jocheon,amenity:애완동물/애완용품 소매업,2
+jocheon,amenity:약국,6
+jocheon,amenity:요가/필라테스 학원,28
+jocheon,amenity:편의점,64
+jocheon,amenity:헬스장,3
+jocheon,hospital,27
+jocheon,minbak,398
+jocheon,museum,10
+jocheon,night_pharmacy,1
+jocheon,playground,3
+jungmun,amenity:독서실/스터디 카페,3
+jungmun,amenity:동물병원,2
+jungmun,amenity:목욕탕/사우나,4
+jungmun,amenity:볼링장,1
+jungmun,amenity:빵/도넛,30
+jungmun,amenity:세탁소,10
+jungmun,amenity:셀프 빨래방,8
+jungmun,amenity:슈퍼마켓,37
+jungmun,amenity:애완동물/애완용품 소매업,3
+jungmun,amenity:약국,10
+jungmun,amenity:요가/필라테스 학원,20
+jungmun,amenity:편의점,80
+jungmun,amenity:헬스장,11
+jungmun,hospital,35
+jungmun,leisure,2
+jungmun,museum,9
+jungmun,night_pharmacy,1
+jungmun,playground,7
+namwon,amenity:독서실/스터디 카페,1
+namwon,amenity:동물병원,3
+namwon,amenity:목욕탕/사우나,3
+namwon,amenity:빵/도넛,16
+namwon,amenity:세탁소,6
+namwon,amenity:셀프 빨래방,1
+namwon,amenity:슈퍼마켓,23
+namwon,amenity:애완동물/애완용품 소매업,4
+namwon,amenity:약국,6
+namwon,amenity:요가/필라테스 학원,7
+namwon,amenity:편의점,27
+namwon,amenity:헬스장,1
+namwon,hospital,19
+namwon,museum,3
+pyoseon,amenity:동물병원,1
+pyoseon,amenity:목욕탕/사우나,3
+pyoseon,amenity:빵/도넛,12
+pyoseon,amenity:세탁소,7
+pyoseon,amenity:셀프 빨래방,3
+pyoseon,amenity:슈퍼마켓,32
+pyoseon,amenity:애완동물/애완용품 소매업,1
+pyoseon,amenity:약국,4
+pyoseon,amenity:요가/필라테스 학원,5
+pyoseon,amenity:편의점,34
+pyoseon,amenity:헬스장,1
+pyoseon,hospital,19
+pyoseon,museum,4
+seogwipo_dong,amenity:독서실/스터디 카페,18
+seogwipo_dong,amenity:동물병원,6
+seogwipo_dong,amenity:목욕탕/사우나,20
+seogwipo_dong,amenity:볼링장,1
+seogwipo_dong,amenity:빵/도넛,74
+seogwipo_dong,amenity:세탁소,52
+seogwipo_dong,amenity:셀프 빨래방,20
+seogwipo_dong,amenity:수영장,2
+seogwipo_dong,amenity:슈퍼마켓,134
+seogwipo_dong,amenity:애완동물/애완용품 소매업,6
+seogwipo_dong,amenity:약국,32
+seogwipo_dong,amenity:요가/필라테스 학원,99
+seogwipo_dong,amenity:편의점,152
+seogwipo_dong,amenity:헬스장,18
+seogwipo_dong,er,1
+seogwipo_dong,hospital,127
+seogwipo_dong,museum,15
+seogwipo_dong,playground,16
+seongsan,amenity:독서실/스터디 카페,1
+seongsan,amenity:동물병원,1
+seongsan,amenity:목욕탕/사우나,4
+seongsan,amenity:빵/도넛,13
+seongsan,amenity:세탁소,6
+seongsan,amenity:셀프 빨래방,7
+seongsan,amenity:수영장,1
+seongsan,amenity:슈퍼마켓,30
+seongsan,amenity:애완동물/애완용품 소매업,3
+seongsan,amenity:약국,5
+seongsan,amenity:요가/필라테스 학원,11
+seongsan,amenity:편의점,47
+seongsan,amenity:헬스장,6
+seongsan,hospital,19
+seongsan,leisure,2
+seongsan,museum,9
+seongsan,night_pharmacy,1

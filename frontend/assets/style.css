@@ -485,3 +485,6 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
 
 /* hidden 속성이 display:flex 에 덮이지 않도록 */
 .live-note[hidden], .budget-alt[hidden] { display: none; }
+
+.cs-msgs .msg.bot a { color: var(--brand-dark); font-weight: 600; text-decoration: none; border-bottom: 1px dashed var(--brand); }
+.cs-msgs .msg.bot a:hover { background: var(--brand-tint); }

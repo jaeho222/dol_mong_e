@@ -406,7 +406,7 @@ function renderDetail(r) {
     </section>
     <section class="consult" id="consult" aria-label="돌몽이 상담">
       <div class="cs-head"><img src="${CFG.pose.done}" alt="" width="40" height="40" />
-        <div><b>돌몽이 상담</b><span>${escapeHtml(r.name)} 리포트 기준으로 답해요${state.agentMode === "claude" ? " · Claude" : ""}</span></div></div>
+        <div><b>돌몽이 상담</b><span>${escapeHtml(r.name)} 리포트 기준 · 공공데이터로만 답해요</span></div></div>
       <div class="cs-msgs" id="cs-msgs" aria-live="polite"></div>
       <form class="cs-ask" id="cs-form">
         <input id="cs-text" autocomplete="off" placeholder="예) 예산을 30만원 정도 줄이고 싶은데, 어디서 줄일까?" aria-label="돌몽이에게 물어볼 내용" />
@@ -493,12 +493,17 @@ async function consultAsk(text, intent, label) {
 
 function csBot(res) {
   const el = csAdd("bot");
-  el.innerHTML = res.answer.split("\n").map((l) => `<p class="${/^\s+└/.test(l) ? "sub" : ""}">${mdLite(l.trim())}</p>`).join("");
+  el.innerHTML = res.answer.split("\n").map((l) => `<p class="${/^\s+└/.test(l) ? "sub" : ""}">${linkify(mdLite(l.trim()))}</p>`).join("");
   if (res.sources?.length) el.insertAdjacentHTML("beforeend", `<p class="cs-src">근거: ${res.sources.map(escapeHtml).join(" · ")}</p>`);
   if (res.quick_replies?.length) {
     el.insertAdjacentHTML("afterend", `<div class="qr">${res.quick_replies.map((q) => `<button type="button" data-qr="${q.id}">${escapeHtml(q.label)}</button>`).join("")}</div>`);
   }
   const box = $("#cs-msgs"); requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+}
+
+// [이름](https://...) → 새 탭 링크 (상담 답변의 구글 지도 링크)
+function linkify(html) {
+  return html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (m, t, u) => `<a href="${u}" target="_blank" rel="noopener">${t} ↗</a>`);
 }
 
 function csAdd(cls) {
