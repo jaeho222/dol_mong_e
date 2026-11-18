@@ -385,7 +385,7 @@ function renderDetail(r) {
         <ul class="checks">${seasons.map((e) => `<li class="${e.warn ? "warn" : "good"}"><span class="m">${e.warn ? "!" : "·"}</span>${escapeHtml(e.text)}</li>`).join("")}</ul>` : ""}
       </div>
       ${shownIdx.length ? `<div>
-        <h3>돌몽's Tip이우다</h3>
+        <h3>돌몽's Tip</h3>
         <ul class="idx">${shownIdx.map(([ix, v]) =>
           { const [btn, box] = q(v.source ? `<p class="src">데이터: ${escapeHtml(v.source)}</p>` : "");
             return `<li class="${escapeHtml(v.tone || "")}">${escapeHtml(ix.name)} ${btn}<b>${escapeHtml(v.value)}</b>${v.text ? `<small>${escapeHtml(v.text)}</small>` : ""}${box}</li>`; }).join("")}</ul>
