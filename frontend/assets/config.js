@@ -124,8 +124,8 @@ window.APP_CONFIG = {
     { months: [10, 11], text: "오름에 억새 피는 철" },
   ],
 
-  // 동네 지수 카드. 백엔드 결과에 indices[key] = { value: 0~100, text: "돌몽이 한마디" } 가 오면 채워지고,
-  // 없으면 '데이터 연결 전'으로 보인다. (재미-포인트-아이디어.md 참고)
+  // 동네 지수 카드. 백엔드가 '보여줄 만한 차이'가 있는 지수만 indices[key] = { value, text, tone, score } 로 보낸다.
+  // 여기 목록은 이름·순서·설명만 정한다. 결과에 없는 지수는 화면에 안 나온다. (backend/tools/indices.py)
   indices: [
     { key: "laundry", name: "빨래 지수", hint: "습도·바람·일조로 본 빨래 마르는 날" },
     { key: "hair", name: "산발 지수", hint: "강풍이 부는 날이 얼마나 되는지" },
@@ -133,6 +133,14 @@ window.APP_CONFIG = {
     { key: "gyul", name: "귤 시즌", hint: "머무는 달에 동네에서 나는 귤" },
     { key: "nopo", name: "노포 지수", hint: "오래 영업한 동네 식당 비율" },
     { key: "oreum", name: "오름 부자 지수", hint: "가까이 있는 오름 수" },
+    { key: "trend", name: "요즘 뜨는 동네", hint: "최근 3년 새로 연 가게 비율" },
+    { key: "gyul_sweet", name: "귤 당도", hint: "동네 고품질 감귤 당도 평균" },
+    { key: "food", name: "맛집 지수", hint: "구글 평점 4.5 이상 식당 수" },
+    { key: "festival", name: "동네 축제", hint: "머무는 동안 열리는 동네 축제" },
+    { key: "pet", name: "댕댕이 지수", hint: "동물병원 수 (반려동물 동반 시)" },
+    { key: "noise", name: "비행기 소리", hint: "공항 인근 항공기 소음도" },
+    { key: "flood", name: "침수 주의", hint: "장마철 침수위험지구" },
+    { key: "snow", name: "폭설 주의", hint: "눈 오면 통제되는 산간 도로" },
   ],
 
   // Agent 대화창 예시 질문

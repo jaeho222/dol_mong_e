@@ -234,6 +234,8 @@ function renderDetail(r) {
   const say = dolmongSays(r);
   const seasons = cond.start_date ? seasonEvents(+cond.start_date.slice(5, 7), cond.days) : [];
   const checks = [...r.warnings.map((w) => ["warn", "!", w]), ...r.badges.map((b) => ["good", "✓", b])];
+  // 백엔드가 임계값을 넘긴 지수만 보낸다 → config 순서대로 그것만 그린다
+  const shownIdx = CFG.indices.filter((ix) => r.indices?.[ix.key]).map((ix) => [ix, r.indices[ix.key]]);
 
   $("#detail-in").innerHTML = `
     <div class="d-top">
@@ -273,13 +275,11 @@ function renderDetail(r) {
         ${seasons.length ? `<h3 class="sub-h">머무는 동안 제주는</h3>
         <ul class="checks">${seasons.map((e) => `<li class="${e.warn ? "warn" : "good"}"><span class="m">${e.warn ? "!" : "·"}</span>${escapeHtml(e.text)}</li>`).join("")}</ul>` : ""}
       </div>
-      <div>
+      ${shownIdx.length ? `<div>
         <h3>동네 지수</h3>
-        <ul class="idx">${CFG.indices.map((ix) => {
-          const v = r.indices?.[ix.key];
-          return `<li title="${escapeHtml(ix.hint)}">${escapeHtml(ix.name)}${v ? `<b>${escapeHtml(v.value)}</b>` : `<span>준비 중</span>`}</li>`;
-        }).join("")}</ul>
-      </div>
+        <ul class="idx">${shownIdx.map(([ix, v]) =>
+          `<li class="${escapeHtml(v.tone || "")}" title="${escapeHtml(v.text || ix.hint)}">${escapeHtml(ix.name)}<b>${escapeHtml(v.value)}</b>${v.text ? `<small>${escapeHtml(v.text)}</small>` : ""}</li>`).join("")}</ul>
+      </div>` : ""}
     </div>`;
 }
 
