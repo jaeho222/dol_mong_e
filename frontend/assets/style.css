@@ -184,6 +184,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .idx li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
 .idx li span { color: var(--ink-3); font-size: 14px; }
 .idx li b { color: var(--brand); }
+.idx li { flex-wrap: wrap; }
+.idx li small { flex-basis: 100%; color: var(--ink-3); font-size: 13px; line-height: 1.5; }
 
 /* ── 돌몽이 소개 ── */
 .about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: center; padding: 64px 0; scroll-margin-top: 68px; }

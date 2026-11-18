@@ -21,6 +21,8 @@ QUERIES = {
         order by array_position(array['jeju_new','jeju_old','aewol','hallim','hangyeong','jocheon','gujwa',
                                       'seongsan','pyoseon','namwon','seogwipo_dong','jungmun','andeok','daejeong'], region_id)""",
     "care_points.csv": "select id, kind, name, lat, lon, region_id, detail, source_id, base_date from refined.care_points_mat order by id",
+    "weather_month.csv": "select station, month, days, laundry_share, windy_share, humid_avg, wind_max_avg from refined.weather_month order by station, month",
+    "gyul_month.csv": "select variety, month, share, total_qty from refined.gyul_month order by variety, month",
 }
 
 

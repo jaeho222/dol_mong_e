@@ -18,6 +18,7 @@ import pandas as pd
 from backend.schema import Conditions
 from backend.tools.cost import estimate_total_cost
 from backend.tools.data_loader import get_region, load_regions
+from backend.tools.indices import region_indices
 
 
 def _norm(s: pd.Series, invert: bool = False) -> pd.Series:
@@ -107,6 +108,7 @@ def _badges(row: dict, scores: dict, cond: Conditions, w: dict) -> tuple[list[st
 def rank_regions(conditions: dict | Conditions, top_k: int = 5, cost_weight: float = 0.5) -> dict:
     cond = conditions if isinstance(conditions, Conditions) else Conditions.from_dict(conditions)
     df = load_regions()
+    all_regions = df
     # 점수 정규화는 '제주 전체' 기준으로 해야 일부 지역만 비교해도 의미가 유지된다
     scores = pd.DataFrame({k: f(df) for k, f in LIVING_METRICS.items()})
     fun = fun_scores(df)
@@ -136,6 +138,8 @@ def rank_regions(conditions: dict | Conditions, top_k: int = 5, cost_weight: flo
             "score": round(float(final[rid]) * 100),
             "living_scores": sc,
             "fun_scores": fun.loc[rid].round(2).to_dict() if not fun.empty else {},
+            # 눈에 띄는 동네 지수만 (임계값 못 넘으면 빠짐) — backend/tools/indices.py
+            "indices": region_indices(row, all_regions, cond),
             "cost": costs[rid],
             "badges": good,
             "warnings": warn,
