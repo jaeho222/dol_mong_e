@@ -423,3 +423,10 @@ body.ob-open .helper { display: none; }
 .ob-wait { padding-top: 10vh; }
 .ob-name { display: block; width: 100%; height: 56px; border: 2px solid #e5e7ea; border-radius: 12px; padding: 0 16px; font-size: 18px; font-weight: 600; background: #fff; }
 .ob-name:focus { outline: none; border-color: var(--brand); }
+
+/* 가장 중요한 것 3가지 (기능용 최소 스타일) */
+.opts.prio { display: flex; flex-wrap: wrap; gap: 6px; }
+.pchip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 6px 12px; font: inherit; cursor: pointer; position: relative; }
+.pchip.on { border-color: var(--brand); color: var(--brand); font-weight: 600; }
+.pchip.on::after { content: attr(data-n); position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--brand); color: #fff; font-size: 11px; line-height: 16px; text-align: center; }

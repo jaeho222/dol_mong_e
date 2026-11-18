@@ -29,6 +29,10 @@ CONDITIONS_SCHEMA = {
         "prefer_quiet": {"type": "boolean", "description": "조용한 동네 선호"},
         "regions": {"type": "array", "items": {"type": "string"},
                     "description": "특정 지역만 비교할 때 region_id 목록 (list_regions로 확인)"},
+        "priorities": {"type": "array", "maxItems": 3,
+                       "items": {"type": "string", "enum": ["비용", "교통", "생활편의", "의료", "조용함", "자연", "날씨", "맛집", "밤길안심"]},
+                       "description": "사용자가 가장 중요하게 여기는 것 최대 3개, 중요한 순서대로. "
+                                      "예: '싸고 조용한 데, 오름 가까우면 좋겠어' → ['비용','조용함','자연']. 언급 없으면 생략"},
     },
 }
 

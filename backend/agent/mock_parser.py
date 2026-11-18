@@ -96,4 +96,22 @@ def parse_conditions(text: str) -> Conditions:
     c.with_pet = bool(re.search(r"강아지|반려|고양이|댕댕", t))
     c.prefer_quiet = bool(re.search(r"조용|한적|힐링|쉬고", t))
     c.regions = find_region_ids(t) if re.search(r"비교|중에|vs|랑|이랑", t) else []
+    c.priorities = _parse_priorities(t)
     return c
+
+
+_PRIORITY_WORDS = [
+    ("비용", r"싸|저렴|가성비|돈|예산|아끼"), ("교통", r"버스|대중교통|교통"), ("생활편의", r"마트|편의점|편의시설|장보기"),
+    ("의료", r"병원|소아과|응급"), ("조용함", r"조용|한적|북적|관광객 적"), ("자연", r"오름|자연|바다|해변|캠핑|숲"),
+    ("날씨", r"날씨|따뜻|햇볕|빨래"), ("맛집", r"맛집|식당|노포|먹"), ("밤길안심", r"치안|안전|밤길|CCTV|씨씨티비"),
+]
+
+
+def _parse_priorities(t: str) -> list[str]:
+    """문장에 처음 나온 순서대로 최대 3개."""
+    hits = []
+    for key, pat in _PRIORITY_WORDS:
+        m = re.search(pat, t)
+        if m:
+            hits.append((m.start(), key))
+    return [k for _, k in sorted(hits)][:3]

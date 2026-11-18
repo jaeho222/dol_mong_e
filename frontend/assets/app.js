@@ -40,6 +40,22 @@ function init() {
   $("#f-opts").insertAdjacentHTML("beforeend", CFG.options.map((o) =>
     `<label class="chk"><input type="checkbox" data-k="${o.key}" />${escapeHtml(o.label)}</label>`).join(""));
 
+  // 가장 중요한 것 3가지: 누른 순서 = 중요도 (3·2·1 가중치는 백엔드 region._weights)
+  state.priorities = [];
+  const drawPrio = () => $$("#f-prio .pchip").forEach((b) => {
+    const i = state.priorities.indexOf(b.dataset.k);
+    b.classList.toggle("on", i >= 0);
+    b.dataset.n = i >= 0 ? i + 1 : "";
+  });
+  $("#f-prio").insertAdjacentHTML("beforeend", CFG.priorities.map((p) =>
+    `<button type="button" class="pchip" data-k="${escapeHtml(p.key)}">${escapeHtml(p.label)}</button>`).join(""));
+  $$("#f-prio .pchip").forEach((b) => b.onclick = () => {
+    const k = b.dataset.k, i = state.priorities.indexOf(k);
+    if (i >= 0) state.priorities.splice(i, 1);
+    else if (state.priorities.length < 3) state.priorities.push(k);
+    drawPrio();
+  });
+
   $("#plan").onsubmit = (e) => { e.preventDefault(); runEstimate(true); };
 
   $("#quick").innerHTML = CFG.quick.map((q, i) => `
@@ -114,6 +130,7 @@ function readConditions() {
     car: $("#f-car").value === "true",
     budget_total: budget > 0 ? budget : null,
     ...Object.fromEntries($$("#f-opts input").map((c) => [c.dataset.k, c.checked])),
+    priorities: state.priorities || [],
   };
 }
 
