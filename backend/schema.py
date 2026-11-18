@@ -23,6 +23,9 @@ class Conditions:
     with_pet: bool = False             # TODO[DATA]: 반려동물 동반 가능 숙소 데이터 생기면 반영
     prefer_quiet: bool = False
     regions: list[str] = field(default_factory=list)  # 특정 지역만 비교하고 싶을 때 region_id 목록
+    # 사용자가 고른 '가장 중요한 것' 최대 3개, 중요한 순서대로. 값은 region.PRIORITY_KEYS
+    # (비용·교통·생활편의·의료·조용함·자연·날씨·맛집·밤길안심). 비어 있으면 다른 조건으로 가중치를 추정한다.
+    priorities: list[str] = field(default_factory=list)
 
     def resolved_start(self) -> date:
         if self.start_date:
@@ -43,4 +46,5 @@ class Conditions:
         c = cls(**clean)
         c.days = max(1, min(int(c.days), 730))
         c.people = max(1, min(int(c.people), 10))
+        c.priorities = [p for p in dict.fromkeys(c.priorities or []) if isinstance(p, str)][:3]
         return c
