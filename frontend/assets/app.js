@@ -64,15 +64,8 @@ function init() {
   ["#p-minus", "#p-plus"].forEach((id) => $(id).addEventListener("click", live));
   $("#f-prio").addEventListener("click", (e) => { if (e.target.closest(".pchip")) live(); });
 
-  $("#quick").innerHTML = CFG.quick.map((q, i) => `
-    <button type="button" class="qt" data-i="${i}">
-      <span class="qt-img"><img src="${CFG.pose[q.pose]}" alt="" /></span>
-      <b>${escapeHtml(q.title)}</b><span>${escapeHtml(q.sub)}</span>
-    </button>`).join("");
-  $$("#quick .qt").forEach((b) => b.onclick = () => {
-    const q = CFG.quick[b.dataset.i];
-    if (q.consult) goConsult(); else if (q.onboarding) window.startOnboarding?.(); else applyPreset(q.preset);
-  });
+  // 첫 방문 문답 다시 열기 (예전 '돌몽이랑 고르기' 타일)
+  $("#redo-ob").onclick = () => window.startOnboarding?.();
 
   // 상담 (리포트 맨 아래)
   $$("[data-go-consult]").forEach((b) => b.onclick = (e) => { e.preventDefault(); goConsult(); });
@@ -261,7 +254,7 @@ async function renderBudgetAlt(data) {
   try {
     const res = await api("/api/budget-alternatives", { conditions: data.conditions });
     if (!res.items?.length) { box.hidden = true; return; }
-    box.innerHTML = `<h3>예산 ${won(b)}을 넘어서 빠진 동네 ${data.over_budget.length}곳</h3>
+    box.innerHTML = `<img class="ba-pose" src="${CFG.pose.calc}" alt="" width="64" height="64" /><h3>예산 ${won(b)}을 넘어서 빠진 동네 ${data.over_budget.length}곳</h3>
       <p class="ba-sub">점수가 높은데 예산 때문에 빠진 곳이에요. 비용 계산식을 조건만 바꿔 다시 돌려 봤어요.</p>
       <ul>${res.items.map((it) => `<li><div class="ba-head"><b>${escapeHtml(it.name)}</b> <span>${it.score}점 · ${won(it.total)} (예산 +${it.over.toLocaleString()}만)</span></div>
         ${it.fixes.length ? `<ul class="ba-fix">${it.fixes.map((f) => `<li>${escapeHtml(f.label)} → <b>${won(f.new_total)}</b> <small>${escapeHtml(f.how)}</small></li>`).join("")}</ul>`

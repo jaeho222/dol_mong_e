@@ -76,14 +76,6 @@ h1, h2, h3, h4, p { margin: 0; }
 .chk input { width: 18px; height: 18px; margin: 0; accent-color: var(--brand); }
 
 /* ── 돌몽이 타일 ── */
-.quick { padding: 36px 0 12px; }
-.quick-row { display: flex; gap: 28px; overflow-x: auto; }
-.qt { flex: none; width: 108px; border: 0; background: none; padding: 0; display: grid; justify-items: center; gap: 8px; text-align: center; }
-.qt-img { width: 92px; height: 92px; border-radius: 22px; background: var(--bg-2); display: grid; place-items: center; overflow: hidden; border: 1px solid transparent; }
-.qt-img img { width: 70px; height: 70px; object-fit: contain; }
-.qt:hover .qt-img { border-color: var(--brand); }
-.qt b { font-size: 15px; font-weight: 700; line-height: 1.3; }
-.qt span { font-size: 13px; color: var(--ink-3); margin-top: -6px; }
 
 /* ── 추천 동네 ── */
 .result { padding: 40px 0 56px; scroll-margin-top: 72px; }
@@ -234,8 +226,6 @@ h1, h2, h3, h4, p { margin: 0; }
   .sf:nth-of-type(5) { grid-column: 1 / -1; }
   .opts { padding: 12px 16px 14px; gap: 10px 16px; border-top: 0; }
   .opts legend { float: none; width: 100%; margin-bottom: 2px; }
-  .quick-row { gap: 14px; }
-  .qt { width: 80px; }
   .qt-img { width: 72px; height: 72px; border-radius: 18px; }
   .qt-img img { width: 60px; height: 60px; }
   .qt b { font-size: 13px; }
@@ -490,3 +480,14 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
 .cs-msgs .msg.bot a:hover { background: var(--brand-tint); }
 
 .say p + p { margin-top: 4px; }
+
+/* 돌몽이를 섹션 중간중간에 (첫 화면 타일 대신) */
+.sec-head { align-items: center; }
+.sec-pose { width: 64px; height: 64px; object-fit: contain; margin: -10px -4px -10px 0; }
+.redo { margin-left: auto; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+.redo:hover { border-color: var(--brand); color: var(--brand); }
+.map-wrap { position: relative; }
+.map-pose { position: absolute; right: 10px; bottom: 34px; width: 84px; height: 84px; object-fit: contain; pointer-events: none; filter: drop-shadow(0 4px 6px rgb(0 0 0 / .12)); }
+.budget-alt { position: relative; padding-left: 92px; }
+.ba-pose { position: absolute; left: 16px; top: 14px; width: 64px; height: 64px; object-fit: contain; }
+@media (max-width: 600px) { .sec-pose { width: 48px; height: 48px; } .map-pose { width: 60px; height: 60px; } .budget-alt { padding-left: 18px; } .ba-pose { display: none; } }
