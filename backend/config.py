@@ -18,9 +18,11 @@ AGENT_MODE = os.getenv("AGENT_MODE", "auto").lower()
 AGENT_MAX_TURNS = int(os.getenv("AGENT_MAX_TURNS", "6"))
 
 # ── 데이터 ────────────────────────────────────────────
-# 실제 데이터가 준비되면 data/processed/region_metrics.csv 를 만들고 이 경로를 바꾸면 끝.
+# 실데이터(data/processed, Supabase에서 export)가 있으면 그걸, 없으면 더미(sample)를 쓴다.
+_PROCESSED = ROOT_DIR / "data" / "processed" / "region_metrics.csv"
+_SAMPLE = ROOT_DIR / "data" / "sample" / "region_metrics.csv"
 REGION_METRICS_PATH = Path(
-    os.getenv("REGION_METRICS_PATH", ROOT_DIR / "data" / "sample" / "region_metrics.csv")
+    os.getenv("REGION_METRICS_PATH") or (_PROCESSED if _PROCESSED.exists() else _SAMPLE)
 )
 
 FRONTEND_DIR = ROOT_DIR / "frontend"
