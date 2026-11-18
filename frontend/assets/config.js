@@ -137,7 +137,7 @@ window.APP_CONFIG = {
   indices: [
     { key: "laundry", name: "빨래 지수", hint: "습도·바람·일조로 본 빨래 마르는 날" },
     { key: "hair", name: "산발 지수", hint: "강풍이 부는 날이 얼마나 되는지" },
-    { key: "rentacar", name: "렌터카 습격 지수", hint: "관광 렌터카가 몰리는 정도" },
+    { key: "rentacar", name: "렌터카 수", hint: "관광 렌터카가 몰리는 정도" },
     { key: "gyul", name: "귤 시즌", hint: "머무는 달에 동네에서 나는 귤" },
     { key: "nopo", name: "노포 지수", hint: "오래 영업한 동네 식당 비율" },
     { key: "oreum", name: "오름 부자 지수", hint: "가까이 있는 오름 수" },
