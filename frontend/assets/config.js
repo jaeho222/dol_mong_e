@@ -42,7 +42,7 @@ window.APP_CONFIG = {
     { pose: "hello", title: "아이와 2주", sub: "여름방학에", preset: { month: 7, days: 14, people: 3, with_kids: true } },
     { pose: "done", title: "1년 살아보기", sub: "연세 집 기준", preset: { days: 365, people: 2 } },
     { pose: "signature", title: "돌몽이랑 고르기", sub: "질문 몇 개로", onboarding: true },
-    { pose: "search", title: "말로 물어보기", sub: "돌몽이 상담", chat: true },
+    { pose: "search", title: "말로 물어보기", sub: "리포트 아래 돌몽이 상담", consult: true },
   ],
 
   // 첫 방문 문답 (onboarding.js). 처음 온 사람에게 한 번 뜨고, 주소 뒤에 ?start=1 이면 다시 뜬다.
