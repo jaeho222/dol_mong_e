@@ -373,7 +373,7 @@ function renderDetail(r) {
             return `<tr><th>${escapeHtml(k)} ${btn}</th><td><div class="bar"><i style="width:${(v / max) * 100}%"></i></div></td><td class="v">${won(v)}</td></tr>${box ? `<tr class="ev-row"><td colspan="3">${box}</td></tr>` : ""}`; }).join("")}
         </tbody></table>
         ${c.alternatives?.length ? `<p class="alt">${escapeHtml(c.alternatives[0].tier)}로 구하면 숙소비가 ${won(c.alternatives[0].lodging)}이에요.</p>` : ""}
-        <div class="say"><img src="${say.pose}" alt="" /><div><b class="who">돌몽이 한마디</b><p>${say.text}</p></div></div>
+        <div class="say"><img src="${say.pose}" alt="" /><div><b class="who">돌몽이 한마디</b>${say.lines.map((t) => `<p>${t}</p>`).join("")}</div></div>
       </div>
     </div>
     <div class="d-cols">
@@ -448,21 +448,54 @@ function ro(word) {
 
 // 돌몽이 한마디: 결과 값으로만 만든다 (지어내지 않음)
 function dolmongSays(r) {
+  // 4~5줄: ① 순위·예산 ② 돈 ③ 강점 ④ 약점 ⑤ 이 동네만의 특징(조건 맞춤 → 동네 지수 → 계절). 전부 결과 값에서만 만든다.
   const list = state.data.results;
-  const c = r.cost, budget = c.conditions.budget_total;
-  const out = [];
+  const c = r.cost, cond = c.conditions, budget = cond.budget_total;
+  const name = escapeHtml(r.name);
+  const ev = r.evidence?.living || {};
+  const why = (k) => (ev[k]?.reason ? ` ${escapeHtml(ev[k].reason)}.` : "");
+  const lines = [];
+
+  // ① 순위·예산
+  const rank = list.findIndex((x) => x.region_id === r.region_id) + 1;
+  let l1 = `${name}${josa(r.name, "은", "는")} 조건에 맞는 동네 ${list.length}곳 중 <b>${rank}위</b>예요 (${r.score}점).`;
   if (budget) {
     const d = budget - c.total;
-    out.push(d >= 0 ? `예산 안에 들어와요. <b>${d.toLocaleString()}만 원</b>이 남아요.` : `예산을 <b>${(-d).toLocaleString()}만 원</b> 넘어요.`);
+    l1 += d >= 0 ? ` 예산보다 <b>${d.toLocaleString()}만 원</b> 적게 들어요.` : ` 다만 예산을 <b>${(-d).toLocaleString()}만 원</b> 넘어요.`;
   }
-  const cheap = list.reduce((a, b) => (b.cost.total < a.cost.total ? b : a));
-  if (cheap.region_id === r.region_id) out.push("추천 동네 중에 돈이 제일 덜 들어요.");
-  else out.push(`${escapeHtml(cheap.name)}${ro(cheap.name)} 가면 <b>${(c.total - cheap.cost.total).toLocaleString()}만 원</b> 아낄 수 있어요.`);
+  lines.push(l1);
+
+  // ② 돈: 제일 큰 항목 + 더 싼 동네
   const [bk, bv] = Object.entries(c.breakdown).sort((a, b) => b[1] - a[1])[0];
-  out.push(`비용은 ${escapeHtml(bk)}가 ${won(bv)}으로 제일 커요.`);
-  const best = Object.entries(r.living_scores || {}).sort((a, b) => b[1] - a[1])[0];
-  if (best && best[1] >= 0.7) out.push(`${escapeHtml(best[0])} 점수가 특히 높아요.`);
-  return { text: (window.jeju || String)(out.join(" ")), pose: budget && c.total > budget ? CFG.pose.calc : CFG.pose.done };
+  const cheap = list.reduce((a, b) => (b.cost.total < a.cost.total ? b : a));
+  let l2 = `${period(cond.days)} ${won(c.total)} 중에 ${escapeHtml(bk)}${josa(bk, "이", "가")} ${won(bv)}으로 제일 커요.`;
+  l2 += cheap.region_id === r.region_id ? " 추천 동네 중에 돈이 제일 덜 들어요."
+    : ` ${escapeHtml(cheap.name)}${ro(cheap.name)} 가면 <b>${(c.total - cheap.cost.total).toLocaleString()}만 원</b> 아낄 수 있어요.`;
+  lines.push(l2);
+
+  // ③ 강점 ④ 약점 (생활 점수 + 한 줄 근거)
+  const ls = Object.entries(r.living_scores || {}).sort((a, b) => b[1] - a[1]);
+  if (ls.length && ls[0][1] >= 0.6) lines.push(`${escapeHtml(ls[0][0])}${josa(ls[0][0], "이", "가")} 제일 좋아요.${why(ls[0][0])}`);
+  const worst = ls.at(-1);
+  if (worst && worst[1] <= 0.4) lines.push(`대신 ${escapeHtml(worst[0])}${josa(worst[0], "은", "는")} 아쉬워요.${why(worst[0])}`);
+  else if (r.warnings?.length) lines.push(`${escapeHtml(r.warnings[0])}, 이건 미리 알아 두세요.`);
+
+  // ⑤ 이 동네만의 특징: 조건 맞춤 → 점수 높은 동네 지수 → 계절
+  const med = ev["의료"]?.how || "";
+  const kids = med.match(/소아 진료 (\d+)곳/), er = med.match(/응급실까지 약 (\d+)분/);
+  const idx = Object.values(r.indices || {}).filter((v) => v.text).sort((a, b) => (b.score || 0) - (a.score || 0))[0];
+  const season = cond.start_date ? seasonEvents(+cond.start_date.slice(5, 7), cond.days)[0] : null;
+  if (cond.with_kids && kids) lines.push(`아이랑 지내기엔 소아 진료 병·의원이 ${kids[1]}곳 있고${er ? `, 응급실까지 차로 약 ${er[1]}분이에요` : "요"}.`);
+  else if (idx) lines.push(escapeHtml(idx.text));
+  else if (season) lines.push(escapeHtml(season.text) + ".");
+
+  return { lines: lines.slice(0, 5).map((t) => (window.jeju || String)(t)), pose: budget && c.total > budget ? CFG.pose.calc : CFG.pose.done };
+}
+
+// 받침에 따라 조사 (은/는, 이/가)
+function josa(word, withJong, without) {
+  const c = String(word).charCodeAt(String(word).length - 1) - 0xac00;
+  return c >= 0 && c <= 11171 && c % 28 ? withJong : without;
 }
 
 // ④ 상담 (리포트 맨 아래) ─────────────────────────

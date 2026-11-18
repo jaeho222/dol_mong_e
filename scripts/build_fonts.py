@@ -20,6 +20,7 @@ SRC = "https://raw.githubusercontent.com/google/fonts/main/ofl/{}/{}.ttf"
 ascii_chars = "".join(chr(c) for c in range(0x20, 0x7F)) + "·…‘’“”~→←!?%₩"
 used = set()
 for p in ["frontend/index.html", "frontend/assets/config.js", "frontend/assets/app.js", "frontend/assets/onboarding.js", "frontend/assets/jeju_rules.json",
+          "backend/tools/evidence.py", "backend/tools/indices.py", "data/processed/festival.csv",
           "data/sample/region_metrics.csv", "data/processed/region_metrics.csv"]:
     used |= set(re.findall(r"[가-힣ㄱ-ㅎ]", (ROOT / p).read_text(encoding="utf-8")))
 
