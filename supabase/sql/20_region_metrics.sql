@@ -141,13 +141,27 @@ insert into refined.rentcar_stay_by_region
 select substr("collection_dt", 1, 6), refined.region_of_point("longitude"::float, "latitude"::float)
 from raw.hub_1208 where "longitude" ~ '^[0-9.]+$';
 
-create or replace view refined.m_extra as   -- 재미 지수 재료: 렌터카 체류(1208), 오름(811), 노포 비율(780)
+create or replace view refined.m_extra as   -- 재미 지수 재료 (교차검증 결과는 docs/DATA.md '재미 지수')
+with pop as (   -- 583 거주·방문 인구(2025-10, 합계값이라 비율로만 쓴다)
+  select refined.region_of("city" || ' ' || "emd") region_id, sum("resdPop"::numeric) resd from raw.hub_583 group by 1),
+stay as (select region_id, count(*) n from refined.rentcar_stay_by_region group by 1),
+biz as (        -- 830 읍면동 사업체 생멸: 2021~2023 신생 ÷ 활동
+  select refined.region_of("시구분" || ' ' || "읍면동") region_id,
+         sum("사업체수"::numeric) filter (where "사업체구분" = '신생사업체' and "생멸구분" = '소계')
+       / nullif(sum("사업체수"::numeric) filter (where "사업체구분" = '활동사업체' and "생멸구분" = '소계'), 0) new_rate
+  from raw.hub_830 where "기준연도" between '2021' and '2023' group by 1),
+food as (       -- 780 영업 중 음식점: 2006년 이전 인허가(=20년 이상) 비율
+  select refined.region_of("소재지전체주소") region_id, count(*) n, avg(("인허가일자" < '2006')::int) old_ratio
+  from raw.hub_780 where "영업상태명" like '영업%' and "인허가일자" ~ '^[0-9]{4}' group by 1)
 select r.region_id,
-  (select count(*) from refined.rentcar_stay_by_region x where x.region_id = r.region_id) rentcar_stays,
+  stay.n rentcar_stays,
+  -- 렌터카 습격 지수: 거주 인구당 렌터카 체류 ÷ 제주 평균 (1.0 = 평균, 2.0 = 평균의 두 배)
+  round((stay.n / pop.resd) / (select sum(n) from stay) * (select sum(resd) from pop where region_id is not null), 2) rentcar_index,
   (select count(*) from raw.hub_811 o where refined.region_of(o."addressJibun") = r.region_id) oreum_cnt,
-  (select round(avg((f."인허가일자" < '2000')::int)::numeric, 2) from raw.hub_780 f
-     where f."영업상태명" like '영업%' and refined.region_of(f."소재지전체주소") = r.region_id) nopo_ratio
-from refined.regions r;
+  round(food.old_ratio, 3) nopo_ratio, food.n restaurant_cnt,
+  round(biz.new_rate, 3) new_biz_rate
+from refined.regions r
+left join pop using (region_id) left join stay using (region_id) left join biz using (region_id) left join food using (region_id);
 
 -- 5) 최종: 앱이 읽는 형태 그대로. 실데이터가 없는 컬럼은 sample 값(refined.region_metrics_manual)을 쓰고 dummy_cols에 기록
 create table if not exists refined.region_metrics_manual (
@@ -180,7 +194,8 @@ select r.region_id, r.name, r.city, r.zone, r.aliases, r.lat, r.lon,
   er.er_drive_min, w.jan_temp, w.sunshine_jan, cr.crowd_index,
   m.wifi_ap, m.cowork_cnt, m.inland_heating_risk, od.odor_flag, m.snow_road_flag,
   0 is_dummy,  -- 비용 계산에 쓰는 지표는 실데이터. wifi_ap·cowork_cnt·heating·snow 는 수동 추정값(docs/DATA.md)
-  ex.rentcar_stays, ex.oreum_cnt, ex.nopo_ratio, od.pig_farms, rent.rent_samples, w.weather_station
+  ex.rentcar_stays, ex.rentcar_index, ex.oreum_cnt, ex.nopo_ratio, ex.restaurant_cnt, ex.new_biz_rate,
+  od.pig_farms, rent.rent_samples, w.weather_station
 from refined.regions r
 join refined.region_metrics_manual m using (region_id)
 left join refined.m_rent rent using (region_id)

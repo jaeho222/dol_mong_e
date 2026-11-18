@@ -39,6 +39,31 @@ LIVING_METRICS = {
 }
 
 
+def _rank(s: pd.Series) -> pd.Series:
+    """순위 기반 0~1 (제일 낮은 곳 0, 제일 높은 곳 1). 값 하나가 튀어도 나머지가 한쪽에 몰리지 않는다."""
+    if len(s) < 2:
+        return s * 0 + 0.5
+    return (s.rank(method="average") - 1) / (len(s) - 1)
+
+
+# 재미 지수: 추천 순위에는 넣지 않고 결과에 따로 붙인다 (0~1, 높을수록 그 성격이 강함).
+# 계산 근거·교차검증은 docs/DATA.md '재미 지수'. 컬럼이 없는 CSV(sample)면 건너뛴다.
+FUN_INDICES = {
+    # 거주 인구당 렌터카 체류 지점 수(제주 평균=1). 원값은 인구 규모를 따라가서(r=0.87) 쓰지 않음
+    "렌터카습격": ("rentcar_index", lambda df: _rank(df["rentcar_index"])),
+    # 지번주소 기준 권역 내 오름 개수
+    "오름부자": ("oreum_cnt", lambda df: _rank(df["oreum_cnt"])),
+    # 영업 중 음식점 중 20년 이상(2006년 이전 인허가) 비율
+    "노포": ("nopo_ratio", lambda df: _rank(df["nopo_ratio"])),
+    # 2021~2023 신생 사업체 ÷ 활동 사업체
+    "요즘뜨는": ("new_biz_rate", lambda df: _rank(df["new_biz_rate"])),
+}
+
+
+def fun_scores(df: pd.DataFrame) -> pd.DataFrame:
+    return pd.DataFrame({k: f(df) for k, (col, f) in FUN_INDICES.items() if col in df.columns}, index=df.index)
+
+
 def _weights(cond: Conditions) -> dict:
     w = {k: 1.0 for k in LIVING_METRICS}
     if cond.car is False:
@@ -84,9 +109,11 @@ def rank_regions(conditions: dict | Conditions, top_k: int = 5, cost_weight: flo
     df = load_regions()
     # 점수 정규화는 '제주 전체' 기준으로 해야 일부 지역만 비교해도 의미가 유지된다
     scores = pd.DataFrame({k: f(df) for k, f in LIVING_METRICS.items()})
+    fun = fun_scores(df)
     if cond.regions:
         df = df[df["region_id"].isin(cond.regions)]
         scores = scores.loc[df.index]
+        fun = fun.loc[df.index]
     w = _weights(cond)
     living = sum(scores[k] * w[k] for k in w) / sum(w.values())
 
@@ -108,6 +135,7 @@ def rank_regions(conditions: dict | Conditions, top_k: int = 5, cost_weight: flo
             "lon": row["lon"],
             "score": round(float(final[rid]) * 100),
             "living_scores": sc,
+            "fun_scores": fun.loc[rid].round(2).to_dict() if not fun.empty else {},
             "cost": costs[rid],
             "badges": good,
             "warnings": warn,
