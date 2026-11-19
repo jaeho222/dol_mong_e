@@ -90,7 +90,7 @@ Agent와 계산 도구가 보는 **유일한 데이터 테이블**. 행 = 비교
 ## 컬럼 추가 체크리스트
 1. CSV에 컬럼 추가 (sample + build 스크립트)
 2. `backend/tools/data_loader.py` 의 `REQUIRED_COLUMNS`
-3. 점수에 쓰면 `backend/tools/region.py` 의 `LIVING_METRICS` / `_badges`
+3. 점수에 쓰면 `backend/tools/region.py` 의 `FACTORS` / `_badges`
 4. 이 표에 한 줄
 
 ## 추천 점수 (backend/tools/region.py)

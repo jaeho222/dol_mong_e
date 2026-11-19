@@ -106,7 +106,7 @@ flowchart LR
 - **도구 (사실)**: 모든 숫자·장소·출처. Claude 는 숫자를 만들지 않는다 (시스템 프롬프트 규칙 1)
 - **사용자 (결정)**: Agent 는 리포트 수정을 **제안만** 한다. 사용자가 [적용하기]를 눌러야 바뀌고, 적용 후에도 조건 폼에서 언제든 다시 바꿀 수 있다
 
-**안전장치** — 빠른 버튼은 LLM 없이 규칙으로 즉시 답(비용 0) · 모델 Haiku, 도구 루프 최대 `AGENT_MAX_TURNS`(5)회, 답 `AGENT_MAX_TOKENS`(900) · 시스템 프롬프트·도구 정의 프롬프트 캐싱 · IP당 분당 `AGENT_RATE_PER_MIN`(8)회 · 키는 서버 환경변수에만(프론트로 안 감) · 키 없음/오류/초과 시 규칙 답으로 자동 전환 · 답마다 근거 출처와 **"돌몽이가 확인한 것"**(도구 호출 과정) 공개
+**안전장치** — 빠른 버튼은 LLM 없이 규칙으로 즉시 답(비용 0) · 모델 Haiku, 도구 루프 최대 `AGENT_MAX_TURNS`(5)회, 답 `AGENT_MAX_TOKENS`(1500) · 시스템 프롬프트·도구 정의 프롬프트 캐싱 · IP당 분당 `AGENT_RATE_PER_MIN`(8)회 · 키는 서버 환경변수에만(프론트로 안 감) · 키 없음/오류/초과 시 규칙 답으로 자동 전환 · 답마다 근거 출처와 **"돌몽이가 확인한 것"**(도구 호출 과정) 공개
 
 테스트: `tests/test_agent.py` 가 가짜 Claude 로 도구 루프(여러 도구 동시 호출, 도구 오류 복구, 리포트 갱신)를 키 없이 검증한다.
 
@@ -133,31 +133,35 @@ flowchart LR
 ```
 bang-aeo-hwae/
 ├─ backend/
-│  ├─ main.py              # FastAPI 서버 + 프론트 정적 서빙
-│  ├─ config.py            # 환경변수 (모델, 모드, 데이터 경로)
+│  ├─ main.py              # FastAPI 서버 + 프론트 정적 서빙 (/api/estimate, /api/consult, /api/rehearsal ...)
+│  ├─ config.py            # 환경변수 (모델, 모드, 한도, 데이터 경로)
 │  ├─ schema.py            # Conditions — 사용자 조건 정의
 │  ├─ agent/
-│  │  ├─ __init__.py       # run_agent(): claude/mock 자동 선택
-│  │  ├─ claude_agent.py   # Claude tool-use 루프
-│  │  ├─ mock_agent.py     # 키 없는 데모용 Agent
-│  │  ├─ mock_parser.py    # 규칙 기반 자연어 → Conditions
-│  │  └─ prompts.py        # 시스템 프롬프트
+│  │  ├─ dolmong_agent.py  # ★ 돌몽이 상담 Agent (Claude tool-use 루프, 도구 7개)
+│  │  ├─ consult.py        # 규칙 + 데이터 상담 (키 없을 때·빠른 버튼)
+│  │  ├─ icons.py          # 답 주제별 돌몽이 아이콘, 이모지 제거
+│  │  ├─ __init__.py       # run_agent(): /api/chat 용 claude/mock 선택 (예전 자연어 추천)
+│  │  ├─ claude_agent.py · mock_agent.py · mock_parser.py · prompts.py  # 예전 자연어 추천 Agent
 │  └─ tools/
-│     ├─ registry.py       # ★ 도구 등록소 (도구 추가는 여기)
+│     ├─ region.py         # 지역 점수·순위·배지 (FACTORS, 가중치)
 │     ├─ cost.py           # 총비용 추정 (단가 COST 딕셔너리)
-│     ├─ region.py         # 지역 점수·순위·배지
-│     └─ data_loader.py    # region_metrics.csv 로더
-├─ frontend/               # 빌드 없는 HTML/CSS/JS
-│  ├─ index.html
-│  └─ assets/ (style.css · app.js · config.js)
+│     ├─ indices.py        # 동네 지수 (눈에 띌 때만)
+│     ├─ evidence.py       # 숫자마다 계산식·출처 (?)
+│     ├─ rehearsal.py      # 하루 살아보기
+│     ├─ savings.py        # 예산 대안
+│     ├─ jeju.py           # 문장 끝 어미 제주어 변환
+│     ├─ registry.py       # 예전 Agent 도구 등록소
+│     └─ data_loader.py    # CSV 로더
+├─ frontend/               # 빌드 없는 HTML/CSS/JS (index.html, assets/app.js·onboarding.js·config.js·style.css)
 ├─ data/
-│  ├─ sample/region_metrics.csv   # 더미 데이터 (processed 가 없을 때만 사용)
-│  ├─ build/               # Supabase → CSV 내보내기 스크립트
-│  └─ processed/           # 실데이터 (앱이 기본으로 읽는 것)
-├─ docs/  (DATA.md · COST_MODEL.md · screenshot.png)
-├─ scripts/build_static_demo.py   # 서버 없는 데모 HTML 생성
+│  ├─ processed/           # 실데이터 CSV 10개 (앱이 읽는 것)
+│  ├─ sample/              # 더미 데이터 (processed 가 없을 때만)
+│  └─ build/               # Supabase → CSV 내보내기
+├─ supabase/               # 수집 Edge Functions + 전처리 SQL
+├─ docs/                   # DATA.md · DATA_CATALOG.md · COST_MODEL.md · screenshot.png
+├─ scripts/                # 정적 데모·폰트·로고 빌드
+├─ tests/                  # pytest 22개
 ├─ index.py                # Vercel 진입점
-├─ tests/test_tools.py
 ├─ requirements.txt
 └─ .env.example
 ```
@@ -191,7 +195,7 @@ bang-aeo-hwae/
 `backend/schema.py` 상단 주석의 4단계: `Conditions` 필드 → `mock_parser.py` 규칙 → `registry.py` 의 `CONDITIONS_SCHEMA` → `region.py` 의 `_weights`/`_badges`. 폼에서도 받으려면 `index.html` 칩 + `app.js` 의 `readForm()`.
 
 ### C. 새 생활환경 지표 추가 (예: 공원 수)
-`docs/DATA.md` 의 "컬럼 추가 체크리스트" 참고. `region.py` 의 `LIVING_METRICS` 에 한 줄 추가하면 점수에 반영된다.
+`docs/DATA.md` 의 "컬럼 추가 체크리스트" 참고. `region.py` 의 `FACTORS` 에 항목을 추가하면 점수에 반영된다.
 
 ### D. 더미 → 실제 데이터 교체
 `data/build/README.md` 의 표대로 스크립트를 채우고 `python -m data.build.merge` → `.env` 에 `REGION_METRICS_PATH=data/processed/region_metrics.csv`. 화면의 "더미 데이터" 경고는 `is_dummy` 가 0이 되면 자동으로 사라진다.
@@ -206,22 +210,15 @@ bang-aeo-hwae/
 
 ---
 
-## ✅ 할 일 (역할별 TODO)
+## ✅ 제출 이후 남은 과제
 
-코드 안에 `TODO[DATA]`, `TODO[AGENT]`, `TODO[FRONT]` 로 표시돼 있다. `grep -rn "TODO\[" .` 로 전체 확인.
+| 영역 | 과제 |
+|---|---|
+| 데이터 | 단기숙소 매물 20~30건 수동 수집으로 `COST` 단가 보정, 공공와이파이(618)·공유오피스 실데이터로 원격근무 점수 복원 |
+| Agent | 사용량 제한을 서버 메모리(IP당 분당)에서 DB 카운터(IP당·전체 하루 상한)로 옮기기, 기간별 비용 비교·지원금 안내 도구 |
+| 화면 | 세심 포인트 지점(`refined.care_points_mat`) 지도 표시 |
 
-| 역할 | 할 일 | 우선순위 |
-|---|---|---|
-| **DATA** | ~~데이터허브 필수 데이터 적재~~ → 완료 (Supabase raw 87종, `docs/DATA_CATALOG.md`) | 완료 |
-| DATA | data.go.kr 활용신청 일괄 (전월세 3종·버스·상가·HIRA·ASOS·민박) | 🔴 오늘 |
-| DATA | 나머지 build 스크립트 → `merge.py` → processed CSV | 🟠 |
-| DATA | 매물 20~30건 수동 수집으로 `COST` 보정 | 🟠 |
-| **AGENT** | Claude 키 발급 후 `AGENT_MODE=claude` 로 프롬프트·도구 설명 튜닝 | 🔴 키 받으면 |
-| AGENT | 멀티턴 대화(history), 기간 비교 도구, 지원금 안내 도구 | 🟡 |
-| AGENT | mock 파서 테스트 문장 보강 (`tests/`) | 🟡 |
-| **FRONT** | 지도에 결과 표시, 카드 상세 모달, 기간별 비교 차트 | 🟠 |
-| FRONT | 서비스 이름 확정 후 `config.js` 반영, 로고 | 🟡 |
-| **문서** | 기획서(15p) · 결과 설명자료 · 사용자 매뉴얼 | 🔴 |
+코드 안의 `TODO[DATA]`, `TODO[AGENT]`, `TODO[FRONT]` 는 `grep -rn "TODO\[" .` 로 확인.
 
 ---
 
@@ -243,14 +240,14 @@ bang-aeo-hwae/
 
 - **배너·문구 수정:** `frontend/assets/config.js` — `topBanner`(맨 위 띠: 제주愛인 메인 링크), `banners`(캐러셀 카드, 클릭 시 링크/질문/조건 프리셋)
 - **아이콘:** [Lucide](https://lucide.dev) (ISC 라이선스) 경로를 `index.html` 상단 SVG 스프라이트로 인라인 — 외부 요청 없음
-- **폰트:** 본문 Pretendard(CDN) · 로고·배너 제목·동네 이름은 **제주한라산체**(제주특별자치도 제주전용서체 — 웹·임베딩 포함 자유 이용, 유료 양도·판매 금지). `frontend/assets/fonts/jeju-hallasan-sub.woff2` 는 KS X 1001 한글 2,350자로 줄인 파일(191KB) — 여기 없는 글자는 Pretendard로 표시된다.
-- **모바일:** 560px 이하에서 동네 카드는 '사진 왼쪽 + 정보 오른쪽' 가로형, 조건 칩은 한 줄 가로 스크롤, 입력창 16px(iOS 확대 방지), 하단 내비는 홈 인디케이터 영역(safe-area) 확보
+- **폰트:** 본문 Pretendard(CDN) · 로고·배너 제목·동네 이름은 **제주한라산체**(제주특별자치도 제주전용서체 — 웹·임베딩 포함 자유 이용, 유료 양도·판매 금지). `frontend/assets/fonts/dolmong-hallasan.woff2` 는 KS X 1001 한글 2,350자로 줄인 파일(190KB) — 여기 없는 글자는 Pretendard로 표시된다.
+- **모바일:** 600px 이하에서 동네 카드는 '사진 왼쪽 + 정보 오른쪽' 가로형, 조건 칩은 한 줄 가로 스크롤, 입력창 16px(iOS 확대 방지), 하단 내비는 홈 인디케이터 영역(safe-area) 확보
 - **동네 사진:** `frontend/assets/region_images.js` — 위키미디어 공용의 자유 이용 사진(CC0 / CC BY / CC BY-SA / 공공누리 1유형)을 원본 서버에서 바로 불러온다. 카드마다 장소·작가·라이선스를 표시하고 원본 페이지로 링크한다. 사진 교체·추가 방법은 파일 상단 주석. 비영리(NC) 조건 사진은 쓰지 않는다.
 - **TODO[FRONT]:** 지도 탭
 
 ## 📚 데이터 출처·이용조건
 
-전체 적재 목록(허브 87종, 약 87만 행)과 컬럼 정의는 [docs/DATA_CATALOG.md](docs/DATA_CATALOG.md) · [docs/DATA.md](docs/DATA.md). 아래는 **점수·비용·지수 계산에 실제로 쓰는 데이터**.
+전체 적재 목록(허브 93종: 파일·API·링크 89종 약 92만 행 + 상담용 4종)과 컬럼 정의는 [docs/DATA_CATALOG.md](docs/DATA_CATALOG.md) · [docs/DATA.md](docs/DATA.md). 아래는 **점수·비용·지수 계산에 실제로 쓰는 데이터**.
 
 | 구분 | 데이터 (허브 번호) | 활용 항목 → 반영 |
 |---|---|---|
