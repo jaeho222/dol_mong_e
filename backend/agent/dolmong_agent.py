@@ -84,10 +84,14 @@ SYSTEM = """너는 제주살이 동모 '돌몽이'다. 사용자는 지금 돌�
    - 제안할 때: 대화에서 사용자 조건이 리포트와 달라졌을 때(아이 동반, 차 없음, 기간·예산·인원·출발 달, 중요하게 여기는 것),
      사용자가 바꿔 달라고 했을 때, 또는 계산해 보니 다른 동네가 사용자에게 더 맞을 때(select_region_id).
    - 먼저 rank_regions 등으로 계산해 차이를 확인한 뒤 제안한다. 지금 리포트와 같으면 제안하지 않는다. 한 답에 제안은 한 번.
-   - 제안했으면 답 마지막 줄에 "돌몽이가 ~를 적용해서 리포트를 수정해 드릴까요?"처럼 무엇을 바꿀지 한 문장으로 묻는다.
+   - 제안 카드는 사용자가 "네"라고 하기 '전에' 미리 띄우는 것이다. 동의를 기다리지 말고 같은 답 안에서 바로 호출한다.
+   - "리포트를 수정해 드릴까요?"라고 물을 거면 반드시 그 전에 propose_report_change 를 호출한다. 호출하지 않았으면 그렇게 묻지 않는다.
+   - 호출했으면 답 마지막 줄에 "돌몽이가 ~를 적용해서 리포트를 수정해 드릴까요? 아래 [적용하기]를 눌러 주세요."처럼 묻는다.
    - 단순 궁금증("~면 얼마야?")에는 답만 하고, 그 조건이 사용자 상황 같으면 제안한다.
 6. 질문이 여러 가지를 묻으면 도구를 여러 번 써서 다 답한다. 한 번에 여러 도구를 불러도 된다.
-7. 제주 생활과 상관없는 질문, 데이터로 답할 수 없는 행정·계약 질문은 ask_data(topic=contact) 로 문의처를 안내한다.
+7. 사용자가 말하지 않은 조건은 추측해서 바꾸지 않는다. 예: "아이 둘이랑"이면 with_kids 는 바꾸지만, 어른 수를 모르면 인원은 지금 리포트 값을
+   그대로 쓰고 답 끝에 "어른은 몇 분이세요?"처럼 한 번만 확인한다.
+8. 제주 생활과 상관없는 질문, 데이터로 답할 수 없는 행정·계약 질문은 ask_data(topic=contact) 로 문의처를 안내한다.
 
 [답 쓰는 법]
 - 한국어 표준어 해요체로 쓴다(어미는 서버가 제주어로 바꾼다). 친근하지만 짧게: 보통 3~8줄.
@@ -128,7 +132,8 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {"region_id": REGION_ID}, "required": ["region_id"]}},
     {"name": "propose_report_change",
      "description": "리포트 수정을 사용자에게 제안한다 (바로 바뀌지 않음). 화면에 바뀔 내용과 [적용하기] 버튼이 뜨고, 누르면 조건 입력값이 changes 로 바뀌어 "
-                    "순위가 다시 계산되며 select_region_id 동네가 열린다.",
+                    "순위가 다시 계산되며 select_region_id 동네가 열린다. 사용자 동의를 받기 전에 먼저 호출하는 도구다(카드가 동의를 묻는다). "
+                    "다른 도구로 계산한 뒤, 같은 답 안에서 호출한다.",
      "input_schema": {"type": "object", "properties": {
          "changes": CHANGES_SCHEMA,
          "select_region_id": {"type": "string", "description": "리포트에서 열어 줄 동네 (선택)"},
@@ -272,6 +277,9 @@ def _trace_label(name: str, args: dict) -> str:
     return base
 
 
+ASK_APPLY = re.compile(r"리포트[^.?!\n]{0,20}(수정|바꿔|바꾸|적용)[^.?!\n]{0,15}(드릴까요|할까요|드려도)")
+
+
 # ── 리포트 요약 (Claude 가 '이 동네', '2위' 를 알아듣게) ──────────────────────
 def report_context(region_id: str, cond: Conditions) -> str:
     ranked = rank_regions(cond, top_k=14)
@@ -339,14 +347,20 @@ def run_agent(message: str, region_id: str, conditions: dict, history: list | No
               {"type": "text", "text": report_context(region_id, cond)}]
     messages = _history(history) + [{"role": "user", "content": message[:800]}]
     ctx = {"sources": [], "next": None, "report_update": None}
-    trace = []
+    trace, nudged = [], False
 
-    for _ in range(config.AGENT_MAX_TURNS):
+    for _ in range(config.AGENT_MAX_TURNS + 1):
         resp = client.messages.create(model=config.CLAUDE_MODEL, max_tokens=config.AGENT_MAX_TOKENS,
                                       system=system, tools=TOOLS, messages=messages)
         messages.append({"role": "assistant", "content": resp.content})
         if resp.stop_reason != "tool_use":
             answer = "".join(b.text for b in resp.content if b.type == "text").strip()
+            # 안전장치: "리포트 수정해 드릴까요?"라고 묻고 제안 도구를 안 불렀으면 한 번 더 기회를 준다 (카드가 떠야 적용할 수 있다)
+            if ASK_APPLY.search(answer) and ctx["report_update"] is None and not nudged:
+                nudged = True
+                messages.append({"role": "user", "content": "(시스템) 리포트 수정을 물었는데 propose_report_change 를 호출하지 않아 화면에 [적용하기] 카드가 없다. "
+                                                           "지금 호출하고, 답은 처음과 같은 내용으로 다시 써라."})
+                continue
             break
         results = []
         for b in resp.content:
