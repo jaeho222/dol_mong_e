@@ -347,7 +347,7 @@ def _answer_transit(region_id, cond, text):
     if car:
         lines.append(f"렌터카 대신 버스로 지내면 **{_won(car['saved'])}** 아낄 수 있어요.")
     lines.append(f"출처: {ev['data']}")
-    lines.append("버스 시간표·배차는 제가 가진 데이터에 없어요 → " + _contact_lines(["general"])[0])
+    lines.append("버스 시간표·배차는 돌몽이가 모르는 부분이에요. 여기에 물어보세요 → " + _contact_lines(["general"])[0])
     return lines, [ev["data"]], ["car_cost", "save", "amenity"]
 
 
@@ -445,7 +445,7 @@ def _answer_gyul(region_id, cond, text):
     now = gm[(gm.month == m) & (gm.share >= 0.1)].sort_values("share", ascending=False)
     if len(now):
         lines.append(f"{m}월에 많이 나오는 품종: " + ", ".join(f"{v} ({s:.0%})" for v, s in zip(now.variety, now.share)) + " (855 출하량)")
-    lines.append("농장별 맛은 데이터가 없어요. 오일장·농협 하나로마트 직판장에서 그 철 품종을 사는 게 좋아요.")
+    lines.append("농장별 맛까지는 돌몽이가 몰라요. 오일장·농협 하나로마트 직판장에서 그 철 품종을 사는 게 좋아요.")
     mk = _rp(region_id, "market")
     if mk:
         lines.append("근처 시장: " + ", ".join(f"{x['name']}" + (f"(끝자리 {x['extra']}일)" if str(x.get('extra')) not in ("매일", "nan") else "(매일)") for x in mk))
@@ -475,7 +475,7 @@ def _answer_hotplace(region_id, cond, text):
     row = _row(region_id)
     a = _attractions(region_id).head(6)
     lines = [f"**{row['name']}**에서 사람이 많이 찾는 곳이에요 (구글 관광지 리뷰 수 + 관광상품 구매 수):"]
-    lines += [_attr_line(t) for _, t in a.iterrows()] or ["- 데이터에 잡힌 관광지가 적어요."]
+    lines += [_attr_line(t) for _, t in a.iterrows()] or ["- 돌몽이가 아는 관광지가 아직 적은 동네예요."]
     return lines, ["제주데이터허브 905 구글 관광지 리뷰(2021), 912 관광상품 구매(2020~2021), 1349 VISIT JEJU 여행장소"], ["beginner", "food", "activity"]
 
 
@@ -527,7 +527,7 @@ def _answer_kids(region_id, cond, text):
     if lib:
         lines.append(f"📚 공공도서관: {lib[0]['name']}")
     lines.append(f"🏥 소아 진료 병·의원 {int(row['pediatric_cnt'])}곳, 응급실까지 약 {int(row['er_drive_min'])}분")
-    lines.append("키즈카페·실내 체험시설은 데이터가 없어요.")
+    lines.append("키즈카페·실내 체험시설은 돌몽이가 아직 몰라요. 궁금하면 " + _contact_lines(["general"])[0])
     return lines, ["912 관광상품 구매(아이 동반), 812 박물관·미술관, 352·201 어린이놀이시설, 888 도서관, 859 병·의원"], ["medical", "beginner"]
 
 
@@ -571,9 +571,9 @@ def _answer_activity(region_id, cond, text):
 def _answer_activity_nodata(region_id, cond, text):
     m = re.search(NO_DATA_ACTIVITY, text)
     act = m.group(0) if m else "그 활동"
-    lines = [f"**{act}** 업체 목록은 제가 가진 공공데이터에 없어요."]
+    lines = [f"**{act}** 업체는 돌몽이가 아직 모르는 부분이에요."]
     if re.search(r"승마|말\s*타", act):
-        lines.append("참고로 신고된 승마장은 제주시 11곳, 서귀포시 7곳이에요 (162 신고체육시설업, 2024-12). 동네 단위 위치는 데이터에 없어요.")
+        lines.append("참고로 신고된 승마장은 제주시 11곳, 서귀포시 7곳이에요 (162 신고체육시설업, 2024-12). 동네별 위치까지는 돌몽이가 몰라요.")
     lines.append(f"{_link('구글 지도에서 찾아보기', _gmap('제주 ' + act))}")
     lines += ["관광 체험 업체는 관광 안내로 물어보세요:", *_contact_lines(["general"])]
     return lines, ["제주데이터허브 162 신고체육시설업"], ["hotplace", "beginner"]
@@ -620,7 +620,7 @@ def _answer_safety(region_id, cond, text):
 
 
 def _answer_contact(region_id, cond, text, out_of_scope=False):
-    lines = (["이 질문은 제가 가진 데이터(비용 계산식·동네 지표·공공데이터)로는 정확히 답하기 어려워요. 공식 문의처로 안내할게요:"]
+    lines = (["이 질문은 돌몽이가 정확히 모르는 부분이에요. 여기에 물어보면 정확해요:"]
              if out_of_scope else ["제주도 공식 문의처예요:"])
     lines += _contact_lines(["general", "health_jeju", "health_sgp", "emergency"])
     return lines, ["제주120만덕콜센터(뉴스서울 2025-01)", "제주시·서귀포시 보건소"], ["save", "why", "beginner"]

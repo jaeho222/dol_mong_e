@@ -47,57 +47,207 @@ window.APP_CONFIG = {
 
   // 첫 방문 문답 (onboarding.js). 처음 온 사람에게 한 번 뜨고, 주소 뒤에 ?start=1 이면 다시 뜬다.
   //  set: 답을 고르면 채울 조건 / react: 고른 뒤 돌몽이가 하는 말 / pose: 그 질문에서의 돌몽이 모습
+ 
   onboarding: [
-    { type: "intro", pose: "hello", say: "안녕하세요! 저는 제주살이 동모 돌몽이에요!",
-      sub: "동모는 제주말로 친구라는 뜻이에요. 몇 가지만 물어보고 우리가 같이 살 동네를 찾아볼게요.", cta: "좋아요, 같이 찾아요" },
-    { type: "name", pose: "front", say: "제가 뭐라고 부르면 될까요?", sub: "별명도 좋아요. 안 적고 넘어가도 돼요." },
-    { type: "month", pose: "front", say: "언제쯤 제주에 올 거예요?", react: "그때 제주는 이런 모습이에요" },
-    { pose: "three4", say: "얼마나 머물 거예요?", options: [
-      { label: "2주", sub: "짧게 맛보기", set: { days: 14 }, react: "짧고 굵게! 좋아요." },
-      { label: "한 달", sub: "제일 많이 골라요", set: { days: 30 }, react: "제주 한 달 살기, 정석이죠." },
-      { label: "두 달", set: { days: 60 }, react: "계절 하나를 통째로 겪어 보겠네요." },
-      { label: "석 달", set: { days: 90 }, react: "이 정도면 동네 삼춘들이 얼굴을 알아봐요." },
-      { label: "반년", set: { days: 180 }, react: "반년이면 연세 집도 같이 따져 볼게요." },
-      { label: "1년", sub: "진짜 살아보기", set: { days: 365 }, react: "1년이면 거의 제주 사람이에요!" },
-    ] },
-    { pose: "hello", say: "누구랑 같이 와요?", options: [
-      { label: "혼자", set: { people: 1, with_kids: false, with_pet: false }, react: "혼자여도 제가 있잖아요." },
-      { label: "둘이서", sub: "친구·연인·부부", set: { people: 2, with_kids: false, with_pet: false }, react: "둘이면 숙소비를 나눌 수 있어요." },
-      { label: "아이와 가족", set: { people: 3, with_kids: true, with_pet: false }, react: "소아과 가까운 동네를 챙길게요." },
-      { label: "반려동물도 같이", set: { people: 2, with_pet: true, with_kids: false }, react: "산책하기 좋은 동네로 볼게요." },
-    ] },
-    { pose: "side", say: "차는 빌릴 거예요?", options: [
-      { label: "렌터카 빌릴래요", set: { car: true }, react: "렌터카 값도 비용에 넣을게요." },
-      { label: "버스 타고 걸을래요", set: { car: false }, react: "버스 잘 다니는 동네가 중요하겠네요." },
-    ] },
-    { pose: "calc", say: "전부 합쳐서 예산은 얼마쯤이에요?", sub: "숙소, 차, 식비, 공과금을 다 더한 금액이에요.", options: [
-      { label: "150만 원 이하", set: { budget: 150 } },
-      { label: "200만 원 이하", set: { budget: 200 } },
-      { label: "300만 원 이하", set: { budget: 300 } },
-      { label: "600만 원 이하", set: { budget: 600 } },
-      { label: "1,000만 원 이하", set: { budget: 1000 } },
-      { label: "아직 모르겠어요", set: { budget: null }, react: "괜찮아요. 동네마다 얼마 드는지 보여드릴게요." },
-    ], react: "예산 안에서 찾아볼게요." },
-    { pose: "search", say: "밤 10시, 제주에서 뭐 하고 있을 것 같아요?", options: [
-      { label: "이미 꿈나라", sub: "일찍 자고 일찍 일어나요", set: { prefer_quiet: true }, react: "조용한 동네 위주로 볼게요. 쉿!" },
-      { label: "동네 술집에서 한 잔", sub: "밤에도 놀고 싶어요", set: { prefer_quiet: false }, react: "밤에도 불 켜진 동네가 좋겠네요." },
-    ] },
-    { pose: "calc", say: "제주에서 일도 해야 해요?", options: [
-      { label: "노트북은 필수예요", set: { remote_work: true }, react: "와이파이랑 공유오피스 있는 동네를 챙길게요." },
-      { label: "완전히 쉬러 가요", set: { remote_work: false }, react: "일 생각은 공항에 두고 오세요!" },
-    ] },
-    { type: "ready", pose: "done", say: "거의 다 끝났어요! 이제 우리가 살 동네를 찾아볼까요?", cta: "우리 동네 찾기" },
+    {
+      type: "intro",
+      pose: "hello",
+      say: "혼저 옵서예! 제주살이 동모 돌몽이우다!",
+      sub: "동모는 제주말로 친구라는 뜻이우다. 몇 가지만 물어보고 같이 살 동네를 찾아보쿠다!",
+      cta: "좋수다, 같이 찾아봅주!"
+    },
+    {
+      type: "name",
+      pose: "front",
+      say: "돌몽이가 뭐라고 부르면 좋수꽈?",
+      sub: "별명도 좋수다! 안 적고 넘어가도 괜찮수다."
+    },
+    {
+      type: "month",
+      pose: "front",
+      say: "언제쯤 제주에 올 거우꽈?",
+      react: "그때 제주는 어떤 모습인지 보여드리쿠다!"
+    },
+    {
+      pose: "three4",
+      say: "제주에서 얼마나 머물 거우꽈?",
+      options: [
+        {
+          label: "2주",
+          sub: "짧게 맛보기",
+          set: { days: 14 },
+          react: "짧고 굵게! 알차게 지내봅주!"
+        },
+        {
+          label: "한 달",
+          sub: "제일 많이 골라요",
+          set: { days: 30 },
+          react: "한 달이면 제주를 호꼼 더 알아갈 수 있수다!"
+        },
+        {
+          label: "두 달",
+          set: { days: 60 },
+          react: "두 달이면 제주 생활에 제법 익숙해지쿠다!"
+        },
+        {
+          label: "석 달",
+          set: { days: 90 },
+          react: "석 달이면 동네 삼춘들도 얼굴 알아보쿠다!"
+        },
+        {
+          label: "반년",
+          set: { days: 180 },
+          react: "반년이면 연세 집도 같이 따져보쿠다!"
+        },
+        {
+          label: "1년",
+          sub: "진짜 살아보기",
+          set: { days: 365 },
+          react: "1년이면 거의 제주 사람 다 되쿠다!"
+        }
+      ]
+    },
+    {
+      pose: "hello",
+      say: "누구랑 같이 올 거우꽈?",
+      options: [
+        {
+          label: "혼자",
+          set: { people: 1, with_kids: false },
+          react: "혼자 와도 걱정 마십서! 돌몽이가 있수다!"
+        },
+        {
+          label: "둘이서",
+          sub: "친구·연인·부부",
+          set: { people: 2, with_kids: false },
+          react: "둘이면 숙소비도 나눌 수 있수다!"
+        },
+        {
+          label: "아이와 가족",
+          set: { people: 3, with_kids: true },
+          react: "아이랑 지내기 좋은 동네도 살펴보쿠다!"
+        }
+      ]
+    },
+    {
+      pose: "hello",
+      say: "반려동물도 같이 올 거우꽈?",
+      options: [
+        {
+          label: "네, 같이 와요!",
+          set: { with_pet: true },
+          react: "반려동물이랑 산책하기 좋은 동네도 찾아보쿠다!"
+        },
+        {
+          label: "아니요, 사람끼리 가요",
+          set: { with_pet: false },
+          react: "알았수다! 그럼 다음으로 가봅주!"
+        }
+      ]
+    },
+    {
+      pose: "side",
+      say: "제주에서 차는 빌릴 거우꽈?",
+      options: [
+        {
+          label: "렌터카 빌릴래요",
+          set: { car: true },
+          react: "렌터카 비용도 꼼꼼히 챙겨보쿠다!"
+        },
+        {
+          label: "버스 타고 걸을래요",
+          set: { car: false },
+          react: "그럼 버스 잘 다니는 동네가 좋쿠다!"
+        }
+      ]
+    },
+    {
+      pose: "calc",
+      say: "전부 합쳐서 예산은 얼마쯤 생각햄수꽈?",
+      sub: "숙소, 차, 식비, 공과금까지 몽땅 합친 금액이우다!",
+      options: [
+        {
+          label: "150만 원 이하",
+          set: { budget: 150 }
+        },
+        {
+          label: "200만 원 이하",
+          set: { budget: 200 }
+        },
+        {
+          label: "300만 원 이하",
+          set: { budget: 300 }
+        },
+        {
+          label: "600만 원 이하",
+          set: { budget: 600 }
+        },
+        {
+          label: "1,000만 원 이하",
+          set: { budget: 1000 }
+        },
+        {
+          label: "아직 모르겠어요",
+          set: { budget: null },
+          react: "괜찮수다! 동네마다 얼마 드는지 알려드리쿠다!"
+        }
+      ],
+      react: "예산에 맞는 동네를 찾아보쿠다!"
+    },
+    {
+      pose: "search",
+      say: "밤 10시, 제주에서 뭐 하고 있을 거 닮수꽈?",
+      options: [
+        {
+          label: "이미 꿈나라",
+          sub: "일찍 자고 일찍 일어나요",
+          set: { prefer_quiet: true },
+          react: "조용하고 한적한 동네로 찾아보쿠다! 쉿!"
+        },
+        {
+          label: "동네 술집에서 한 잔",
+          sub: "밤에도 놀고 싶어요",
+          set: { prefer_quiet: false },
+          react: "밤에도 활기찬 동네가 좋쿠다!"
+        }
+      ]
+    },
+    {
+      pose: "calc",
+      say: "제주에서도 일해야 햄수꽈?",
+      options: [
+        {
+          label: "노트북은 필수예요",
+          set: { remote_work: true },
+          react: "와이파이랑 공유오피스 있는 동네도 챙겨보쿠다!"
+        },
+        {
+          label: "완전히 쉬러 가요",
+          set: { remote_work: false },
+          react: "좋수다! 일 생각은 공항에 두고 옵서!"
+        }
+      ]
+    },
+    {
+      type: "ready",
+      pose: "done",
+      say: "이제 거의 다 됐수다! 우리 같이 살 동네 찾아봅주!",
+      cta: "우리 동네 찾으러 갑주!"
+    }
   ],
+
 
   // 로딩 화면: 세 장면을 frameMs 마다 넘긴다. {name} 은 문답에서 받은 이름 (없으면 nameless 문구)
   loader: {
     frameMs: 2500,
     minMs: 1200,   // 결과가 너무 빨리 와도 이만큼은 보여준다 (깜빡임 방지)
+    
     frames: [
       { img: "assets/dolmong/sd-run.webp", text: "돌몽이가 {name}님에게 줄 귤을 갖고 오고 있어요.", nameless: "돌몽이가 귤을 갖고 오고 있어요." },
-      { img: "assets/dolmong/sd-trip.webp", text: "돌몽이가 넘어졌나봐요. 잠시만 기다려주세요." },
+      { img: "assets/dolmong/sd-trip.webp", text: "돌몽이가 넘어졌어요. 잠시만 기다려주세요." },
       { img: "assets/dolmong/sd-pick.webp", text: "돌몽이가 귤을 주워담고 있어요. 잠시만 기다려주세요." },
     ],
+
   },
 
   // 동네 성격: 생활 점수 상위 2개로 '겨울 볕 좋고 조용한 동네' 같은 이름을 만든다 (점수 0.6 이상만)
@@ -110,11 +260,19 @@ window.APP_CONFIG = {
   },
 
   // '가장 중요한 것 3가지' 선택지 (key 는 백엔드 region.PRIORITY_KEYS 와 같아야 함). 누른 순서 = 중요한 순서
+  
   priorities: [
-    { key: "비용", label: "💰 비용" }, { key: "교통", label: "🚌 교통" }, { key: "생활편의", label: "🏪 편의시설" },
-    { key: "의료", label: "🏥 의료" }, { key: "조용함", label: "🤫 한적함" }, { key: "자연", label: "🌿 자연 환경" },
-    { key: "날씨", label: "🌤 날씨" }, { key: "맛집", label: "🍜 맛집" }, { key: "밤길안심", label: "🔦 안전" },
+    { key: "비용", label: "비용", icon: "cost.webp" },
+    { key: "교통", label: "교통", icon: "transit.webp" },
+    { key: "생활편의", label: "편의시설", icon: "convenience.webp" },
+    { key: "의료", label: "의료", icon: "medical.webp" },
+    { key: "조용함", label: "한적함", icon: "quiet.webp" },
+    { key: "자연", label: "자연 환경", icon: "nature.webp" },
+    { key: "날씨", label: "날씨", icon: "weather.webp" },
+    { key: "맛집", label: "맛집", icon: "food.webp" },
+    { key: "밤길안심", label: "안전", icon: "safety.webp" },
   ],
+
 
   // 제주 계절 달력: 머무는 기간에 걸리는 것만 보여준다 (warn: 미리 알아둘 것)
   // TODO[DATA]: 축제는 VISIT JEJU 축제행사 데이터(xlsx 590)로 바꿀 것
@@ -128,6 +286,7 @@ window.APP_CONFIG = {
     { months: [6, 7], text: "수국 피는 철" },
     { months: [6, 7], text: "장마철, 빨래가 잘 안 말라요", warn: true },
     { months: [7, 8], text: "해수욕장 여는 철" },
+    { months: [9], text: "선선한 바람과 함께 가을 제주가 시작되는 철" },
     { months: [8, 9], text: "태풍이 올 수 있어요", warn: true },
     { months: [10, 11], text: "오름에 억새 피는 철" },
   ],

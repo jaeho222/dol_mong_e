@@ -1,7 +1,7 @@
 /* 돌몽이 — 국내 여행 플랫폼 문법(흰 바탕, 실사 사진, 가로 검색바, 목록+지도)
    색 역할: 현무암 = 주요 버튼·글자 / 이끼 = 선택·진행·좋은 점 / 귤 = 1위 표시 같은 아주 작은 포인트만
    글꼴: 돌몽이 목소리(로고·제목·대사)는 제주한라산체, 나머지는 Pretendard */
-@font-face { font-family: "Dolmong Hallasan"; src: url("fonts/dolmong-hallasan.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Dolmong Hallasan"; src: url("fonts/dolmong-hallasan.woff2?v=2350") format("woff2"); font-display: swap; }
 :root {
   --brand: #4f6b3a;       /* 이끼: 선택, 진행, 강조 글자 */
   --brand-dark: #3e5530;
@@ -400,29 +400,58 @@ body.ob-open { overflow: hidden; }
 .ev-row td { padding: 0 0 6px !important; }
 .kv li .ev-box { grid-column: 1 / -1; margin-top: 0; }
 .idx li .ev-box { flex-basis: 100%; }
-.ev-all { border: 1px solid var(--brand); background: #fff; color: var(--brand); border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
-.ev-all:hover { background: var(--brand-tint); }
 
-/* ── 리포트 하단 돌몽이 상담 (은행 앱 상담 챗봇 형식) ── */
-.consult { margin-top: 40px; background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; scroll-margin-top: 80px; }
-.cs-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--brand-tint); }
+/* ── 돌몽이 상담: 오른쪽 아래 플로팅 버튼 + 창 (화면 어디서나) ── */
+.cs-fab { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: flex; align-items: center; gap: 8px;
+  padding: 6px 18px 6px 6px; border: 0; border-radius: 999px; background: var(--cta); color: #fff;
+  font: 400 16px var(--voice); box-shadow: 0 6px 20px rgba(0,0,0,.22); cursor: pointer; transition: transform .15s; }
+.cs-fab:hover { transform: translateY(-2px); background: var(--cta-dark); }
+.cs-fab img { width: 52px; height: 52px; object-fit: contain; background: #fff; border-radius: 50%; }
+.cs-fab[aria-expanded="true"] { display: none; }
+.cs-panel { position: fixed; right: 20px; bottom: 20px; z-index: 61; width: min(420px, calc(100vw - 24px));
+  height: min(660px, calc(100vh - 100px)); display: flex; flex-direction: column; background: #fff;
+  border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,.22); }
+.cs-panel[hidden] { display: none; }
+.cs-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px 12px 16px; border-bottom: 1px solid var(--line); background: var(--brand-tint); }
 .cs-head img { width: 40px; height: 40px; object-fit: contain; }
+.cs-title { flex: 1; min-width: 0; }
 .cs-head b { display: block; font-size: 17px; font-family: var(--voice); font-weight: 400; }
 .cs-head span { font-size: 12.5px; color: var(--ink-3); }
-.cs-msgs { max-height: 560px; min-height: 180px; overflow: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; background: var(--bg-2); }
-.cs-msgs .msg { max-width: min(640px, 92%); }
+.cs-title span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cs-mode { flex: none; font-size: 11px !important; font-weight: 700; color: var(--brand-dark) !important; background: #fff; border: 1px solid var(--brand); border-radius: 999px; padding: 2px 8px; }
+.cs-mode.off { color: var(--ink-3) !important; border-color: var(--line); }
+.cs-close { flex: none; width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; display: grid; place-items: center; cursor: pointer; }
+.cs-close:hover { background: #fff; }
+.cs-close .ico { width: 20px; height: 20px; }
+.cs-msgs { flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--bg-2); }
+.cs-msgs .msg { max-width: 92%; }
 .cs-msgs .msg.bot p { margin: 0 0 3px; color: var(--ink); font-weight: 400; font-family: inherit; font-size: 14.5px; }
 .cs-msgs .msg.bot p b { font-weight: 700; }
 .cs-msgs .msg.bot p.sub { padding-left: 14px; font-size: 13px; color: var(--ink-3); }
+.cs-msgs .msg.note { align-self: center; max-width: 100%; padding: 3px 12px; border-radius: 999px; background: #fff; border: 1px dashed var(--line); font-size: 12.5px; color: var(--ink-3); }
+.cs-msgs .msg.note.update { border: 1px solid var(--brand); color: var(--brand-dark); background: var(--brand-tint); }
 .cs-src { margin-top: 8px !important; padding-top: 6px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--ink-3); }
-.qr { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; max-width: 92%; }
+.cs-trace { margin-top: 8px; font-size: 12.5px; color: var(--ink-3); }
+.cs-trace summary { cursor: pointer; font-weight: 600; color: var(--brand-dark); list-style: none; }
+.cs-trace summary::-webkit-details-marker { display: none; }
+.cs-trace summary::before { content: "▸ "; }
+.cs-trace[open] summary::before { content: "▾ "; }
+.cs-trace ol { margin: 6px 0 0; padding-left: 20px; }
+.cs-trace li { margin: 2px 0; }
+.cs-trace li.err { color: var(--red); }
+.qr { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; max-width: 100%; }
 .qr button { border: 1px solid var(--brand); background: #fff; color: var(--brand); border-radius: 999px; padding: 7px 13px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
 .qr button:hover { background: var(--brand); color: #fff; }
-.cs-ask { display: flex; gap: 6px; padding: 12px 18px; border-top: 1px solid var(--line); }
+.cs-ask { display: flex; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--line); }
 .cs-ask input { flex: 1; min-width: 0; height: 46px; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; font-size: 15px; }
 .cs-ask input:focus { border-color: var(--ink); outline: none; }
 .send { width: 46px; border: 0; border-radius: 8px; background: var(--cta); color: #fff; display: grid; place-items: center; }
-.cs-foot { margin: 0; padding: 0 18px 14px; font-size: 12px; color: var(--ink-3); }
+.cs-foot { margin: 0; padding: 0 14px 10px; font-size: 11.5px; color: var(--ink-3); }
+@media (max-width: 600px) {
+  .cs-fab { right: 12px; bottom: 12px; padding-right: 14px; font-size: 14px; }
+  .cs-fab img { width: 44px; height: 44px; }
+  .cs-panel { inset: 0; width: 100%; height: 100%; height: 100dvh; border-radius: 0; border: 0; }
+}
 
 
 /* ── 판단 근거 한 줄 ── */
@@ -491,3 +520,211 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
 .budget-alt { position: relative; padding-left: 92px; }
 .ba-pose { position: absolute; left: 16px; top: 14px; width: 64px; height: 64px; object-fit: contain; }
 @media (max-width: 600px) { .sec-pose { width: 48px; height: 48px; } .map-pose { width: 60px; height: 60px; } .budget-alt { padding-left: 18px; } .ba-pose { display: none; } }
+
+/* ── 웹: 리포트 70% + AI Agent 30% 나란히 (body.cs-docked, 가로 1200px 이상) ── */
+:root { --cs-w: clamp(360px, 30vw, 540px); }
+@media (min-width: 1200px) {
+  body.cs-docked { padding-right: var(--cs-w); }
+  body.cs-docked .cs-panel { top: 0; right: 0; bottom: 0; width: var(--cs-w); height: auto; border-radius: 0;
+    border: 0; border-left: 1px solid var(--line); box-shadow: -8px 0 28px rgba(0,0,0,.06); z-index: 40; }
+  body.cs-docked .cs-head { padding: 14px 16px; min-height: 68px; }
+  body.cs-docked .cs-fab { display: none; }
+}
+/* 본문이 좁아지니(70%) 1040px 이하 화면용 배치를 그대로 쓴다 */
+@media (min-width: 1200px) and (max-width: 1500px) {
+  body.cs-docked .gnb-menu { display: none; }
+  body.cs-docked .search { grid-template-columns: 1fr 1fr 1fr; }
+  body.cs-docked .sf:nth-of-type(4)::before { display: none; }
+  body.cs-docked .search-btn { grid-column: 1 / -1; margin: 6px 8px 10px; height: 50px; order: 2; }
+  body.cs-docked .opts { order: 1; }
+  body.cs-docked .result-grid, body.cs-docked .d-top { grid-template-columns: 1fr; }
+  body.cs-docked .map-wrap { position: static; order: -1; }
+  body.cs-docked .d-cols { grid-template-columns: 1fr; gap: 28px; }
+  body.cs-docked .about { grid-template-columns: 1fr; gap: 24px; }
+  body.cs-docked .hero-dolmong { width: 100px; top: -92px; }
+}
+@media (min-width: 1501px) {
+  body.cs-docked .d-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.cs-sub-agent { color: var(--brand-dark) !important; font-weight: 600; }
+.cs-sub-agent::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #3fa34d; vertical-align: 1px; }
+
+/* 리포트 수정 제안 카드 */
+.cs-propose { align-self: stretch; border: 1.5px solid var(--brand); border-radius: 12px; background: #fff; padding: 12px 14px; }
+.cs-propose h4 { margin: 0 0 4px; font-size: 14px; display: flex; align-items: center; gap: 6px; color: var(--brand-dark); }
+.cs-propose .why { margin: 0 0 8px; font-size: 13px; color: var(--ink-2); }
+.cs-propose ul { margin: 0 0 10px; padding: 0; list-style: none; font-size: 13.5px; }
+.cs-propose li { display: flex; gap: 8px; padding: 3px 0; border-top: 1px dashed var(--line); }
+.cs-propose li:first-child { border-top: 0; }
+.cs-propose li b { min-width: 64px; color: var(--ink-3); font-weight: 600; }
+.cs-propose li s { color: var(--ink-3); }
+.cs-propose .acts { display: flex; gap: 6px; }
+.cs-propose .acts button { flex: 1; height: 38px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.cs-propose .ok { border: 0; background: var(--brand); color: #fff; }
+.cs-propose .ok:hover { background: var(--brand-dark); }
+.cs-propose .no { border: 1px solid var(--line); background: #fff; color: var(--ink-2); }
+.cs-propose.done .acts { display: none; }
+.cs-propose .pr-done { margin: 0; font-size: 13px; font-weight: 600; color: var(--brand-dark); }
+.cs-propose.dismissed { border-color: var(--line); }
+.cs-propose.dismissed .pr-done { color: var(--ink-3); }
+.flash { animation: flash 1.4s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 4px rgba(79,107,58,.45); } 100% { box-shadow: 0 0 0 0 rgba(79,107,58,0); } }
+
+/* 상담창 로딩 말풍선: 문구가 바뀌어도 크기가 흔들리지 않게 고정 */
+.cs-msgs .msg.bot.loading { width: min(300px, 92%); height: 168px; padding: 12px 14px; overflow: hidden; box-sizing: border-box; flex: none; }
+.cs-msgs .msg.bot.loading .loader { padding: 0; height: 100%; align-content: center; }
+.cs-msgs .msg.bot.loading .loader p { font-size: 14px; height: 2.9em; min-height: 2.9em; max-width: none; margin: 0;
+  display: flex; align-items: center; justify-content: center; }
+.cs-msgs .msg.bot.loading .loader-stage img { width: 100%; }
+
+/* 돌몽이 전용 중요도 선택 아이콘 */
+.pchip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 15px;
+  min-height: 46px;
+}
+
+.pchip-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.pchip span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 상담창 돌몽이 아이콘 (주제가 맞을 때만) */
+.cs-msgs > * { flex-shrink: 0; }  /* 말풍선이 줄어들어 글이 넘치지 않게 */
+.cs-msgs .msg.bot.has-ico { position: relative; padding-left: 64px; min-height: 64px; }
+.cs-ico { position: absolute; left: 8px; top: 8px; width: 48px; height: 48px; object-fit: contain; }
+.qr button { display: inline-flex; align-items: center; gap: 5px; }
+.qr button img { width: 22px; height: 22px; object-fit: contain; margin: -4px 0 -4px -5px; }
+
+
+/* 중요도 선택: 제목 아래 아이콘 9개 한 줄 */
+.opts.prio {
+  display: block;
+  min-width: 0;         /* fieldset 이 안쪽 내용 폭만큼 늘어나 화면을 밀어내지 않게 */
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.opts.prio legend {
+  float: left;          /* 떠 있는 legend 는 테두리 선에 걸리지 않는다 */
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.opts.prio legend small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.prio-scroll {
+  clear: both;
+  width: 100%;
+  overflow-x: auto;
+  padding: 6px 4px 10px;
+}
+
+.prio-items {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 6px;
+  min-width: 860px;     /* 이보다 좁으면 옆으로 밀어서 본다 (모바일) */
+}
+
+.prio-items .pchip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 6px;
+  font-size: 13px;
+}
+
+
+/* 돌몽이랑 다시 고르기 버튼 */
+.redo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-left: auto;
+  padding: 8px 16px 8px 8px;
+  min-height: 52px;
+  border: 2px solid #e6b56d;
+  border-radius: 999px;
+  background: #fff0d7;
+  color: #794817;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 3px 9px rgba(143, 89, 27, 0.10);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.redo:hover {
+  background: #ffe2ad;
+  border-color: #d99b45;
+  color: #794817;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(143, 89, 27, 0.18);
+}
+
+.redo-dolmong {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.redo-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .redo {
+    margin-left: 0;
+    font-size: 13px;
+    min-height: 46px;
+  }
+
+  .redo-dolmong {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* 문답 뒤 '나 여기 있수다' 안내 (PR #26) — 오른쪽 아래 돌몽이 버튼 바로 위에 뜬다 */
+.dolmong-nudge { position: fixed; right: 20px; bottom: 92px; z-index: 61; animation: nudge-in .35s ease-out; }
+.dolmong-nudge[hidden] { display: none; }
+.dolmong-nudge-talk { display: flex; align-items: flex-end; gap: 6px; border: 0; padding: 0; background: none; cursor: pointer; text-align: left; font: inherit; color: var(--ink); }
+.dolmong-nudge-bubble { position: relative; max-width: 230px; padding: 12px 14px; background: #fff; border: 1.5px solid var(--brand); border-radius: 14px 14px 4px 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14); font-size: 13.5px; line-height: 1.5; }
+.dolmong-nudge-bubble strong { display: block; margin-bottom: 2px; font: 400 16px var(--voice); color: var(--brand-dark); }
+.dolmong-nudge-img { width: 72px; height: 72px; object-fit: contain; flex: none; animation: nudge-wave 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+.dolmong-nudge-talk:hover .dolmong-nudge-bubble { background: var(--brand-tint); }
+.dolmong-nudge-close { position: absolute; top: -10px; left: -10px; width: 26px; height: 26px; border: 1px solid var(--line); border-radius: 50%;
+  background: #fff; color: var(--ink-2); font-size: 16px; line-height: 1; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.12); z-index: 1; }
+.cs-fab[aria-expanded="true"] ~ .dolmong-nudge, body.cs-docked .dolmong-nudge { display: none; }
+@keyframes nudge-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes nudge-wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-6deg); } }
+@media (max-width: 600px) { .dolmong-nudge { right: 12px; bottom: 76px; } .dolmong-nudge-bubble { max-width: 200px; } .dolmong-nudge-img { width: 60px; height: 60px; } }
+@media (prefers-reduced-motion: reduce) { .dolmong-nudge, .dolmong-nudge-img { animation: none; } }

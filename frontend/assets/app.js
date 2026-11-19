@@ -1,6 +1,7 @@
 // 돌몽이 프론트엔드 (빌드 도구 없는 바닐라 JS)
 // ① 검색바·돌몽이 타일 → /api/estimate   ② 추천 동네: 목록 + 지도   ③ 선택한 동네: 비용·돌몽이 한마디·생활 점수·세심 체크·지수
-// ④ 돌몽이 상담 → /api/chat (Agent)
+// ④ 돌몽이 AI Agent 상담 → /api/consult — 웹은 오른쪽 30% 고정(리포트 70%), 모바일은 플로팅 창.
+//    버튼은 규칙, 자유 질문은 Claude Agent 가 도구를 골라 쓰고, 리포트 수정은 '제안 카드'로 묻고 사용자가 적용
 const CFG = window.APP_CONFIG;
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -42,13 +43,14 @@ function init() {
 
   // 가장 중요한 것 3가지: 누른 순서 = 중요도 (3·2·1 가중치는 백엔드 region._weights)
   state.priorities = [];
-  const drawPrio = () => $$("#f-prio .pchip").forEach((b) => {
-    const i = state.priorities.indexOf(b.dataset.k);
-    b.classList.toggle("on", i >= 0);
-    b.dataset.n = i >= 0 ? i + 1 : "";
-  });
-  $("#f-prio").insertAdjacentHTML("beforeend", CFG.priorities.map((p) =>
-    `<button type="button" class="pchip" data-k="${escapeHtml(p.key)}">${escapeHtml(p.label)}</button>`).join(""));
+  $("#prio-items").insertAdjacentHTML("beforeend", CFG.priorities.map((p) =>   
+  `<button type="button" class="pchip" data-k="${escapeHtml(p.key)}">
+    <img class="pchip-icon"
+        src="assets/icons/${encodeURIComponent(p.icon)}"
+        alt=""
+        aria-hidden="true" />
+    <span>${escapeHtml(p.label)}</span>
+  </button>`).join(""));
   $$("#f-prio .pchip").forEach((b) => b.onclick = () => {
     const k = b.dataset.k, i = state.priorities.indexOf(k);
     if (i >= 0) state.priorities.splice(i, 1);
@@ -67,32 +69,25 @@ function init() {
   // 첫 방문 문답 다시 열기 (예전 '돌몽이랑 고르기' 타일)
   $("#redo-ob").onclick = () => window.startOnboarding?.();
 
-  // 상담 (리포트 맨 아래)
-  $$("[data-go-consult]").forEach((b) => b.onclick = (e) => { e.preventDefault(); goConsult(); });
-  // 근거 '?' 버튼, '산정방식 보기' (renderDetail 이 다시 그려도 동작하도록 위임)
+  // 상담 (오른쪽 아래 플로팅 창)
+  initConsult();
+  initDolmongNudge();
+  // 근거 '?' 버튼 (renderDetail 이 다시 그려도 동작하도록 위임)
   $("#detail-in").addEventListener("click", (e) => {
     const q = e.target.closest("[data-ev]");
     if (q) { const box = $("#" + q.dataset.ev); box.hidden = !box.hidden; q.setAttribute("aria-expanded", String(!box.hidden)); return; }
-    const all = e.target.closest("[data-ev-all]");
-    if (all) {
-      const on = !$("#detail-in").classList.contains("ev-all");
-      $("#detail-in").classList.toggle("ev-all", on);
-      $$("#detail-in .ev-box").forEach((b) => b.hidden = !on);
-      $$("[data-ev-all]").forEach((b) => b.textContent = on ? "산정방식 닫기" : "산정방식 보기");
-      return;
-    }
     const tab = e.target.closest("[data-rh]");
     if (tab) { drawRehearsal(tab.dataset.rh); return; }
-    const chip = e.target.closest("[data-qr]");
-    if (chip) consultAsk("", chip.dataset.qr, chip.textContent);
-  });
-  $("#detail-in").addEventListener("submit", (e) => {
-    if (e.target.id !== "cs-form") return;
-    e.preventDefault(); const t = $("#cs-text").value.trim(); if (t) consultAsk(t);
   });
 
   api("/api/health").then((h) => {
     state.agentMode = h.agent_mode;
+    const m = $("#cs-mode");
+    m.hidden = false;
+    m.textContent = h.agent_mode === "claude" ? "AI Agent" : "기본 모드";
+    m.classList.toggle("off", h.agent_mode !== "claude");
+    m.title = h.agent_mode === "claude" ? "자유 질문은 AI Agent 가 도구를 골라 답해요" : "API 키가 없어 규칙 + 데이터로만 답해요";
+    updateWhere();
     if (h.dummy_data) {
       $("#data-note").hidden = false;
       $("#data-note").textContent = "지금은 동네 지표가 더미 데이터예요. 제주데이터허브 실제 데이터로 바꾸는 중이에요.";
@@ -103,6 +98,14 @@ function init() {
   document.fonts?.ready.then(() => state.data?.results.length && drawMap(state.data.results));
   // 돌몽이 말투 규칙(jeju_rules.json)을 받은 뒤 첫 계산 → 한마디가 처음부터 제주 어미로
   (window.jejuReady || Promise.resolve()).finally(() => runEstimate(false));
+}
+
+function drawPrio() {
+  $$("#f-prio .pchip").forEach((b) => {
+    const i = state.priorities.indexOf(b.dataset.k);
+    b.classList.toggle("on", i >= 0);
+    b.dataset.n = i >= 0 ? i + 1 : "";
+  });
 }
 
 function heroPhoto() {
@@ -359,7 +362,7 @@ function renderDetail(r) {
           <p><span class="amt">${c.total.toLocaleString()}<small>만 원</small></span>${diff === null ? "" : diff >= 0
             ? `<span class="budget ok">예산보다 ${diff.toLocaleString()}만 원 적어요</span>`
             : `<span class="budget over">예산보다 ${(-diff).toLocaleString()}만 원 많아요</span>`}</p>
-          <p class="range"><button type="button" class="ev-all" data-ev-all>산정방식 보기</button> 실제로는 ${won(c.range[0])}~${won(c.range[1])} 사이${cond.days > 31 ? `, 한 달에 ${won(c.per_month)} 꼴` : ""}</p>
+          <p class="range">실제로는 ${won(c.range[0])}~${won(c.range[1])} 사이${cond.days > 31 ? `, 한 달에 ${won(c.per_month)} 꼴` : ""}</p>
         </div>
         <table class="bd"><tbody>
           ${items.map(([k, v]) => { const [btn, box] = q(evHTML(ev.cost[k]));
@@ -376,7 +379,7 @@ function renderDetail(r) {
           ${(() => { const [btn, box] = q(evHTML(ev.living[k]));
             return `<li><span>${escapeHtml(lab(k))} ${btn}</span><span class="s" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= five(v) ? "on" : ""}"></i>`).join("")}</span><span class="n">${five(v)}/5</span>${ev.living[k]?.reason ? `<small class="why">${escapeHtml(ev.living[k].reason)}</small>` : ""}${box}</li>`; })()}`).join("")}
         </ul>
-        <p class="note">제주 14개 동네끼리 순위로 비교한 점수예요. <button type="button" class="ev-all" data-ev-all>산정방식 보기</button></p>
+        <p class="note">제주 14개 동네끼리 순위로 비교한 점수예요.</p>
       </div>
       <div>
         <h3>유의 사항</h3>
@@ -385,7 +388,7 @@ function renderDetail(r) {
         <ul class="checks">${seasons.map((e) => `<li class="${e.warn ? "warn" : "good"}"><span class="m">${e.warn ? "!" : "·"}</span>${escapeHtml(e.text)}</li>`).join("")}</ul>` : ""}
       </div>
       ${shownIdx.length ? `<div>
-        <h3>돌몽's Tip이우다</h3>
+        <h3>돌몽's Tip</h3>
         <ul class="idx">${shownIdx.map(([ix, v]) =>
           { const [btn, box] = q(v.source ? `<p class="src">데이터: ${escapeHtml(v.source)}</p>` : "");
             return `<li class="${escapeHtml(v.tone || "")}">${escapeHtml(ix.name)} ${btn}<b>${escapeHtml(v.value)}</b>${v.text ? `<small>${escapeHtml(v.text)}</small>` : ""}${box}</li>`; }).join("")}</ul>
@@ -397,18 +400,8 @@ function renderDetail(r) {
         <div class="rh-tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-rh="weekday">평일</button><button type="button" role="tab" aria-selected="false" data-rh="weekend">주말</button></div></div>
       <ol class="rh-list" id="rh-list"><li>${loaderHTML("small")}</li></ol>
       <p class="rh-notes" id="rh-notes"></p>
-    </section>
-    <section class="consult" id="consult" aria-label="돌몽이 상담">
-      <div class="cs-head"><img src="${CFG.pose.done}" alt="" width="40" height="40" />
-        <div><b>돌몽이가 알려주쿠다</b><span>${escapeHtml(r.name)} 리포트 기준 · 공공데이터로만 답해요</span></div></div>
-      <div class="cs-msgs" id="cs-msgs" aria-live="polite"></div>
-      <form class="cs-ask" id="cs-form">
-        <input id="cs-text" autocomplete="off" placeholder="예) 예산을 30만원 정도 줄이고 싶은데, 어디서 줄일까?" aria-label="돌몽이에게 물어볼 내용" />
-        <button class="send" aria-label="보내기"><svg class="ico"><use href="#i-send"/></svg></button>
-      </form>
-      <p class="cs-foot">답은 비용 계산식과 공공데이터 지표로만 만들어요. 데이터로 답하기 어려운 건 제주120만덕콜센터(국번 없이 120)로 안내해요.</p>
     </section>`;
-  startConsult(r);
+  consultSetRegion(r);
   startRehearsal(r);
 }
 
@@ -466,13 +459,84 @@ function josa(word, withJong, without) {
   return c >= 0 && c <= 11171 && c % 28 ? withJong : without;
 }
 
-// ④ 상담 (리포트 맨 아래) ─────────────────────────
-// 은행 앱 상담 챗봇처럼: 인사 + 빠른 버튼 → 자유 질문. 지금 보는 동네와 조건을 같이 보낸다.
-const consult = { region: null, history: [] };
+// ④ 돌몽이 AI Agent 상담 ─────────────────────────
+// 웹(1200px 이상): 화면 오른쪽 30%에 고정, 리포트와 나란히. 닫으면 버튼으로 접힌다.
+// 모바일: 오른쪽 아래 버튼으로 여는 전체 화면 창.
+// 지금 보는 동네·조건을 매번 같이 보내므로(실시간 연결) 사용자가 폼을 바꾸면 Agent 기준도 바로 바뀐다.
+// Agent 는 리포트를 직접 바꾸지 않고 '수정 제안 카드'를 띄운다 → 사용자가 [적용하기]를 눌러야 바뀐다.
+const consult = { region: null, cond: null, history: [], greeted: false, busy: false, quiet: false };
+const DOCK = matchMedia("(min-width: 1200px)");
 
-function goConsult() {
-  const el = $("#consult");
-  if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(() => $("#cs-text")?.focus(), 400); }
+/* 리포트 첫 진입 시 돌몽이 채팅 안내 */
+function initDolmongNudge() {
+  const nudge = document.querySelector("#dolmong-nudge");
+  const talk = document.querySelector("#dolmong-nudge-talk");
+  const closeBtn = document.querySelector("#dolmong-nudge-close");
+  const fab = document.querySelector("#cs-fab");
+
+  if (!nudge || !talk || !closeBtn || !fab) return;
+
+  function hideNudge() {
+    nudge.hidden = true;
+  }
+
+  window.showDolmongNudge = () => {
+    nudge.hidden = true;
+
+    requestAnimationFrame(() => {
+      nudge.hidden = false;
+    });
+  };
+
+  // 돌몽이 또는 말풍선 클릭 → 기존 채팅창 열기
+  talk.addEventListener("click", () => {
+    hideNudge();
+    toggleConsult(true, true);
+  });
+
+  // X 클릭 → 안내만 닫기
+  closeBtn.addEventListener("click", hideNudge);
+
+  // 기존 채팅 버튼 클릭 → 안내 닫기
+  fab.addEventListener("click", hideNudge);
+}
+
+function initConsult() {
+  $("#cs-fab").onclick = () => toggleConsult(true, true);
+  $("#cs-close").onclick = () => toggleConsult(false);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#cs-panel").hidden && !DOCK.matches) toggleConsult(false); });
+  $("#cs-panel").addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-qr]");
+    if (chip) { consultAsk("", chip.dataset.qr, chip.textContent); return; }
+    const act = e.target.closest("[data-pr]");
+    if (act) decideProposal(act.closest(".cs-propose"), act.dataset.pr === "ok");
+  });
+  $("#cs-form").onsubmit = (e) => { e.preventDefault(); const t = $("#cs-text").value.trim(); if (t) consultAsk(t); };
+  DOCK.addEventListener("change", () => {
+    if (!$("#cs-panel").hidden) {
+      toggleConsult(true, false);
+    }
+  });
+}
+
+function toggleConsult(open, focus) {
+  $("#cs-panel").hidden = !open;
+  $("#cs-fab").setAttribute("aria-expanded", String(open));
+  document.body.classList.toggle("cs-docked", open && DOCK.matches);
+  document.fonts?.ready.then(() => state.data?.results.length && drawMap(state.data.results));  // 본문 폭이 바뀌면 지도 이름표 다시
+  if (open) {
+    if (!consult.greeted && consult.region) greetConsult();
+    if (focus) setTimeout(() => $("#cs-text").focus(), 50);
+    scrollMsgs();
+  } else $("#cs-fab").focus();
+}
+
+function updateWhere() {
+  const el = $("#cs-where"), r = consult.region;
+  if (!r) return;
+  const agent = state.agentMode === "claude";
+  el.textContent = agent ? `리포트와 연결됨 · ${r.name}` : `${r.name} 리포트 기준 · 공공데이터로만 답해요`;
+  el.classList.toggle("cs-sub-agent", agent);
 }
 
 function consultBody(extra) {
@@ -480,13 +544,28 @@ function consultBody(extra) {
   return { region_id: r.region_id, conditions: { ...r.cost.conditions, priorities: state.priorities || [] }, history: consult.history.slice(-8), ...extra };
 }
 
-async function startConsult(r) {
-  consult.region = r; consult.history = [];
+// 리포트가 다시 그려질 때마다 호출: 다른 동네를 열거나 조건을 바꾸면 상담 기준도 같이 바뀐다 (대화는 이어진다)
+function consultSetRegion(r) {
+  const before = consult.region?.region_id;
+  const cond = JSON.stringify({ ...r.cost.conditions, priorities: state.priorities || [] });
+  const condChanged = consult.cond && consult.cond !== cond;
+  consult.region = r; consult.cond = cond;
+  updateWhere();
+  if (consult.greeted && !consult.quiet) {
+    if (condChanged) csNote(`조건이 바뀌었어요 (${summary(r.cost.conditions)}). 새 리포트 기준으로 답할게요`);
+    else if (before && before !== r.region_id) csNote(`이제 ${r.name} 리포트 기준으로 답해요`);
+  }
+  if (!$("#cs-panel").hidden && !consult.greeted) greetConsult();
+}
+
+async function greetConsult() {
+  consult.greeted = true;
   try { csBot(await api("/api/consult", consultBody({}))); } catch (e) { csAdd("bot").textContent = "상담을 불러오지 못했어요."; }
 }
 
 async function consultAsk(text, intent, label) {
-  if (!consult.region) return;
+  if (!consult.region || consult.busy) return;
+  consult.busy = true;
   $("#cs-text").value = "";
   csAdd("user").textContent = text || label;
   $$("#cs-msgs .qr").forEach((x) => x.remove());   // 지난 빠른 버튼은 치운다
@@ -498,18 +577,104 @@ async function consultAsk(text, intent, label) {
   } catch (e) {
     loading.classList.remove("loading");
     loading.textContent = `답을 만들지 못했어요. 제주120만덕콜센터(국번 없이 120)로 물어봐 주세요. (${e.message})`;
-  }
+  } finally { consult.busy = false; }
 }
 
 function csBot(res) {
   const el = csAdd("bot");
   el.innerHTML = res.answer.split("\n").map((l) => `<p class="${/^\s+└/.test(l) ? "sub" : ""}">${linkify(mdLite(l.trim()))}</p>`).join("");
-  if (res.sources?.length) el.insertAdjacentHTML("beforeend", `<p class="cs-src">근거: ${res.sources.map(escapeHtml).join(" · ")}</p>`);
-  if (res.quick_replies?.length) {
-    el.insertAdjacentHTML("afterend", `<div class="qr">${res.quick_replies.map((q) => `<button type="button" data-qr="${q.id}">${escapeHtml(q.label)}</button>`).join("")}</div>`);
+  // 주제가 충분히 겹칠 때만 서버가 icon 을 준다 → 말풍선 왼쪽 위에 돌몽이 아이콘
+  if (res.icon) { el.classList.add("has-ico"); el.insertAdjacentHTML("afterbegin", `<img class="cs-ico" src="assets/icons/${encodeURIComponent(res.icon)}.webp" alt="" />`); }
+  if (res.sources?.length) el.insertAdjacentHTML("beforeend", `<p class="cs-src">참고 데이터: ${res.sources.map(escapeHtml).join(" · ")}</p>`);
+  if (res.trace?.length) {
+    const who = res.mode === "agent" ? "돌몽이(AI Agent)가 확인한 것" : "돌몽이가 확인한 것";
+    el.insertAdjacentHTML("beforeend", `<details class="cs-trace"><summary>${who} ${res.trace.length}단계</summary><ol>${res.trace.map((t) =>
+      `<li class="${t.error ? "err" : ""}">${escapeHtml(t.label || TOOL_LABEL[t.tool] || t.tool)}${t.error ? " (다시 시도)" : ""}</li>`).join("")}</ol></details>`);
   }
-  const box = $("#cs-msgs"); requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+  if (res.fallback === "rate_limited") csNote("질문이 많아서 잠깐 기본 모드로 답했어요");
+  if (res.report_update) renderProposal(res.report_update);
+  if (res.quick_replies?.length) {
+    $("#cs-msgs").insertAdjacentHTML("beforeend", `<div class="qr">${res.quick_replies.map((q) => `<button type="button" data-qr="${q.id}">${q.icon ? `<img src="assets/icons/${encodeURIComponent(q.icon)}.webp" alt="" />` : ""}${escapeHtml(q.label)}</button>`).join("")}</div>`);
+  }
+  scrollMsgs();
 }
+
+// ── 리포트 수정 제안 카드 ──
+// 값 보기 좋게: car true → 렌터카, days 60 → 두 달 ...
+function condText(k, v) {
+  if (k === "car") return v ? "렌터카" : "버스·도보";
+  if (k === "days") return period(v);
+  if (k === "people") return `${v}명`;
+  if (k === "budget_total") return v ? `${won(v)} 이하` : "상관없음";
+  if (k === "start_date") return v ? `${v.slice(0, 4)}년 ${+v.slice(5, 7)}월 출발` : "-";
+  if (k === "priorities") return v?.length ? v.map(lab).join(" > ") : "없음";
+  if (typeof v === "boolean") return v ? "예" : "아니요";
+  return String(v ?? "-");
+}
+
+function renderProposal(u) {
+  const now = consult.region.cost.conditions;
+  const rows = Object.entries(u.conditions || {}).map(([k, v]) =>
+    `<li><b>${escapeHtml(COND_LABEL[k] || k)}</b><span><s>${escapeHtml(condText(k, k === "priorities" ? state.priorities : now[k]))}</s> → <strong>${escapeHtml(condText(k, v))}</strong></span></li>`);
+  if (u.select_region_id) {
+    const nm = state.data?.results.find((r) => r.region_id === u.select_region_id)?.name || u.select_region_id;
+    rows.push(`<li><b>열어 볼 동네</b><span><strong>${escapeHtml(nm)}</strong></span></li>`);
+  }
+  const card = document.createElement("div");
+  card.className = "cs-propose";
+  card._u = u;
+  card.innerHTML = `<h4>리포트 수정 제안</h4>${u.reason ? `<p class="why">${escapeHtml(u.reason)}</p>` : ""}
+    <ul>${rows.join("")}</ul>
+    <div class="acts"><button type="button" class="ok" data-pr="ok">적용하기</button><button type="button" class="no" data-pr="no">그대로 둘게요</button></div>`;
+  $("#cs-msgs").appendChild(card);
+}
+
+function decideProposal(card, ok) {
+  if (!card || card.classList.contains("done")) return;
+  card.classList.add("done", ok ? "applied" : "dismissed");
+  card.insertAdjacentHTML("beforeend", `<p class="pr-done">${ok ? "리포트에 적용했어요" : "그대로 둘게요"}</p>`);
+  consult.history.push({ role: "user", content: ok ? `(리포트 수정 제안을 적용함: ${card._u.reason || ""})` : "(리포트 수정 제안은 적용하지 않음)" });
+  if (ok) applyReportUpdate(card._u);
+}
+
+// 적용: 조건 입력 폼에 그대로 넣고 다시 계산 (사용자가 폼에서 다시 바꿀 수 있다)
+function applyReportUpdate(u) {
+  const c = u.conditions || {};
+  if (c.start_date) {
+    const v = c.start_date.slice(0, 7), sel = $("#f-month");
+    if (![...sel.options].some((o) => o.value === v)) sel.add(new Option(`${v.slice(0, 4)}년 ${+v.slice(5)}월`, v));
+    sel.value = v;
+  }
+  if (c.days) {
+    const sel = $("#f-days");
+    if (![...sel.options].some((o) => +o.value === c.days)) sel.add(new Option(period(c.days), String(c.days)));
+    sel.value = String(c.days);
+  }
+  if (c.people) setPeople(c.people);
+  if ("car" in c) $("#f-car").value = String(!!c.car);
+  if ("budget_total" in c) {
+    const sel = $("#f-budget"), v = c.budget_total ? String(c.budget_total) : "";
+    if (v && ![...sel.options].some((o) => o.value === v)) sel.add(new Option(`${(+v).toLocaleString()}만 원 이하`, v));
+    sel.value = v;
+  }
+  $$("#f-opts input").forEach((x) => { if (x.dataset.k in c) x.checked = !!c[x.dataset.k]; });
+  if (c.priorities) { state.priorities = c.priorities.slice(0, 3); drawPrio(); }
+  if (u.select_region_id) state.selected = u.select_region_id;
+  consult.quiet = true;  // 이번 다시 그리기는 '조건이 바뀌었어요' 안내를 띄우지 않는다
+  runEstimate(false, true).finally(() => {
+    consult.quiet = false;
+    const box = $("#result");
+    box.scrollIntoView({ behavior: "smooth", block: "start" });
+    box.classList.remove("flash"); void box.offsetWidth; box.classList.add("flash");
+  });
+}
+
+function csNote(text, cls = "") {
+  const el = csAdd("note " + cls);
+  el.textContent = text;
+}
+
+function scrollMsgs() { const box = $("#cs-msgs"); requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; }); }
 
 // [이름](https://...) → 새 탭 링크 (상담 답변의 구글 지도 링크)
 function linkify(html) {
@@ -520,7 +685,7 @@ function csAdd(cls) {
   const el = document.createElement("div");
   el.className = "msg " + cls;
   $("#cs-msgs").appendChild(el);
-  const box = $("#cs-msgs"); requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+  scrollMsgs();
   return el;
 }
 
@@ -544,7 +709,8 @@ function seasonEvents(startMonth, days) {
 const userName = () => { try { return (localStorage.getItem("dolmong.name") || "").trim(); } catch { return ""; } };
 function loaderText(f) {
   const n = userName();
-  return n ? f.text.replace("{name}", n) : (f.nameless || f.text.replace("{name}님에게 ", ""));
+  const t = n ? f.text.replace("{name}", n) : (f.nameless || f.text.replace("{name}님에게 ", ""));
+  return (window.jeju || String)(t);
 }
 function loaderHTML(size = "") {
   const f = CFG.loader.frames[0];
