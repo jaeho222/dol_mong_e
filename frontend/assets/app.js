@@ -542,7 +542,7 @@ async function consultAsk(text, intent, label) {
 function csBot(res) {
   const el = csAdd("bot");
   el.innerHTML = res.answer.split("\n").map((l) => `<p class="${/^\s+└/.test(l) ? "sub" : ""}">${linkify(mdLite(l.trim()))}</p>`).join("");
-  if (res.sources?.length) el.insertAdjacentHTML("beforeend", `<p class="cs-src">근거: ${res.sources.map(escapeHtml).join(" · ")}</p>`);
+  if (res.sources?.length) el.insertAdjacentHTML("beforeend", `<p class="cs-src">참고 데이터: ${res.sources.map(escapeHtml).join(" · ")}</p>`);
   if (res.trace?.length) {
     const who = res.mode === "agent" ? "돌몽이(AI Agent)가 확인한 것" : "돌몽이가 확인한 것";
     el.insertAdjacentHTML("beforeend", `<details class="cs-trace"><summary>${who} ${res.trace.length}단계</summary><ol>${res.trace.map((t) =>
@@ -666,7 +666,8 @@ function seasonEvents(startMonth, days) {
 const userName = () => { try { return (localStorage.getItem("dolmong.name") || "").trim(); } catch { return ""; } };
 function loaderText(f) {
   const n = userName();
-  return n ? f.text.replace("{name}", n) : (f.nameless || f.text.replace("{name}님에게 ", ""));
+  const t = n ? f.text.replace("{name}", n) : (f.nameless || f.text.replace("{name}님에게 ", ""));
+  return (window.jeju || String)(t);
 }
 function loaderHTML(size = "") {
   const f = CFG.loader.frames[0];

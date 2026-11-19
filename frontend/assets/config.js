@@ -95,7 +95,7 @@ window.APP_CONFIG = {
     minMs: 1200,   // 결과가 너무 빨리 와도 이만큼은 보여준다 (깜빡임 방지)
     frames: [
       { img: "assets/dolmong/sd-run.webp", text: "돌몽이가 {name}님에게 줄 귤을 갖고 오고 있어요.", nameless: "돌몽이가 귤을 갖고 오고 있어요." },
-      { img: "assets/dolmong/sd-trip.webp", text: "돌몽이가 넘어졌나봐요. 잠시만 기다려주세요." },
+      { img: "assets/dolmong/sd-trip.webp", text: "돌몽이가 넘어졌어요. 잠시만 기다려주세요." },
       { img: "assets/dolmong/sd-pick.webp", text: "돌몽이가 귤을 주워담고 있어요. 잠시만 기다려주세요." },
     ],
   },
