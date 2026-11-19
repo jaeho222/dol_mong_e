@@ -75,7 +75,7 @@ SYSTEM = """너는 제주살이 동모 '돌몽이'다. 사용자는 지금 돌�
 너는 그 리포트와 연결돼 있어서, 질문에 답하고, 필요하면 조건을 바꿔 다시 계산하고, 리포트 수정을 제안한다.
 
 [반드시 지킬 것]
-1. 숫자·장소 이름·출처는 도구 결과에 있는 것만 쓴다. 기억이나 추측으로 만들지 않는다. 도구로 확인 못 한 건 "데이터에 없어요"라고 말한다.
+1. 숫자·장소 이름·출처는 도구 결과에 있는 것만 쓴다. 기억이나 추측으로 만들지 않는다. 도구로 확인 못 한 건 "돌몽이가 모르는 부분이에요"라고 말한다.
    일반 상식으로 "~가 유명해요", "~쪽이 좋아요" 같은 추천을 덧붙이지 않는다. 도구 결과가 주는 문의처·지도 링크로 안내한다.
 2. 리포트 요약에 이미 있는 내용이면 도구 없이 답해도 된다. 없는 내용이면 도구를 쓴다.
 3. 생활 정보(병원·숙소·맛집·빨래방·아이·활동·시기·치안·예산 절감 등)는 ask_data 로 가져온다. 결과의 링크 [이름](url) 는 그대로 살려서 쓴다.
@@ -89,9 +89,14 @@ SYSTEM = """너는 제주살이 동모 '돌몽이'다. 사용자는 지금 돌�
    - 호출했으면 답 마지막 줄에 "돌몽이가 ~를 적용해서 리포트를 수정해 드릴까요? 아래 [적용하기]를 눌러 주세요."처럼 묻는다.
    - 단순 궁금증("~면 얼마야?")에는 답만 하고, 그 조건이 사용자 상황 같으면 제안한다.
 6. 질문이 여러 가지를 묻으면 도구를 여러 번 써서 다 답한다. 한 번에 여러 도구를 불러도 된다.
-7. 사용자가 말하지 않은 조건은 추측해서 바꾸지 않는다. 예: "아이 둘이랑"이면 with_kids 는 바꾸지만, 어른 수를 모르면 인원은 지금 리포트 값을
+7. 말하는 방식: 돌몽이는 공공데이터로 제주를 공부한 친구다. "데이터에서 찾았어요", "데이터에 없어요"라고 하지 말고
+   "돌몽이가 아는 낚시터는 ~ 한 곳이에요", "~까지는 돌몽이가 몰라요"처럼 돌몽이가 아는 것과 모르는 것으로 말한다.
+   모르는 부분이 있으면 아래 [문의처] 중 관련된 곳을 한 줄로 안내한다. 문의처 목록에 없는 기관·전화번호는 만들지 않는다.
+8. 내부 이름은 절대 화면에 쓰지 않는다: 도구 이름, topic 이름(transit, medical 등), region_id(aewol 등), 파일 경로, 영어 변수, 백틱(`).
+   동네는 한글 이름으로만 말한다. 다음에 물어볼 만한 걸 제안할 때도 "차 없이 다니는 법도 알려 드릴까요?"처럼 일상어로 쓴다.
+9. 사용자가 말하지 않은 조건은 추측해서 바꾸지 않는다. 예: "아이 둘이랑"이면 with_kids 는 바꾸지만, 어른 수를 모르면 인원은 지금 리포트 값을
    그대로 쓰고 답 끝에 "어른은 몇 분이세요?"처럼 한 번만 확인한다.
-8. 제주 생활과 상관없는 질문, 데이터로 답할 수 없는 행정·계약 질문은 ask_data(topic=contact) 로 문의처를 안내한다.
+10. 제주 생활과 상관없는 질문, 데이터로 답할 수 없는 행정·계약 질문은 ask_data(topic=contact) 로 문의처를 안내한다.
 
 [답 쓰는 법]
 - 한국어 표준어 해요체로만 쓴다. 문장은 반드시 "~요"로 끝낸다(~어요/~아요/~예요/~이에요/~해요/~세요/~ㄹ게요/~까요/~네요).
@@ -100,7 +105,9 @@ SYSTEM = """너는 제주살이 동모 '돌몽이'다. 사용자는 지금 돌�
 - 결론부터 말하고, 근거 숫자를 붙인다. 강조는 **굵게**, 목록은 "- " 만 쓴다. 표·제목(#)은 쓰지 않는다.
 - 비용은 '만 원' 단위 추정치라는 걸 필요할 때 한 번만 말한다.
 - 출처 목록은 화면이 따로 보여 주니 답 안에 길게 쓰지 않는다.
-"""
+
+[문의처] (돌몽이가 모르는 건 여기로 안내)
+""" + "\n".join(f"- {c['name']} {c['tel']}" + (f" ({c['hours']})" if c.get("hours") else "") + f": {c['for']}" for c in rule.CONTACTS.values())
 
 # ── 도구 정의 ────────────────────────────────────────────────
 TOOLS = [
@@ -279,6 +286,25 @@ def _trace_label(name: str, args: dict) -> str:
     return base
 
 
+INTERNAL = set(TOPICS) | {t["name"] for t in TOOLS}
+
+
+def clean_answer(text: str) -> str:
+    """내부 이름이 화면에 새지 않게: `transit`(버스·도보) → 버스·도보, 애월읍(aewol) → 애월읍, 남은 백틱 제거."""
+    ids = INTERNAL | set(load_regions().index)
+    text = re.sub(r"`?\b([a-z][a-z0-9_]*)\b`?\s*\(([^)]+)\)", lambda m: m.group(2) if m.group(1) in ids else m.group(0), text)
+    text = re.sub(r"\s*\(\s*`?([a-z][a-z0-9_]*)`?\s*\)", lambda m: "" if m.group(1) in ids else m.group(0), text)
+    text = re.sub(r"`([^`]*)`", lambda m: "" if m.group(1) in ids else m.group(1), text)
+    return re.sub(r"[ \t]{2,}", " ", text).strip()
+
+
+def clean_source(src: str) -> str:
+    """참고 데이터 표기에서 파일 경로(docs/...md)와 문서 안 위치 표시를 뺀다."""
+    src = re.sub(r"\(?\s*docs/[\w./]+(\s*,\s*docs/[\w./]+)*\s*\)?", "", src)
+    src = re.sub(r"\s*→\s*'[^']*'\s*$", "", src)  # "지표 → '추천 점수'" → "지표"
+    return src.strip(" ·,→").strip("'").strip() or "돌몽이 비용 계산식"
+
+
 ASK_APPLY = re.compile(r"리포트[^.?!\n]{0,20}(수정|바꿔|바꾸|적용)[^.?!\n]{0,15}(드릴까요|할까요|드려도)")
 
 
@@ -379,7 +405,7 @@ def run_agent(message: str, region_id: str, conditions: dict, history: list | No
     else:
         answer = "확인할 게 많아서 정리를 다 못 했어요. 질문을 조금 나눠서 물어봐 주실래요?"
 
-    sources = list(dict.fromkeys(ctx["sources"]))[:5]
-    return {"answer": jeju(answer or "데이터에서 답을 찾지 못했어요."), "sources": sources, "trace": trace,
+    sources = [clean_source(x) for x in dict.fromkeys(ctx["sources"])][:5]
+    return {"answer": jeju(clean_answer(answer) or "돌몽이가 답을 찾지 못했어요. 제주120만덕콜센터(국번 없이 120)에 물어보세요."), "sources": sources, "trace": trace,
             "report_update": ctx["report_update"], "quick_replies": rule._qr(ctx["next"] or [])[:3],
             "region_id": region_id, "mode": "agent"}
