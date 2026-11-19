@@ -71,6 +71,7 @@ function init() {
 
   // 상담 (오른쪽 아래 플로팅 창)
   initConsult();
+  initDolmongNudge();
   // 근거 '?' 버튼 (renderDetail 이 다시 그려도 동작하도록 위임)
   $("#detail-in").addEventListener("click", (e) => {
     const q = e.target.closest("[data-ev]");
@@ -465,6 +466,41 @@ function josa(word, withJong, without) {
 // Agent 는 리포트를 직접 바꾸지 않고 '수정 제안 카드'를 띄운다 → 사용자가 [적용하기]를 눌러야 바뀐다.
 const consult = { region: null, cond: null, history: [], greeted: false, busy: false, quiet: false };
 const DOCK = matchMedia("(min-width: 1200px)");
+
+
+/* 리포트 첫 진입 시 돌몽이 채팅 안내 */
+function initDolmongNudge() {
+  const nudge = document.querySelector("#dolmong-nudge");
+  const talk = document.querySelector("#dolmong-nudge-talk");
+  const closeBtn = document.querySelector("#dolmong-nudge-close");
+  const fab = document.querySelector("#cs-fab");
+
+  if (!nudge || !talk || !closeBtn || !fab) return;
+
+  function hideNudge() {
+    nudge.hidden = true;
+  }
+
+  window.showDolmongNudge = function () {
+    // 같은 탭에서는 안내를 한 번만 표시
+    if (sessionStorage.getItem("dolmong.nudgeSeen")) return;
+
+    sessionStorage.setItem("dolmong.nudgeSeen", "1");
+    nudge.hidden = false;
+  };
+
+  // 돌몽이 또는 말풍선 클릭 → 기존 채팅창 열기
+  talk.addEventListener("click", () => {
+    hideNudge();
+    toggleConsult(true, true);
+  });
+
+  // X 클릭 → 안내만 닫기
+  closeBtn.addEventListener("click", hideNudge);
+
+  // 기존 채팅 버튼 클릭 → 안내 닫기
+  fab.addEventListener("click", hideNudge);
+}
 
 function initConsult() {
   $("#cs-fab").onclick = () => toggleConsult(true, true);

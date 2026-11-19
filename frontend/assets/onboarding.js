@@ -240,7 +240,17 @@ const J = (t) => (window.jeju ? window.jeju(t) : t);
     root.querySelector(".ob-foot").hidden = false;
     const nb = root.querySelector(".ob-next");
     nb.textContent = "전체 동네 비교하기"; nb.disabled = false;
-    nb.onclick = () => { applyToPage(c, data); close(); };
+    
+    nb.onclick = () => {
+      applyToPage(c, data);
+      close();
+
+      // 리포트가 나타나면 돌몽이가 채팅 버튼을 안내
+      requestAnimationFrame(() => {
+        window.showDolmongNudge?.();
+      });
+    };
+
   }
 
   // 본 화면 검색바에 같은 조건을 채우고 결과를 그대로 보여준다

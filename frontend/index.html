@@ -188,6 +188,40 @@
     </div>
   </footer>
 
+
+  <!-- 리포트 첫 진입: 돌몽이 채팅 안내 -->
+  <div class="dolmong-nudge" id="dolmong-nudge" hidden>
+    <button
+      type="button"
+      class="dolmong-nudge-close"
+      id="dolmong-nudge-close"
+      aria-label="안내 닫기"
+    >×</button>
+
+    <button
+      type="button"
+      class="dolmong-nudge-talk"
+      id="dolmong-nudge-talk"
+    >
+      <span class="dolmong-nudge-bubble">
+        <strong>잠깐! 나 여기 있수다 🍊</strong>
+        <span>
+          리포트 보다가 궁금한 거 생기민<br>
+          여기 눌러 물어봅서!
+        </span>
+      </span>
+
+      <img
+        src="assets/dolmong/hello.webp"
+        alt="손을 흔드는 돌몽이"
+        class="dolmong-nudge-img"
+      />
+    </button>
+  </div>
+
+
+  
+
   <!-- 돌몽이 상담: 화면 어디서나 오른쪽 아래 버튼으로 열고 닫는다 (app.js ④) -->
   <button type="button" class="cs-fab" id="cs-fab" aria-controls="cs-panel" aria-expanded="false">
     <img src="assets/dolmong/hello.webp" alt="" width="52" height="52" /><span>돌몽이에게 물어보기</span>
