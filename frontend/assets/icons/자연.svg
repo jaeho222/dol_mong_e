@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="-38 -38 76 76" role="img" aria-labelledby="title desc">
+  <title id="title">자연 — 돌몽이 서비스 컬러 소품 아이콘</title>
+  <desc id="desc">돌몽이 서비스 화면 톤에 맞춰 재색상한 자연 소품만 추출한 투명 배경 SVG. 캐릭터와 배지 배경 없음.</desc>
+  <defs>
+  <linearGradient id="greenFill" x1="0" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#8B9360"/>
+    <stop offset="1" stop-color="#6E7846"/>
+  </linearGradient>
+  <linearGradient id="orangeFill" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#FFB25A"/>
+    <stop offset="1" stop-color="#E18A34"/>
+  </linearGradient>
+</defs>
+  <g id="nature">
+    <path d="M-26 6L-7 -17L3 -5L13 -18L28 7z" fill="url(#greenFill)" stroke="#537B66" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M-7 -17l-6 8h11zM13 -18L8 -10h10z" fill="#FFF8EB"/>
+  <path d="M-26 13q9-8 18 0t18 0t18 0M-26 23q9-8 18 0t18 0t18 0" fill="none" stroke="#5EBCD0" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

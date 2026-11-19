@@ -576,3 +576,25 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
 .cs-msgs .msg.bot.loading .loader p { font-size: 14px; height: 2.9em; min-height: 2.9em; max-width: none; margin: 0;
   display: flex; align-items: center; justify-content: center; }
 .cs-msgs .msg.bot.loading .loader-stage img { width: 100%; }
+
+/* 돌몽이 전용 중요도 선택 아이콘 */
+.pchip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 15px;
+  min-height: 46px;
+}
+
+.pchip-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.pchip span {
+  font-size: 14px;
+  font-weight: 600;
+}

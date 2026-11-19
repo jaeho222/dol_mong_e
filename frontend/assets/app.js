@@ -43,8 +43,14 @@ function init() {
 
   // 가장 중요한 것 3가지: 누른 순서 = 중요도 (3·2·1 가중치는 백엔드 region._weights)
   state.priorities = [];
-  $("#f-prio").insertAdjacentHTML("beforeend", CFG.priorities.map((p) =>
-    `<button type="button" class="pchip" data-k="${escapeHtml(p.key)}">${escapeHtml(p.label)}</button>`).join(""));
+  $("#f-prio").insertAdjacentHTML("beforeend", CFG.priorities.map((p) =>   
+  `<button type="button" class="pchip" data-k="${escapeHtml(p.key)}">
+    <img class="pchip-icon"
+        src="assets/icons/${encodeURIComponent(p.icon)}"
+        alt=""
+        aria-hidden="true" />
+    <span>${escapeHtml(p.label)}</span>
+  </button>`).join(""));
   $$("#f-prio .pchip").forEach((b) => b.onclick = () => {
     const k = b.dataset.k, i = state.priorities.indexOf(k);
     if (i >= 0) state.priorities.splice(i, 1);

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="-38 -38 76 76" role="img" aria-labelledby="title desc">
+  <title id="title">맛집 — 돌몽이 서비스 컬러 소품 아이콘</title>
+  <desc id="desc">돌몽이 서비스 화면 톤에 맞춰 재색상한 맛집 소품만 추출한 투명 배경 SVG. 캐릭터와 배지 배경 없음.</desc>
+  <defs>
+  <linearGradient id="greenFill" x1="0" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#8B9360"/>
+    <stop offset="1" stop-color="#6E7846"/>
+  </linearGradient>
+  <linearGradient id="orangeFill" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#FFB25A"/>
+    <stop offset="1" stop-color="#E18A34"/>
+  </linearGradient>
+</defs>
+  <g id="dining">
+    <path d="M-25 3h50Q22 22 6 23H-6Q-22 22 -25 3Z" fill="url(#greenFill)" stroke="#47685A" stroke-width="3"/>
+  <path d="M-26 3h52" stroke="#47685A" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M-19 0Q-3 -14 10 -1Q16 -8 24 0" fill="none" stroke="#F2B965" stroke-width="5" stroke-linecap="round"/>
+  <path d="M-9 -9Q-15 -17 -8 -23M1 -12Q-3 -19 2 -25" fill="none" stroke="#D9A37D" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M16 -27l-16 24M22 -23L5 -1" stroke="#885B46" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>
