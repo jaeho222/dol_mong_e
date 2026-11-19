@@ -728,3 +728,21 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
 @keyframes nudge-wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-6deg); } }
 @media (max-width: 600px) { .dolmong-nudge { right: 12px; bottom: 76px; } .dolmong-nudge-bubble { max-width: 200px; } .dolmong-nudge-img { width: 60px; height: 60px; } }
 @media (prefers-reduced-motion: reduce) { .dolmong-nudge, .dolmong-nudge-img { animation: none; } }
+
+/* 로고: 돌몽이 배지 + 이름 + '나의 제주 살이 동모' */
+.logo { gap: 10px; color: var(--ink); }
+.logo-badge { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; flex: none;
+  background: radial-gradient(circle at 50% 38%, #fff 0 55%, var(--brand-tint) 56%); border: 2px solid var(--brand);
+  box-shadow: 0 2px 0 var(--gyul); }
+.logo-badge img { width: 38px; height: 38px; object-fit: contain; margin-top: 2px; }
+.logo-text { display: flex; flex-direction: column; line-height: 1; }
+.logo-text b { font: 400 26px var(--voice); letter-spacing: 0; color: var(--cta); }
+.logo-text small { margin-top: 4px; font: 600 11.5px/1 "Pretendard Variable", Pretendard, sans-serif; letter-spacing: .02em; color: var(--brand); }
+.logo-text small::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--gyul); vertical-align: 1px; }
+.logo:hover .logo-badge { transform: rotate(-6deg); transition: transform .2s; }
+@media (max-width: 600px) {
+  .logo-badge { width: 38px; height: 38px; }
+  .logo-badge img { width: 31px; height: 31px; }
+  .logo-text b { font-size: 21px; }
+  .logo-text small { font-size: 10px; margin-top: 3px; }
+}
