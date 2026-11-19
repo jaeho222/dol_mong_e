@@ -194,13 +194,35 @@ const J = (t) => (window.jeju ? window.jeju(t) : t);
     main.innerHTML = `<div class="ob-hero ob-wait">${loaderHTML()}</div>`;
     await sleep(CFG.loader.frameMs * CFG.loader.frames.length);  // 세 장면을 한 바퀴는 보여준다
     let data;
-    try { data = await job; } catch (e) {
-      main.innerHTML = `<div class="ob-hero">${pose("calc", "big")}<h2>계산하지 못했어요</h2><p>서버가 켜져 있는지 확인해 주세요. 본 화면에서 조건을 직접 넣어도 돼요.</p></div>`;
+
+    try {
+      data = await job;
+    } catch (e) {
+      main.innerHTML = `
+        <div class="ob-hero">
+          ${pose("calc", "big")}
+          <h2>계산하지 못했어요</h2>
+          <p>서버가 켜져 있는지 확인해 주세요. 본 화면에서 조건을 직접 넣어도 돼요.</p>
+        </div>
+      `;
+
       root.querySelector(".ob-foot").hidden = false;
+
       const nb = root.querySelector(".ob-next");
-      nb.textContent = "본 화면으로"; nb.disabled = false; nb.onclick = close;
+      nb.textContent = "본 화면으로";
+      nb.disabled = false;
+
+      nb.onclick = () => {
+        close();
+
+        requestAnimationFrame(() => {
+          window.showDolmongNudge?.();
+        });
+      };
+
       return;
     }
+
     reveal(c, data);
   }
 
@@ -239,8 +261,17 @@ const J = (t) => (window.jeju ? window.jeju(t) : t);
       </div>`;
     root.querySelector(".ob-foot").hidden = false;
     const nb = root.querySelector(".ob-next");
-    nb.textContent = "전체 동네 비교하기"; nb.disabled = false;
-    nb.onclick = () => { applyToPage(c, data); close(); };
+    nb.textContent = "전체 동네 비교하기";
+    nb.disabled = false;
+
+    nb.onclick = () => {
+      applyToPage(c, data);
+      close();
+
+      requestAnimationFrame(() => {
+        window.showDolmongNudge?.();
+      });
+    };
   }
 
   // 본 화면 검색바에 같은 조건을 채우고 결과를 그대로 보여준다
