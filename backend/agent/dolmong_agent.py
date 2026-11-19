@@ -377,14 +377,27 @@ def run_agent(message: str, region_id: str, conditions: dict, history: list | No
               {"type": "text", "text": report_context(region_id, cond)}]
     messages = _history(history) + [{"role": "user", "content": message[:800]}]
     ctx = {"sources": [], "next": None, "report_update": None}
-    trace, nudged = [], False
+    trace, nudged, resumed = [], False, False
 
-    for _ in range(config.AGENT_MAX_TURNS + 1):
+    final_only = False  # True 면 도구 없이 답만 쓰게 한다 (끊긴 답 / 빈 답을 다시 정리할 때)
+    for _ in range(config.AGENT_MAX_TURNS + 2):
+        kw = {"tool_choice": {"type": "none"}} if final_only else {}
         resp = client.messages.create(model=config.CLAUDE_MODEL, max_tokens=config.AGENT_MAX_TOKENS,
-                                      system=system, tools=TOOLS, messages=messages)
+                                      system=system, tools=TOOLS, messages=messages, **kw)
+        text = "".join(b.text for b in resp.content if b.type == "text").strip()
+        # 답이 길이 제한에 걸려 끊겼거나, 도구만 부르고 답을 비워 둔 경우: 한 번만 도구 없이 다시 정리하게 한다
+        cut = resp.stop_reason == "max_tokens"
+        empty = resp.stop_reason not in ("tool_use", "max_tokens") and not text and trace
+        if (cut or empty) and not resumed:
+            resumed, final_only = True, True
+            if text:
+                messages.append({"role": "assistant", "content": [b for b in resp.content if b.type == "text"]})
+            messages.append({"role": "user", "content": "(시스템) 답이 끊겼거나 비어 있다. 도구를 더 부르지 말고, 지금까지 받은 도구 결과로 "
+                                                       "답 전체를 처음부터 짧게 다시 써라. 목록은 4줄 이내로."})
+            continue
         messages.append({"role": "assistant", "content": resp.content})
         if resp.stop_reason != "tool_use":
-            answer = "".join(b.text for b in resp.content if b.type == "text").strip()
+            answer = text
             # 안전장치: "리포트 수정해 드릴까요?"라고 묻고 제안 도구를 안 불렀으면 한 번 더 기회를 준다 (카드가 떠야 적용할 수 있다)
             if ASK_APPLY.search(answer) and ctx["report_update"] is None and not nudged:
                 nudged = True

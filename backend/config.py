@@ -16,7 +16,7 @@ CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-haiku-5-5")
 # auto: 키가 있으면 claude, 없으면 mock / claude / mock 강제 가능
 AGENT_MODE = os.getenv("AGENT_MODE", "auto").lower()
 AGENT_MAX_TURNS = int(os.getenv("AGENT_MAX_TURNS", "5"))      # 도구 호출 루프 최대 횟수
-AGENT_MAX_TOKENS = int(os.getenv("AGENT_MAX_TOKENS", "900"))   # 답 한 번의 최대 길이
+AGENT_MAX_TOKENS = int(os.getenv("AGENT_MAX_TOKENS", "1500"))   # 답 한 번의 최대 길이
 AGENT_TIMEOUT = float(os.getenv("AGENT_TIMEOUT", "25"))        # API 한 번 기다리는 초
 AGENT_RATE_PER_MIN = int(os.getenv("AGENT_RATE_PER_MIN", "8")) # 한 사용자(IP)가 1분에 보낼 수 있는 자유 질문 수
 

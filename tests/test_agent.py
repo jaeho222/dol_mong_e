@@ -140,3 +140,29 @@ def test_icons_and_emoji():
     assert pick_icon("근처 병원 있어?", "병원 24곳", ["medical"]) == "medical"
     assert pick_icon("애월이랑 한림 비교해줘", "한림이 점수가 높아요", []) is None
     assert pick_icon("아이랑 소아과", "", ["medical", "kids"]) is None  # 두 주제가 비슷하면 안 붙인다
+
+
+def test_truncated_answer_is_rewritten():
+    """길이 제한(max_tokens)으로 끊긴 답은 내보내지 않고 다시 정리하게 한다."""
+    fake = FakeClaude([
+        NS(stop_reason="tool_use", content=[_tool("1", "compare_regions", {"region_ids": ["seogwipo_dong", "aewol"]})]),
+        NS(stop_reason="max_tokens", content=[_text("서귀포 동지역을 더 추천해요. 남원읍은 조용해요. 대신"),
+                                             _tool("2", "rehearse", {"region_id": "seogwipo_dong"})]),
+        NS(stop_reason="end_turn", content=[_text("서귀포 동지역을 더 추천해요. 남원읍은 조용하지만 버스가 적어요.")]),
+    ])
+    out = ag.run_agent("남원읍이랑 비교해줘", "seogwipo_dong", COND, client=fake)
+    assert "대신" not in out["answer"]
+    assert "버스가 적" in out["answer"]
+    assert [t["tool"] for t in out["trace"]] == ["compare_regions"]
+
+
+def test_empty_answer_after_tools_is_rewritten():
+    """도구만 부르고 답을 비워 두면, 도구 없이 답을 다시 쓰게 한다."""
+    fake = FakeClaude([
+        NS(stop_reason="tool_use", content=[_tool("1", "compare_regions", {"region_ids": ["seogwipo_dong", "aewol"]})]),
+        NS(stop_reason="end_turn", content=[]),
+        NS(stop_reason="end_turn", content=[_text("차 없이 지내면 서귀포 동지역이 나아요.")]),
+    ])
+    out = ag.run_agent("애월읍이랑 비교해줘", "seogwipo_dong", COND, client=fake)
+    assert "서귀포 동지역" in out["answer"]
+    assert fake.calls[-1]["tool_choice"] == {"type": "none"}
