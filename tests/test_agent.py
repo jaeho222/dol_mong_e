@@ -126,3 +126,4 @@ def test_nudge_when_asks_without_proposal():
 def test_dialect_is_consistent_and_sentence_final_only():
     from backend.tools.jeju import jeju
     assert jeju("주요 관광지예요. 많아요\n좋겠네요! 필요해요?") == "주요 관광지우다. 많수다\n좋겠수다! 필요허우꽈?"
+    assert jeju("19만 원 저렴해요(301만 원 vs 320만 원). 제주시(원도심) 주요(대표) 곳") == "19만 원 저렴허우다(301만 원 vs 320만 원). 제주시(원도심) 주요(대표) 곳"

@@ -23,7 +23,7 @@ from functools import lru_cache
 
 from backend import config
 
-WORD = re.compile(r"([^\s<>]*?[가-힣])([^\s<>가-힣]*)(?=\s|$|<)")  # 어절 = 한글로 끝나는 몸통 + 뒤 문장부호
+WORD = re.compile(r"([^\s<>(]*?[가-힣])([^\s<>가-힣(]*)(?=\s|$|<|\()")  # 어절 = 한글로 끝나는 몸통 + 뒤 문장부호
 B, L, M = 17, 8, 16  # 받침 번호: ㅂ, ㄹ, ㅁ
 
 
@@ -96,6 +96,8 @@ def jeju(text: str) -> str:
         after = text[m.end():m.end() + 3]
         if not (re.search(r"[.?!~:…]", punct) or after == "" or after[0] in "\n<" or after.lstrip(" ").startswith("(")):
             return m.group(0)
+        if not punct and after.lstrip(" ").startswith("(") and not core.endswith(("어요", "아요", "해요", "예요", "에요", "워요", "돼요")):
+            return m.group(0)  # 괄호 앞은 확실한 해요체 어미만 ('주요(대표)'는 그대로)
         out = convert_word(core)
         if "?" in punct and out != core and out.endswith(("수다", "우다")):  # 묻는 말: 있수다? → 있수꽈?
             out = out[:-1] + "꽈"
