@@ -71,6 +71,7 @@ function init() {
 
   // 상담 (오른쪽 아래 플로팅 창)
   initConsult();
+  initDolmongNudge();
   // 근거 '?' 버튼 (renderDetail 이 다시 그려도 동작하도록 위임)
   $("#detail-in").addEventListener("click", (e) => {
     const q = e.target.closest("[data-ev]");
@@ -466,6 +467,40 @@ function josa(word, withJong, without) {
 const consult = { region: null, cond: null, history: [], greeted: false, busy: false, quiet: false };
 const DOCK = matchMedia("(min-width: 1200px)");
 
+/* 리포트 첫 진입 시 돌몽이 채팅 안내 */
+function initDolmongNudge() {
+  const nudge = document.querySelector("#dolmong-nudge");
+  const talk = document.querySelector("#dolmong-nudge-talk");
+  const closeBtn = document.querySelector("#dolmong-nudge-close");
+  const fab = document.querySelector("#cs-fab");
+
+  if (!nudge || !talk || !closeBtn || !fab) return;
+
+  function hideNudge() {
+    nudge.hidden = true;
+  }
+
+  window.showDolmongNudge = () => {
+    nudge.hidden = true;
+
+    requestAnimationFrame(() => {
+      nudge.hidden = false;
+    });
+  };
+
+  // 돌몽이 또는 말풍선 클릭 → 기존 채팅창 열기
+  talk.addEventListener("click", () => {
+    hideNudge();
+    toggleConsult(true, true);
+  });
+
+  // X 클릭 → 안내만 닫기
+  closeBtn.addEventListener("click", hideNudge);
+
+  // 기존 채팅 버튼 클릭 → 안내 닫기
+  fab.addEventListener("click", hideNudge);
+}
+
 function initConsult() {
   $("#cs-fab").onclick = () => toggleConsult(true, true);
   $("#cs-close").onclick = () => toggleConsult(false);
@@ -477,10 +512,10 @@ function initConsult() {
     if (act) decideProposal(act.closest(".cs-propose"), act.dataset.pr === "ok");
   });
   $("#cs-form").onsubmit = (e) => { e.preventDefault(); const t = $("#cs-text").value.trim(); if (t) consultAsk(t); };
-  if (DOCK.matches) toggleConsult(true, false);  // 웹은 처음부터 열어 둔다
   DOCK.addEventListener("change", () => {
-    if (!DOCK.matches && !$("#cs-panel").hidden) toggleConsult(false);
-    else if (DOCK.matches) toggleConsult(true, false);
+    if (!$("#cs-panel").hidden) {
+      toggleConsult(true, false);
+    }
   });
 }
 
