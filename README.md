@@ -144,7 +144,7 @@ FastAPI API 문서: `http://localhost:8000/docs`
 ## 📂 프로젝트 구조
 
 ```text
-bang-aeo-hwae/
+dol-mong-e/
 ├── backend/
 │   ├── agent/           # Claude Agent, 프롬프트 및 상담 처리
 │   ├── tools/           # 비용·추천·지역정보 등 분석 함수
