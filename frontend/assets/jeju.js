@@ -37,10 +37,11 @@
   window.jeju = function (text) {
     if (!text) return text;
     text = String(text);
-    return text.replace(/([^\s<>]*?[가-힣])([^\s<>가-힣]*)(?=\s|$|<)/g, (m, core, punct, off) => {
+    return text.replace(/([^\s<>(]*?[가-힣])([^\s<>가-힣(]*)(?=\s|$|<|\()/g, (m, core, punct, off) => {
       if (core.includes("](") || core.startsWith("http")) return m;
       const after = text.slice(off + m.length, off + m.length + 3);
       if (!(/[.?!~:…]/.test(punct) || after === "" || "\n<".includes(after[0]) || after.trimStart().startsWith("("))) return m;
+      if (!punct && after.trimStart().startsWith("(") && !/(어요|아요|해요|예요|에요|워요|돼요)$/.test(core)) return m;  // 괄호 앞은 확실한 해요체만
       let out = convertWord(core);
       if (punct.includes("?") && out !== core && (out.endsWith("수다") || out.endsWith("우다"))) out = out.slice(0, -1) + "꽈";
       return out + punct;
