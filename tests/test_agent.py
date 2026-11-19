@@ -98,3 +98,9 @@ def test_consult_without_key_uses_rules(monkeypatch):
     r = TestClient(app).post("/api/consult", json={"region_id": "aewol", "conditions": COND, "message": "근처 병원 있어?"})
     body = r.json()
     assert r.status_code == 200 and body["mode"] == "rule" and body["trace"]
+
+
+def test_activity_without_data_does_not_error():
+    out = ag.run_tool("ask_data", {"topic": "activity", "region_id": "aewol", "question": "서핑"},
+                      Conditions.from_dict(COND), _ctx())
+    assert "없어요" in "".join(out["facts"])

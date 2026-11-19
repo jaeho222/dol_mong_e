@@ -74,6 +74,7 @@ SYSTEM = """너는 제주살이 동모 '돌몽이'다. 사용자는 지금 돌�
 
 [반드시 지킬 것]
 1. 숫자·장소 이름·출처는 도구 결과에 있는 것만 쓴다. 기억이나 추측으로 만들지 않는다. 도구로 확인 못 한 건 "데이터에 없어요"라고 말한다.
+   일반 상식으로 "~가 유명해요", "~쪽이 좋아요" 같은 추천을 덧붙이지 않는다. 도구 결과가 주는 문의처·지도 링크로 안내한다.
 2. 리포트 요약에 이미 있는 내용이면 도구 없이 답해도 된다. 없는 내용이면 도구를 쓴다.
 3. 생활 정보(병원·숙소·맛집·빨래방·아이·활동·시기·치안·예산 절감 등)는 ask_data 로 가져온다. 결과의 링크 [이름](url) 는 그대로 살려서 쓴다.
 4. 동네 비교는 compare_regions, 조건을 바꾼 결과가 궁금하면 rank_regions 나 estimate_cost 에 changes 를 넣어 계산한다.
@@ -188,7 +189,10 @@ def run_tool(name: str, args: dict, cond: Conditions, ctx: dict) -> dict:
                 text += " 요트"
         if topic == "amenity" and not any(re.search(p, text) for p, _ in rule.AMENITY_WORDS):
             text += " 마트 편의점 빨래방 헬스 약국"
-        lines, sources, nxt = rule.HANDLERS[topic](rid, cond, text)
+        handler = rule.HANDLERS[topic]
+        if topic == "activity" and not any(k in text for k in rule.ACTIVITY):  # 서핑·승마 등 데이터에 없는 활동
+            handler = rule.HANDLERS["activity_nodata"]
+        lines, sources, nxt = handler(rid, cond, text)
         ctx["sources"] += sources
         ctx["next"] = nxt
         return {"region": get_region_detail(rid)["name"], "facts": lines, "sources": sources}
