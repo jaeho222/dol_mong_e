@@ -28,9 +28,9 @@ def test_every_tool_runs():
     assert ag.run_tool("rehearse", {"region_id": "aewol"}, c, _ctx())["weekday"]
 
 
-def test_update_report_records_only_changes():
+def test_proposal_records_only_changes():
     ctx = _ctx()
-    ag.run_tool("update_report", {"changes": {"car": False, "days": 30}, "select_region_id": "hallim"},
+    ag.run_tool("propose_report_change", {"changes": {"car": False, "days": 30}, "select_region_id": "hallim"},
                 Conditions.from_dict(COND), ctx)
     assert ctx["report_update"]["conditions"] == {"car": False}
     assert ctx["report_update"]["select_region_id"] == "hallim"
@@ -65,12 +65,12 @@ def test_agent_loop_multi_step_and_report_update():
     fake = FakeClaude([
         NS(stop_reason="tool_use", content=[_tool("1", "estimate_cost", {"region_id": "aewol", "changes": {"car": False}}),
                                             _tool("2", "ask_data", {"topic": "transit", "region_id": "aewol", "question": "차 없이"})]),
-        NS(stop_reason="tool_use", content=[_tool("3", "update_report", {"changes": {"car": False}, "reason": "렌터카 → 버스·도보"})]),
+        NS(stop_reason="tool_use", content=[_tool("3", "propose_report_change", {"changes": {"car": False}, "reason": "렌터카 → 버스·도보"})]),
         NS(stop_reason="end_turn", content=[_text("버스로 지내면 더 싸요.")]),
     ])
     out = ag.run_agent("차 없이 지내면 어때? 리포트도 바꿔줘", "aewol", COND, client=fake)
     assert out["mode"] == "agent"
-    assert [t["tool"] for t in out["trace"]] == ["estimate_cost", "ask_data", "update_report"]
+    assert [t["tool"] for t in out["trace"]] == ["estimate_cost", "ask_data", "propose_report_change"]
     assert out["report_update"]["conditions"] == {"car": False}
     assert out["sources"]
     # 두 번째 호출에는 도구 결과 두 개가 같이 들어간다
@@ -104,3 +104,9 @@ def test_activity_without_data_does_not_error():
     out = ag.run_tool("ask_data", {"topic": "activity", "region_id": "aewol", "question": "서핑"},
                       Conditions.from_dict(COND), _ctx())
     assert "없어요" in "".join(out["facts"])
+
+
+def test_no_proposal_when_nothing_changes():
+    ctx = _ctx()
+    out = ag.run_tool("propose_report_change", {"changes": {"days": 30}}, Conditions.from_dict(COND), ctx)
+    assert out["ok"] is False and ctx["report_update"] is None
