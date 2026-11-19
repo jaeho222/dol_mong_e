@@ -103,9 +103,17 @@
           <fieldset class="opts" id="f-opts">
             <legend>함께 따져볼 조건</legend>
           </fieldset>
+          
           <fieldset class="opts prio" id="f-prio">
-            <legend>가장 중요한 것 3가지 <small>(누른 순서대로 중요)</small></legend>
+            <legend>
+              가장 중요한 것 3가지
+              <small>(누른 순서대로 중요)</small>
+            </legend>
+            <div class="prio-scroll">
+              <div class="prio-items" id="prio-items"></div>
+            </div>
           </fieldset>
+
         </form>
       </div>
       <p class="credit wrap" id="hero-credit"></p>
@@ -118,7 +126,24 @@
         <img class="sec-pose" src="assets/dolmong/hello.webp" alt="" width="64" height="64" />
         <h2>이 조건으로 살기 좋은 동네</h2>
         <span class="sec-sub" id="cond-summary"></span>
-        <button type="button" class="redo" id="redo-ob">돌몽이랑 다시 고르기</button>
+        
+        <button type="button" class="redo" id="redo-ob">
+          <img
+            src="assets/dolmong/hello.webp"
+            alt=""
+            class="redo-dolmong"
+          />
+          <span>돌몽이랑 다시 고르기</span>
+          <svg class="redo-icon" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true">
+            <path d="M20 7v5h-5"/>
+            <path d="M4 17v-5h5"/>
+            <path d="M5.5 9A7 7 0 0 1 18 7l2 5"/>
+            <path d="M18.5 15A7 7 0 0 1 6 17l-2-5"/>
+          </svg>
+        </button>
+
       </div>
       <p class="data-note" id="data-note" hidden></p>
       <div class="live-note" id="live-note" hidden></div>
