@@ -22,6 +22,7 @@ from dataclasses import replace
 
 from backend import config
 from backend.agent import consult as rule
+from backend.agent.icons import pick_icon, qr_icons, strip_emoji
 from backend.schema import Conditions
 from backend.tools.cost import estimate_total_cost
 from backend.tools.data_loader import find_region_ids, load_regions
@@ -102,7 +103,7 @@ SYSTEM = """너는 제주살이 동모 '돌몽이'다. 사용자는 지금 돌�
 - 한국어 표준어 해요체로만 쓴다. 문장은 반드시 "~요"로 끝낸다(~어요/~아요/~예요/~이에요/~해요/~세요/~ㄹ게요/~까요/~네요).
   "~다.", "~습니다", "~음", 명사로 끝나는 문장은 쓰지 않는다(목록 항목은 괜찮다). 제주어를 직접 쓰지 않는다 — 서버가 문장 끝 어미를 제주어로 일관되게 바꾼다.
 - 친근하지만 짧게: 보통 3~8줄.
-- 결론부터 말하고, 근거 숫자를 붙인다. 강조는 **굵게**, 목록은 "- " 만 쓴다. 표·제목(#)은 쓰지 않는다.
+- 결론부터 말하고, 근거 숫자를 붙인다. 강조는 **굵게**, 목록은 "- " 만 쓴다. 표·제목(#)·이모지는 쓰지 않는다(화면이 주제에 맞는 돌몽이 아이콘을 따로 붙인다).
 - 비용은 '만 원' 단위 추정치라는 걸 필요할 때 한 번만 말한다.
 - 출처 목록은 화면이 따로 보여 주니 답 안에 길게 쓰지 않는다.
 
@@ -215,6 +216,7 @@ def run_tool(name: str, args: dict, cond: Conditions, ctx: dict) -> dict:
         lines, sources, nxt = handler(rid, cond, text)
         ctx["sources"] += sources
         ctx["next"] = nxt
+        ctx.setdefault("topics", []).append(topic)
         return {"region": get_region_detail(rid)["name"], "facts": lines, "sources": sources}
 
     if name == "rank_regions":
@@ -406,6 +408,7 @@ def run_agent(message: str, region_id: str, conditions: dict, history: list | No
         answer = "확인할 게 많아서 정리를 다 못 했어요. 질문을 조금 나눠서 물어봐 주실래요?"
 
     sources = [clean_source(x) for x in dict.fromkeys(ctx["sources"])][:5]
-    return {"answer": jeju(clean_answer(answer) or "돌몽이가 답을 찾지 못했어요. 제주120만덕콜센터(국번 없이 120)에 물어보세요."), "sources": sources, "trace": trace,
-            "report_update": ctx["report_update"], "quick_replies": rule._qr(ctx["next"] or [])[:3],
+    answer = strip_emoji(clean_answer(answer)) or "돌몽이가 답을 찾지 못했어요. 제주120만덕콜센터(국번 없이 120)에 물어보세요."
+    return {"answer": jeju(answer), "sources": sources, "trace": trace, "icon": pick_icon(message, answer, ctx.get("topics", [])),
+            "report_update": ctx["report_update"], "quick_replies": qr_icons(rule._qr(ctx["next"] or [])[:3]),
             "region_id": region_id, "mode": "agent"}

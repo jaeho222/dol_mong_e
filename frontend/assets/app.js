@@ -517,8 +517,8 @@ function consultSetRegion(r) {
   consult.region = r; consult.cond = cond;
   updateWhere();
   if (consult.greeted && !consult.quiet) {
-    if (condChanged) csNote(`📝 조건이 바뀌었어요 (${summary(r.cost.conditions)}). 새 리포트 기준으로 답할게요`);
-    else if (before && before !== r.region_id) csNote(`📍 이제 ${r.name} 리포트 기준으로 답해요`);
+    if (condChanged) csNote(`조건이 바뀌었어요 (${summary(r.cost.conditions)}). 새 리포트 기준으로 답할게요`);
+    else if (before && before !== r.region_id) csNote(`이제 ${r.name} 리포트 기준으로 답해요`);
   }
   if (!$("#cs-panel").hidden && !consult.greeted) greetConsult();
 }
@@ -548,6 +548,8 @@ async function consultAsk(text, intent, label) {
 function csBot(res) {
   const el = csAdd("bot");
   el.innerHTML = res.answer.split("\n").map((l) => `<p class="${/^\s+└/.test(l) ? "sub" : ""}">${linkify(mdLite(l.trim()))}</p>`).join("");
+  // 주제가 충분히 겹칠 때만 서버가 icon 을 준다 → 말풍선 왼쪽 위에 돌몽이 아이콘
+  if (res.icon) { el.classList.add("has-ico"); el.insertAdjacentHTML("afterbegin", `<img class="cs-ico" src="assets/icons/${encodeURIComponent(res.icon)}.webp" alt="" />`); }
   if (res.sources?.length) el.insertAdjacentHTML("beforeend", `<p class="cs-src">참고 데이터: ${res.sources.map(escapeHtml).join(" · ")}</p>`);
   if (res.trace?.length) {
     const who = res.mode === "agent" ? "돌몽이(AI Agent)가 확인한 것" : "돌몽이가 확인한 것";
@@ -557,7 +559,7 @@ function csBot(res) {
   if (res.fallback === "rate_limited") csNote("질문이 많아서 잠깐 기본 모드로 답했어요");
   if (res.report_update) renderProposal(res.report_update);
   if (res.quick_replies?.length) {
-    $("#cs-msgs").insertAdjacentHTML("beforeend", `<div class="qr">${res.quick_replies.map((q) => `<button type="button" data-qr="${q.id}">${escapeHtml(q.label)}</button>`).join("")}</div>`);
+    $("#cs-msgs").insertAdjacentHTML("beforeend", `<div class="qr">${res.quick_replies.map((q) => `<button type="button" data-qr="${q.id}">${q.icon ? `<img src="assets/icons/${encodeURIComponent(q.icon)}.webp" alt="" />` : ""}${escapeHtml(q.label)}</button>`).join("")}</div>`);
   }
   scrollMsgs();
 }
@@ -586,7 +588,7 @@ function renderProposal(u) {
   const card = document.createElement("div");
   card.className = "cs-propose";
   card._u = u;
-  card.innerHTML = `<h4>🔄 리포트 수정 제안</h4>${u.reason ? `<p class="why">${escapeHtml(u.reason)}</p>` : ""}
+  card.innerHTML = `<h4>리포트 수정 제안</h4>${u.reason ? `<p class="why">${escapeHtml(u.reason)}</p>` : ""}
     <ul>${rows.join("")}</ul>
     <div class="acts"><button type="button" class="ok" data-pr="ok">적용하기</button><button type="button" class="no" data-pr="no">그대로 둘게요</button></div>`;
   $("#cs-msgs").appendChild(card);
@@ -595,7 +597,7 @@ function renderProposal(u) {
 function decideProposal(card, ok) {
   if (!card || card.classList.contains("done")) return;
   card.classList.add("done", ok ? "applied" : "dismissed");
-  card.insertAdjacentHTML("beforeend", `<p class="pr-done">${ok ? "✅ 리포트에 적용했어요" : "그대로 둘게요"}</p>`);
+  card.insertAdjacentHTML("beforeend", `<p class="pr-done">${ok ? "리포트에 적용했어요" : "그대로 둘게요"}</p>`);
   consult.history.push({ role: "user", content: ok ? `(리포트 수정 제안을 적용함: ${card._u.reason || ""})` : "(리포트 수정 제안은 적용하지 않음)" });
   if (ok) applyReportUpdate(card._u);
 }

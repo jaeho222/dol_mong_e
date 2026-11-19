@@ -262,15 +262,15 @@ window.APP_CONFIG = {
   // '가장 중요한 것 3가지' 선택지 (key 는 백엔드 region.PRIORITY_KEYS 와 같아야 함). 누른 순서 = 중요한 순서
   
   priorities: [
-    { key: "비용", label: "비용", icon: "비용.svg" },
-    { key: "교통", label: "교통", icon: "교통.svg" },
-    { key: "생활편의", label: "편의시설", icon: "편의시설.svg" },
-    { key: "의료", label: "의료", icon: "의료.svg" },
-    { key: "조용함", label: "한적함", icon: "한적함.svg" },
-    { key: "자연", label: "자연 환경", icon: "자연.svg" },
-    { key: "날씨", label: "날씨", icon: "날씨.svg" },
-    { key: "맛집", label: "맛집", icon: "맛집.svg" },
-    { key: "밤길안심", label: "안전", icon: "안전.svg" },
+    { key: "비용", label: "비용", icon: "cost.webp" },
+    { key: "교통", label: "교통", icon: "transit.webp" },
+    { key: "생활편의", label: "편의시설", icon: "convenience.webp" },
+    { key: "의료", label: "의료", icon: "medical.webp" },
+    { key: "조용함", label: "한적함", icon: "quiet.webp" },
+    { key: "자연", label: "자연 환경", icon: "nature.webp" },
+    { key: "날씨", label: "날씨", icon: "weather.webp" },
+    { key: "맛집", label: "맛집", icon: "food.webp" },
+    { key: "밤길안심", label: "안전", icon: "safety.webp" },
   ],
 
 

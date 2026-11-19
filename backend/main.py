@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from backend import config
 from backend.agent.consult import greeting, run_consult
 from backend.agent.dolmong_agent import allow, clean_source, run_agent as run_dolmong
+from backend.agent.icons import pick_icon, qr_icons, strip_emoji
 from backend.agent import run_agent
 from backend.tools.data_loader import data_is_dummy
 from backend.tools.jeju import jeju
@@ -58,6 +59,7 @@ def consult(req: ConsultRequest, request: Request):
     try:
         if not req.message.strip() and not req.intent:
             out = greeting(req.region_id, req.conditions)
+            out["answer"], out["quick_replies"] = strip_emoji(out["answer"]), qr_icons(out["quick_replies"])
             if config.resolved_agent_mode() == "claude":
                 out["answer"] = out["answer"].split("\n")[0] + "\n" + jeju(
                     "저는 이 리포트와 연결된 AI Agent예요. 물어보시면 공공데이터를 찾고 다시 계산해서 답하고, "
@@ -78,6 +80,9 @@ def consult(req: ConsultRequest, request: Request):
             fallback = None
         out = run_consult(req.message, req.region_id, req.conditions, req.intent, req.history)
         out["sources"] = list(dict.fromkeys(clean_source(x) for x in out.get("sources", [])))
+        out["answer"] = strip_emoji(out["answer"])
+        out["icon"] = pick_icon(req.message, out["answer"], [out.get("intent")])
+        out["quick_replies"] = qr_icons(out.get("quick_replies"))
         return out | ({"fallback": fallback} if fallback else {})
     except KeyError as e:
         raise HTTPException(400, str(e))
