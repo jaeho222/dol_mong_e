@@ -151,7 +151,7 @@ const J = (t) => (window.jeju ? window.jeju(t) : t);
     let react = o.react || s.react;
     if (s.type === "month") {
       const ev = seasonEvents(+o.value.slice(5, 7), 30).filter((e) => !e.warn)[0];
-      react = ev ? `${+o.value.slice(5, 7)}월이면 ${ev.text}이에요!` : "좋아요, 그때 맞춰 볼게요.";
+      react = ev ? `${+o.value.slice(5, 7)}월이면 ${ev.text}이무다!` : "좋아요, 그때 맞춰 준비해 보쿠다.";
     }
     if (react) {
       root.querySelector(".ob-say").textContent = J(react);
