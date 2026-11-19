@@ -1,6 +1,7 @@
 // 돌몽이 프론트엔드 (빌드 도구 없는 바닐라 JS)
 // ① 검색바·돌몽이 타일 → /api/estimate   ② 추천 동네: 목록 + 지도   ③ 선택한 동네: 비용·돌몽이 한마디·생활 점수·세심 체크·지수
-// ④ 돌몽이 상담 (오른쪽 아래 플로팅 창) → /api/consult — 버튼은 규칙, 자유 질문은 Claude Agent 가 도구를 골라 쓰고 리포트를 바꾼다
+// ④ 돌몽이 AI Agent 상담 → /api/consult — 웹은 오른쪽 30% 고정(리포트 70%), 모바일은 플로팅 창.
+//    버튼은 규칙, 자유 질문은 Claude Agent 가 도구를 골라 쓰고, 리포트 수정은 '제안 카드'로 묻고 사용자가 적용
 const CFG = window.APP_CONFIG;
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -79,6 +80,7 @@ function init() {
     m.textContent = h.agent_mode === "claude" ? "AI Agent" : "기본 모드";
     m.classList.toggle("off", h.agent_mode !== "claude");
     m.title = h.agent_mode === "claude" ? "자유 질문은 AI Agent 가 도구를 골라 답해요" : "API 키가 없어 규칙 + 데이터로만 답해요";
+    updateWhere();
     if (h.dummy_data) {
       $("#data-note").hidden = false;
       $("#data-note").textContent = "지금은 동네 지표가 더미 데이터예요. 제주데이터허브 실제 데이터로 바꾸는 중이에요.";
@@ -450,30 +452,50 @@ function josa(word, withJong, without) {
   return c >= 0 && c <= 11171 && c % 28 ? withJong : without;
 }
 
-// ④ 돌몽이 상담 (플로팅 창) ───────────────────────
-// 오른쪽 아래 버튼으로 어디서나 연다. 지금 보는 동네·조건을 같이 보내고,
-// 자유 질문은 Agent 가 도구를 골라 답하며(trace 로 과정 공개), 필요하면 report_update 로 리포트를 바꾼다.
-const consult = { region: null, history: [], greeted: false, busy: false };
+// ④ 돌몽이 AI Agent 상담 ─────────────────────────
+// 웹(1200px 이상): 화면 오른쪽 30%에 고정, 리포트와 나란히. 닫으면 버튼으로 접힌다.
+// 모바일: 오른쪽 아래 버튼으로 여는 전체 화면 창.
+// 지금 보는 동네·조건을 매번 같이 보내므로(실시간 연결) 사용자가 폼을 바꾸면 Agent 기준도 바로 바뀐다.
+// Agent 는 리포트를 직접 바꾸지 않고 '수정 제안 카드'를 띄운다 → 사용자가 [적용하기]를 눌러야 바뀐다.
+const consult = { region: null, cond: null, history: [], greeted: false, busy: false, quiet: false };
+const DOCK = matchMedia("(min-width: 1200px)");
 
 function initConsult() {
-  $("#cs-fab").onclick = () => toggleConsult(true);
+  $("#cs-fab").onclick = () => toggleConsult(true, true);
   $("#cs-close").onclick = () => toggleConsult(false);
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#cs-panel").hidden) toggleConsult(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#cs-panel").hidden && !DOCK.matches) toggleConsult(false); });
   $("#cs-panel").addEventListener("click", (e) => {
     const chip = e.target.closest("[data-qr]");
-    if (chip) consultAsk("", chip.dataset.qr, chip.textContent);
+    if (chip) { consultAsk("", chip.dataset.qr, chip.textContent); return; }
+    const act = e.target.closest("[data-pr]");
+    if (act) decideProposal(act.closest(".cs-propose"), act.dataset.pr === "ok");
   });
   $("#cs-form").onsubmit = (e) => { e.preventDefault(); const t = $("#cs-text").value.trim(); if (t) consultAsk(t); };
+  if (DOCK.matches) toggleConsult(true, false);  // 웹은 처음부터 열어 둔다
+  DOCK.addEventListener("change", () => {
+    if (!DOCK.matches && !$("#cs-panel").hidden) toggleConsult(false);
+    else if (DOCK.matches) toggleConsult(true, false);
+  });
 }
 
-function toggleConsult(open) {
+function toggleConsult(open, focus) {
   $("#cs-panel").hidden = !open;
   $("#cs-fab").setAttribute("aria-expanded", String(open));
+  document.body.classList.toggle("cs-docked", open && DOCK.matches);
+  document.fonts?.ready.then(() => state.data?.results.length && drawMap(state.data.results));  // 본문 폭이 바뀌면 지도 이름표 다시
   if (open) {
     if (!consult.greeted && consult.region) greetConsult();
-    setTimeout(() => $("#cs-text").focus(), 50);
+    if (focus) setTimeout(() => $("#cs-text").focus(), 50);
     scrollMsgs();
   } else $("#cs-fab").focus();
+}
+
+function updateWhere() {
+  const el = $("#cs-where"), r = consult.region;
+  if (!r) return;
+  const agent = state.agentMode === "claude";
+  el.textContent = agent ? `리포트와 연결됨 · ${r.name}` : `${r.name} 리포트 기준 · 공공데이터로만 답해요`;
+  el.classList.toggle("cs-sub-agent", agent);
 }
 
 function consultBody(extra) {
@@ -481,12 +503,17 @@ function consultBody(extra) {
   return { region_id: r.region_id, conditions: { ...r.cost.conditions, priorities: state.priorities || [] }, history: consult.history.slice(-8), ...extra };
 }
 
-// 리포트에서 다른 동네를 열면 상담 기준도 그 동네로 (대화는 이어진다)
+// 리포트가 다시 그려질 때마다 호출: 다른 동네를 열거나 조건을 바꾸면 상담 기준도 같이 바뀐다 (대화는 이어진다)
 function consultSetRegion(r) {
   const before = consult.region?.region_id;
-  consult.region = r;
-  $("#cs-where").textContent = `${r.name} 리포트 기준 · 공공데이터로만 답해요`;
-  if (before && before !== r.region_id && consult.greeted) csNote(`📍 이제 ${r.name} 리포트 기준으로 답해요`);
+  const cond = JSON.stringify({ ...r.cost.conditions, priorities: state.priorities || [] });
+  const condChanged = consult.cond && consult.cond !== cond;
+  consult.region = r; consult.cond = cond;
+  updateWhere();
+  if (consult.greeted && !consult.quiet) {
+    if (condChanged) csNote(`📝 조건이 바뀌었어요 (${summary(r.cost.conditions)}). 새 리포트 기준으로 답할게요`);
+    else if (before && before !== r.region_id) csNote(`📍 이제 ${r.name} 리포트 기준으로 답해요`);
+  }
   if (!$("#cs-panel").hidden && !consult.greeted) greetConsult();
 }
 
@@ -506,7 +533,6 @@ async function consultAsk(text, intent, label) {
     const res = await api("/api/consult", consultBody({ message: text || "", intent: intent || null }));
     loading.remove(); csBot(res);
     consult.history.push({ role: "user", content: text || label }, { role: "assistant", content: res.answer });
-    if (res.report_update) applyReportUpdate(res.report_update);
   } catch (e) {
     loading.classList.remove("loading");
     loading.textContent = `답을 만들지 못했어요. 제주120만덕콜센터(국번 없이 120)로 물어봐 주세요. (${e.message})`;
@@ -523,13 +549,52 @@ function csBot(res) {
       `<li class="${t.error ? "err" : ""}">${escapeHtml(t.label || TOOL_LABEL[t.tool] || t.tool)}${t.error ? " (다시 시도)" : ""}</li>`).join("")}</ol></details>`);
   }
   if (res.fallback === "rate_limited") csNote("질문이 많아서 잠깐 기본 모드로 답했어요");
+  if (res.report_update) renderProposal(res.report_update);
   if (res.quick_replies?.length) {
-    el.insertAdjacentHTML("afterend", `<div class="qr">${res.quick_replies.map((q) => `<button type="button" data-qr="${q.id}">${escapeHtml(q.label)}</button>`).join("")}</div>`);
+    $("#cs-msgs").insertAdjacentHTML("beforeend", `<div class="qr">${res.quick_replies.map((q) => `<button type="button" data-qr="${q.id}">${escapeHtml(q.label)}</button>`).join("")}</div>`);
   }
   scrollMsgs();
 }
 
-// Agent 가 리포트를 바꾸자고 하면: 조건 입력 폼에 그대로 넣고 다시 계산 (사용자가 폼에서 다시 바꿀 수 있다)
+// ── 리포트 수정 제안 카드 ──
+// 값 보기 좋게: car true → 렌터카, days 60 → 두 달 ...
+function condText(k, v) {
+  if (k === "car") return v ? "렌터카" : "버스·도보";
+  if (k === "days") return period(v);
+  if (k === "people") return `${v}명`;
+  if (k === "budget_total") return v ? `${won(v)} 이하` : "상관없음";
+  if (k === "start_date") return v ? `${v.slice(0, 4)}년 ${+v.slice(5, 7)}월 출발` : "-";
+  if (k === "priorities") return v?.length ? v.map(lab).join(" > ") : "없음";
+  if (typeof v === "boolean") return v ? "예" : "아니요";
+  return String(v ?? "-");
+}
+
+function renderProposal(u) {
+  const now = consult.region.cost.conditions;
+  const rows = Object.entries(u.conditions || {}).map(([k, v]) =>
+    `<li><b>${escapeHtml(COND_LABEL[k] || k)}</b><span><s>${escapeHtml(condText(k, k === "priorities" ? state.priorities : now[k]))}</s> → <strong>${escapeHtml(condText(k, v))}</strong></span></li>`);
+  if (u.select_region_id) {
+    const nm = state.data?.results.find((r) => r.region_id === u.select_region_id)?.name || u.select_region_id;
+    rows.push(`<li><b>열어 볼 동네</b><span><strong>${escapeHtml(nm)}</strong></span></li>`);
+  }
+  const card = document.createElement("div");
+  card.className = "cs-propose";
+  card._u = u;
+  card.innerHTML = `<h4>🔄 리포트 수정 제안</h4>${u.reason ? `<p class="why">${escapeHtml(u.reason)}</p>` : ""}
+    <ul>${rows.join("")}</ul>
+    <div class="acts"><button type="button" class="ok" data-pr="ok">적용하기</button><button type="button" class="no" data-pr="no">그대로 둘게요</button></div>`;
+  $("#cs-msgs").appendChild(card);
+}
+
+function decideProposal(card, ok) {
+  if (!card || card.classList.contains("done")) return;
+  card.classList.add("done", ok ? "applied" : "dismissed");
+  card.insertAdjacentHTML("beforeend", `<p class="pr-done">${ok ? "✅ 리포트에 적용했어요" : "그대로 둘게요"}</p>`);
+  consult.history.push({ role: "user", content: ok ? `(리포트 수정 제안을 적용함: ${card._u.reason || ""})` : "(리포트 수정 제안은 적용하지 않음)" });
+  if (ok) applyReportUpdate(card._u);
+}
+
+// 적용: 조건 입력 폼에 그대로 넣고 다시 계산 (사용자가 폼에서 다시 바꿀 수 있다)
 function applyReportUpdate(u) {
   const c = u.conditions || {};
   if (c.start_date) {
@@ -552,8 +617,13 @@ function applyReportUpdate(u) {
   $$("#f-opts input").forEach((x) => { if (x.dataset.k in c) x.checked = !!c[x.dataset.k]; });
   if (c.priorities) { state.priorities = c.priorities.slice(0, 3); drawPrio(); }
   if (u.select_region_id) state.selected = u.select_region_id;
-  csNote(`🔄 리포트를 바꿨어요${u.reason ? `: ${u.reason}` : ""}`, "update");
-  runEstimate(false, true);
+  consult.quiet = true;  // 이번 다시 그리기는 '조건이 바뀌었어요' 안내를 띄우지 않는다
+  runEstimate(false, true).finally(() => {
+    consult.quiet = false;
+    const box = $("#result");
+    box.scrollIntoView({ behavior: "smooth", block: "start" });
+    box.classList.remove("flash"); void box.offsetWidth; box.classList.add("flash");
+  });
 }
 
 function csNote(text, cls = "") {

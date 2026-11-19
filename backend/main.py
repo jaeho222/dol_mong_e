@@ -19,6 +19,7 @@ from backend.agent.consult import greeting, run_consult
 from backend.agent.dolmong_agent import TOPIC_LABEL, allow, run_agent as run_dolmong
 from backend.agent import run_agent
 from backend.tools.data_loader import data_is_dummy
+from backend.tools.jeju import jeju
 from backend.tools.rehearsal import rehearse
 from backend.tools.savings import budget_alternatives
 from backend.tools.region import list_regions, rank_regions
@@ -51,12 +52,18 @@ def consult(req: ConsultRequest, request: Request):
 
     - message·intent 둘 다 없으면 인사 + 빠른 버튼
     - 빠른 버튼(intent) → 규칙 + 데이터로 바로 답 (빠르고 비용 0)
-    - 자유 질문 → Claude Agent 가 도구를 골라 쓰고 필요하면 리포트를 바꾼다 (dolmong_agent)
+    - 자유 질문 → Claude Agent 가 도구를 골라 쓰고 필요하면 리포트 수정을 제안한다 (dolmong_agent)
     - 키가 없거나, 사용량 제한에 걸리거나, API 오류면 규칙 + 데이터로 답한다
     """
     try:
         if not req.message.strip() and not req.intent:
-            return greeting(req.region_id, req.conditions) | {"agent": config.resolved_agent_mode() == "claude"}
+            out = greeting(req.region_id, req.conditions)
+            if config.resolved_agent_mode() == "claude":
+                out["answer"] = out["answer"].split("\n")[0] + "\n" + jeju(
+                    "저는 이 리포트와 연결된 AI Agent예요. 물어보시면 공공데이터를 찾고 다시 계산해서 답하고, "
+                    "조건이 달라지면 리포트 수정을 제안해요.\n"
+                    "예) \"차 없이 두 달이면 어디가 좋아?\" · \"애월이랑 한림 비교해줘\" · \"아이랑 갈 건데 소아과 가까운 데는?\"")
+            return out | {"agent": config.resolved_agent_mode() == "claude"}
         if req.message.strip() and not req.intent and config.resolved_agent_mode() == "claude":
             who = request.headers.get("x-forwarded-for", request.client.host if request.client else "?").split(",")[0]
             if allow(who):

@@ -520,3 +520,52 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
 .budget-alt { position: relative; padding-left: 92px; }
 .ba-pose { position: absolute; left: 16px; top: 14px; width: 64px; height: 64px; object-fit: contain; }
 @media (max-width: 600px) { .sec-pose { width: 48px; height: 48px; } .map-pose { width: 60px; height: 60px; } .budget-alt { padding-left: 18px; } .ba-pose { display: none; } }
+
+/* ── 웹: 리포트 70% + AI Agent 30% 나란히 (body.cs-docked, 가로 1200px 이상) ── */
+:root { --cs-w: clamp(360px, 30vw, 540px); }
+@media (min-width: 1200px) {
+  body.cs-docked { padding-right: var(--cs-w); }
+  body.cs-docked .cs-panel { top: 0; right: 0; bottom: 0; width: var(--cs-w); height: auto; border-radius: 0;
+    border: 0; border-left: 1px solid var(--line); box-shadow: -8px 0 28px rgba(0,0,0,.06); z-index: 40; }
+  body.cs-docked .cs-head { padding: 14px 16px; min-height: 68px; }
+  body.cs-docked .cs-fab { display: none; }
+}
+/* 본문이 좁아지니(70%) 1040px 이하 화면용 배치를 그대로 쓴다 */
+@media (min-width: 1200px) and (max-width: 1500px) {
+  body.cs-docked .gnb-menu { display: none; }
+  body.cs-docked .search { grid-template-columns: 1fr 1fr 1fr; }
+  body.cs-docked .sf:nth-of-type(4)::before { display: none; }
+  body.cs-docked .search-btn { grid-column: 1 / -1; margin: 6px 8px 10px; height: 50px; order: 2; }
+  body.cs-docked .opts { order: 1; }
+  body.cs-docked .result-grid, body.cs-docked .d-top { grid-template-columns: 1fr; }
+  body.cs-docked .map-wrap { position: static; order: -1; }
+  body.cs-docked .d-cols { grid-template-columns: 1fr; gap: 28px; }
+  body.cs-docked .about { grid-template-columns: 1fr; gap: 24px; }
+  body.cs-docked .hero-dolmong { width: 100px; top: -92px; }
+}
+@media (min-width: 1501px) {
+  body.cs-docked .d-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.cs-sub-agent { color: var(--brand-dark) !important; font-weight: 600; }
+.cs-sub-agent::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #3fa34d; vertical-align: 1px; }
+
+/* 리포트 수정 제안 카드 */
+.cs-propose { align-self: stretch; border: 1.5px solid var(--brand); border-radius: 12px; background: #fff; padding: 12px 14px; }
+.cs-propose h4 { margin: 0 0 4px; font-size: 14px; display: flex; align-items: center; gap: 6px; color: var(--brand-dark); }
+.cs-propose .why { margin: 0 0 8px; font-size: 13px; color: var(--ink-2); }
+.cs-propose ul { margin: 0 0 10px; padding: 0; list-style: none; font-size: 13.5px; }
+.cs-propose li { display: flex; gap: 8px; padding: 3px 0; border-top: 1px dashed var(--line); }
+.cs-propose li:first-child { border-top: 0; }
+.cs-propose li b { min-width: 64px; color: var(--ink-3); font-weight: 600; }
+.cs-propose li s { color: var(--ink-3); }
+.cs-propose .acts { display: flex; gap: 6px; }
+.cs-propose .acts button { flex: 1; height: 38px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.cs-propose .ok { border: 0; background: var(--brand); color: #fff; }
+.cs-propose .ok:hover { background: var(--brand-dark); }
+.cs-propose .no { border: 1px solid var(--line); background: #fff; color: var(--ink-2); }
+.cs-propose.done .acts { display: none; }
+.cs-propose .pr-done { margin: 0; font-size: 13px; font-weight: 600; color: var(--brand-dark); }
+.cs-propose.dismissed { border-color: var(--line); }
+.cs-propose.dismissed .pr-done { color: var(--ink-3); }
+.flash { animation: flash 1.4s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 4px rgba(79,107,58,.45); } 100% { box-shadow: 0 0 0 0 rgba(79,107,58,0); } }

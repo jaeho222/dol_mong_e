@@ -2,14 +2,16 @@
 
 흐름 (tool-use 루프, 최대 config.AGENT_MAX_TURNS 번)
   사용자 질문 + 지금 보는 리포트 요약
-    → Claude 가 도구를 고른다 (ask_data / rank_regions / compare_regions / estimate_cost / rehearse / update_report ...)
+    → Claude 가 도구를 고른다 (ask_data / rank_regions / compare_regions / estimate_cost / rehearse / propose_report_change ...)
     → 도구 실행 결과(우리 데이터·계산식)를 Claude 에 돌려준다
     → Claude 가 결과를 보고 다음 도구를 부르거나, 끝내고 답한다
+    → 조건이 바뀌어야 맞는 상황이면 propose_report_change 로 '리포트 수정 제안'을 남긴다
+      (화면에 [적용하기] 카드가 뜨고, 사용자가 누를 때만 리포트가 바뀐다)
 
 역할 분담 (기획서 '판단 및 자율 수행 범위')
   - Claude: 질문 해석, 어떤 도구를 어떤 순서로 쓸지, 조건을 바꿔 다시 계산할지, 리포트를 바꿀지 판단 + 답 문장 구성
   - 도구(우리 코드): 모든 숫자·장소·출처. Claude 는 숫자를 만들지 않는다
-  - 사용자: 최종 선택. update_report 는 리포트 화면만 바꾸고, 조건 입력 폼에 그대로 반영돼 사용자가 다시 바꿀 수 있다
+  - 사용자: 최종 결정. Agent 는 리포트 수정을 '제안'만 하고, 적용은 사용자가 누를 때만. 적용 후에도 조건 폼에서 다시 바꿀 수 있다
 
 키가 없거나 API 오류가 나면 backend.agent.consult.run_consult (규칙 + 데이터) 로 답한다.
 """
@@ -70,7 +72,7 @@ TOPICS = {  # ask_data 주제 → 규칙 상담의 데이터 조회 함수 (cons
 }
 
 SYSTEM = """너는 제주살이 동모 '돌몽이'다. 사용자는 지금 돌몽이 웹에서 제주 동네 추천 리포트를 보고 있고,
-너는 그 리포트를 같이 보면서 질문에 답하고, 필요하면 조건을 바꿔 다시 계산하고, 리포트를 고쳐 준다.
+너는 그 리포트와 연결돼 있어서, 질문에 답하고, 필요하면 조건을 바꿔 다시 계산하고, 리포트 수정을 제안한다.
 
 [반드시 지킬 것]
 1. 숫자·장소 이름·출처는 도구 결과에 있는 것만 쓴다. 기억이나 추측으로 만들지 않는다. 도구로 확인 못 한 건 "데이터에 없어요"라고 말한다.
@@ -78,8 +80,12 @@ SYSTEM = """너는 제주살이 동모 '돌몽이'다. 사용자는 지금 돌�
 2. 리포트 요약에 이미 있는 내용이면 도구 없이 답해도 된다. 없는 내용이면 도구를 쓴다.
 3. 생활 정보(병원·숙소·맛집·빨래방·아이·활동·시기·치안·예산 절감 등)는 ask_data 로 가져온다. 결과의 링크 [이름](url) 는 그대로 살려서 쓴다.
 4. 동네 비교는 compare_regions, 조건을 바꾼 결과가 궁금하면 rank_regions 나 estimate_cost 에 changes 를 넣어 계산한다.
-5. 사용자가 조건을 바꾸고 싶어 하면("차 빌리면?", "두 달로 바꿔줘", "예산 250으로", "아이랑 갈 거야") 먼저 계산해서 차이를 확인하고,
-   update_report 로 리포트를 바꾼다. 그냥 궁금해서 물어본 것("~면 얼마야?")이면 계산만 하고, 답 끝에 "리포트도 바꿔 드릴까요?"라고 묻는다.
+5. 리포트 수정은 직접 하지 않고 propose_report_change 로 '제안'한다. 화면에 [적용하기] 버튼이 뜨고 사용자가 누를 때만 바뀐다.
+   - 제안할 때: 대화에서 사용자 조건이 리포트와 달라졌을 때(아이 동반, 차 없음, 기간·예산·인원·출발 달, 중요하게 여기는 것),
+     사용자가 바꿔 달라고 했을 때, 또는 계산해 보니 다른 동네가 사용자에게 더 맞을 때(select_region_id).
+   - 먼저 rank_regions 등으로 계산해 차이를 확인한 뒤 제안한다. 지금 리포트와 같으면 제안하지 않는다. 한 답에 제안은 한 번.
+   - 제안했으면 답 마지막 줄에 "돌몽이가 ~를 적용해서 리포트를 수정해 드릴까요?"처럼 무엇을 바꿀지 한 문장으로 묻는다.
+   - 단순 궁금증("~면 얼마야?")에는 답만 하고, 그 조건이 사용자 상황 같으면 제안한다.
 6. 질문이 여러 가지를 묻으면 도구를 여러 번 써서 다 답한다. 한 번에 여러 도구를 불러도 된다.
 7. 제주 생활과 상관없는 질문, 데이터로 답할 수 없는 행정·계약 질문은 ask_data(topic=contact) 로 문의처를 안내한다.
 
@@ -120,19 +126,19 @@ TOOLS = [
     {"name": "rehearse",
      "description": "그 동네에서 평일·주말 하루를 데이터 속 실제 장소로 짜 본 일과표 ('하루 어떻게 보내?', '주말에 뭐 해?').",
      "input_schema": {"type": "object", "properties": {"region_id": REGION_ID}, "required": ["region_id"]}},
-    {"name": "update_report",
-     "description": "사용자 화면의 리포트를 바꾼다: 조건 입력값을 changes 로 바꾸고 순위를 다시 계산하며, select_region_id 를 주면 그 동네 상세를 띄운다. "
-                    "사용자가 바꾸길 원할 때만 쓴다.",
+    {"name": "propose_report_change",
+     "description": "리포트 수정을 사용자에게 제안한다 (바로 바뀌지 않음). 화면에 바뀔 내용과 [적용하기] 버튼이 뜨고, 누르면 조건 입력값이 changes 로 바뀌어 "
+                    "순위가 다시 계산되며 select_region_id 동네가 열린다.",
      "input_schema": {"type": "object", "properties": {
          "changes": CHANGES_SCHEMA,
          "select_region_id": {"type": "string", "description": "리포트에서 열어 줄 동네 (선택)"},
-         "reason": {"type": "string", "description": "사용자에게 보여 줄 한 줄 (예: '렌터카 → 버스·도보')"}}}},
+         "reason": {"type": "string", "description": "제안 카드에 보여 줄 한 줄 이유 (예: '차 없이 지낸다고 하셔서 버스·도보로')"}}}},
 ]
 TOOLS[-1]["cache_control"] = {"type": "ephemeral"}  # 시스템 프롬프트 + 도구 정의는 매번 같으니 캐시
 
 TOOL_LABEL = {"ask_data": "데이터 찾기", "rank_regions": "순위 다시 매기기", "compare_regions": "동네 비교",
               "estimate_cost": "비용 계산", "get_region_detail": "동네 지표 보기", "rehearse": "하루 일과 짜기",
-              "update_report": "리포트 바꾸기"}
+              "propose_report_change": "리포트 수정 제안"}
 TOPIC_LABEL = {"save": "예산 절감", "car_cost": "렌터카 비용", "priority_cost": "우선순위별 비용", "why": "추천 근거",
                "cons": "단점", "compare": "상위 3곳 장단점", "one_on_one": "1대1 비교", "transit": "교통",
                "amenity": "생활 시설", "medical": "병원·응급실", "lodging": "숙소", "food": "맛집·카페", "gyul": "귤",
@@ -235,14 +241,17 @@ def run_tool(name: str, args: dict, cond: Conditions, ctx: dict) -> dict:
         return {"region": out["region_name"], "month": out["month"], "weekday": pick(out["weekday"]),
                 "weekend": pick(out["weekend"]), "notes": out["notes"]}
 
-    if name == "update_report":
+    if name == "propose_report_change":
         c = _apply(cond, args.get("changes"))
         changed = {k: v for k, v in c.to_dict().items() if k in COND_NAME and v != cond.to_dict().get(k)}
         sel = _rid(args["select_region_id"]) if args.get("select_region_id") else None
         ctx["report_update"] = {"conditions": changed, "select_region_id": sel,
                                 "reason": args.get("reason") or ", ".join(COND_NAME[k] for k in changed)}
+        if not changed and not sel:
+            ctx["report_update"] = None
+            return {"ok": False, "note": "지금 리포트와 같아서 제안하지 않았다."}
         return {"ok": True, "changed": changed, "select_region_id": sel,
-                "note": "사용자 화면의 조건 입력과 리포트가 이 값으로 바뀐다."}
+                "note": "제안 카드가 화면에 뜬다. 사용자가 [적용하기]를 눌러야 바뀐다. 답 끝에 적용할지 물어본다."}
 
     raise KeyError(f"모르는 도구: {name}")
 
