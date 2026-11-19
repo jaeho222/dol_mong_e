@@ -163,6 +163,25 @@
     </div>
   </footer>
 
+  <!-- 돌몽이 상담: 화면 어디서나 오른쪽 아래 버튼으로 열고 닫는다 (app.js ④) -->
+  <button type="button" class="cs-fab" id="cs-fab" aria-controls="cs-panel" aria-expanded="false">
+    <img src="assets/dolmong/hello.webp" alt="" width="52" height="52" /><span>돌몽이에게 물어보기</span>
+  </button>
+  <aside class="cs-panel" id="cs-panel" role="dialog" aria-label="돌몽이 상담" hidden>
+    <div class="cs-head">
+      <img src="assets/dolmong/done.webp" alt="" width="40" height="40" />
+      <div class="cs-title"><b>돌몽이가 알려주쿠다</b><span id="cs-where">리포트를 불러오는 중이에요</span></div>
+      <span class="cs-mode" id="cs-mode" hidden></span>
+      <button type="button" class="cs-close" id="cs-close" aria-label="상담 닫기"><svg class="ico"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="cs-msgs" id="cs-msgs" aria-live="polite"></div>
+    <form class="cs-ask" id="cs-form">
+      <input id="cs-text" autocomplete="off" maxlength="500" placeholder="예) 차 없이 두 달이면 어디가 좋아? 리포트도 바꿔줘" aria-label="돌몽이에게 물어볼 내용" />
+      <button class="send" aria-label="보내기"><svg class="ico"><use href="#i-send"/></svg></button>
+    </form>
+    <p class="cs-foot">숫자와 장소는 비용 계산식과 공공데이터에서만 가져와요. 데이터로 답하기 어려운 건 제주120만덕콜센터(국번 없이 120)로 안내해요.</p>
+  </aside>
+
 
   <script src="assets/jeju.js"></script>
   <script src="assets/app.js"></script>
