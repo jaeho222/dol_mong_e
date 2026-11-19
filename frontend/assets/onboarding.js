@@ -254,7 +254,7 @@ const J = (t) => (window.jeju ? window.jeju(t) : t);
           <div class="ob-bubble"><p class="ob-say">${userName() ? `${esc(userName())}님, ` : ""}${J(`찾았어요! 우리랑 제일 잘 맞는 동네는 <b>${esc(top.name)}</b>예요. 귤 하나 드릴게요!`)}</p></div>
         </div>
         <article class="ob-card">
-          <div class="ob-photo">${img ? `<img src="${img.src}" alt="${esc(img.place)}" onerror="this.remove()" />` : ""}<span>궁합 1위</span></div>
+          <div class="ob-photo">${img ? `<img src="${img.src}" alt="${esc(img.place)}" onerror="this.remove()" />` : ""}<span>추천 1위</span></div>
           <div class="ob-card-body">
             <p class="ob-trait">${esc(traitName(top))}</p>
             <h3>${esc(top.name)} <small>${esc(top.zone)}</small></h3>
