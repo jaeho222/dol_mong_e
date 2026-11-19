@@ -1,169 +1,190 @@
-# 돌몽이 — 예비 도민을 위한 제주살이 동네 추천 AI Agent
+<div align="center">
 
-제주 AI·빅데이터 활용 AI Agent 개발 챌린지 최종 결과물 · 팀 **돌몽이키우기**
+# 🍊 돌몽이 (Dolmong)
 
-> "1월부터 석 달, 둘이서, 차 없이, 총 900만 원 안에서" 같은 조건을 받아
-> 제주 14개 생활권의 **체류 총비용**(숙소·이동·식비·공과금)과 **생활환경**(교통·의료·편의·조용함·자연·날씨·맛집·밤길)을
-> 제주데이터허브 데이터로 계산해 동네를 추천하고, 캐릭터 상담 Agent '돌몽이'가 리포트를 같이 읽으며 질문에 답하는 서비스입니다.
+### 제주에서 잠깐 살아볼까? 데이터로 찾는 나만의 제주살이
 
-- **바로 써 보기 (설치 없이):** https://bang-aeo-hwae.vercel.app
-- 처음 들어가면 돌몽이 문답이 뜹니다. 다시 보려면 주소 뒤에 `?start=1` 을 붙이세요.
+**제주 AI·빅데이터 활용 AI Agent 개발 챌린지 | 팀 고등어회**
+
+제주에 2주부터 1년까지 머물고 싶은 사람을 위한 **데이터 기반 제주 생활권 추천·체류비용 분석·AI 상담 서비스**
+
+</div>
 
 ---
 
-## 이 ZIP 안에 있는 것 (대회 필수 제출 항목 대응표)
+## 🌿 프로젝트 소개
 
-| 대회 구분 | 필수 내용 | 이 ZIP 의 위치 |
+제주 한 달 살이를 준비할 때는 숙소비뿐 아니라 교통, 식비, 병원 접근성, 계절별 날씨와 생활환경까지 따져야 합니다. 하지만 필요한 정보는 여러 곳에 흩어져 있고, 지역마다 어떤 차이가 있는지 비교하기 어렵습니다.
+
+**돌몽이**는 제주 공공데이터를 생활권 단위로 정리하고, 사용자의 체류 조건에 맞춰 **예상 비용과 생활환경을 함께 비교**합니다. 제주살이 친구 **돌몽이**와 자연어로 상담하면서 추천 이유를 확인하거나 조건을 바꿔 새로운 결과를 받아볼 수도 있습니다.
+
+> **예시**  “1월부터 석 달 동안 둘이서, 차 없이 지내고 싶어. 예산은 900만 원이야.”
+>
+> → 생활권별 예상 체류비용과 추천 순위 확인 → 교통·의료·날씨 근거 살펴보기 → 돌몽이와 대화하며 조건 재설정
+
+## ✨ 주요 기능
+
+| 기능 | 설명 |
+|---|---|
+| **맞춤형 제주 생활권 추천** | 기간, 시작 월, 인원, 예산, 렌터카 사용 여부, 자녀·반려동물 동반, 원격근무·한적함 선호 등을 반영해 14개 생활권을 비교합니다. |
+| **체류비용 추정** | 숙소·식비·교통/렌터카·공과금 등을 함께 계산하고 지역 간 예상 비용 차이를 보여줍니다. |
+| **생활환경 분석** | 버스, 병·의원, 응급실, 자연환경, 관광 혼잡, 기후 등 다양한 지표를 함께 살펴봅니다. |
+| **근거를 확인하는 리포트** | 추천 이유, 지표별 점수, 데이터 출처와 계산 근거를 확인할 수 있습니다. |
+| **돌몽이 AI Agent 상담** | Claude가 질문의 의도를 파악해 필요한 분석 도구를 호출하고, 지역 비교·비용 계산·생활정보 조회 결과를 설명합니다. |
+| **대화형 조건 변경** | 대화에서 새로운 조건이 나오면 다시 계산하고 리포트 수정을 **제안**합니다. 최종 적용은 사용자가 결정합니다. |
+
+![돌몽이 서비스 화면](docs/screenshot.png)
+
+## 🤖 AI Agent는 어떻게 동작하나요?
+
+돌몽이는 단순히 생성형 AI가 답변을 작성하는 챗봇이 아니라, **Claude의 도구 호출(tool use)**과 실제 데이터 계산 기능을 연결한 Agent입니다.
+
+```mermaid
+flowchart TD
+    A[사용자 질문 및 현재 추천 리포트] --> B[Claude Agent]
+    B --> C{질문에 맞는 도구 선택}
+    C --> D[생활정보 조회]
+    C --> E[지역 순위·지역 비교]
+    C --> F[체류비용 계산]
+    C --> G[생활 시뮬레이션]
+    D --> H[제주 공공데이터 기반 분석 결과]
+    E --> H
+    F --> H
+    G --> H
+    H --> I[근거를 포함한 답변]
+    I --> J{조건 변경이 필요한가?}
+    J -->|예| K[새 조건으로 재계산 및 변경 제안]
+    K --> L[사용자가 적용 여부 결정]
+    J -->|아니요| M[기존 리포트 유지]
+```
+
+**역할 분리**
+- **Claude:** 자연어 이해, 도구 선택 및 호출 순서, 결과 설명
+- **Python 분석 도구:** 데이터 조회, 지표 계산, 비용 및 추천 순위 산출
+- **사용자:** 변경 제안 검토 및 최종 적용 결정
+
+Agent 도구 7종: `ask_data`, `rank_regions`, `compare_regions`, `estimate_cost`, `get_region_detail`, `rehearse`, `propose_report_change`
+
+배포된 웹 서비스에서 Claude API 연동 및 대화형 도구 활용 흐름을 확인했습니다. API 키는 저장소에 포함하지 않고 배포 환경변수로 관리합니다.
+
+## 📊 데이터 활용
+
+제주데이터허브 및 제주빅데이터센터의 지역 데이터를 중심으로 교통·생활편의·의료·안전 관련 시설·자연·날씨·관광·상권 정보를 생활권별로 가공했습니다.
+
+| 분야 | 주요 활용 데이터 | 활용 예시 |
 |---|---|---|
-| **실행 소스 코드** | Agent 실행 코드 | `1_실행소스코드/backend/agent/` (상담 Agent `dolmong_agent.py`, 규칙 모드 `consult.py`) |
-| | Prompt | `1_실행소스코드/prompts/` (사본 + 원본 위치 표) |
-| | Tool/API 연동 및 데이터 처리 코드 | 도구 `backend/tools/`, API 서버 `backend/main.py`, 수집 `supabase/functions/`, 전처리 `supabase/sql/`, 내보내기 `data/build/` |
-| | 사용 모델·라이브러리 정보 | `1_실행소스코드/MODELS_AND_LIBRARIES.md`, `requirements.txt` |
-| **실행환경·매뉴얼** | README, 설치·실행 절차 | 이 파일 (아래 "설치·실행") |
-| | 의존성 목록 | `1_실행소스코드/requirements.txt` |
-| | 환경변수 예시 | `1_실행소스코드/.env.example`, 이 파일의 "환경변수" 표 |
-| | 사용자 매뉴얼 | `2_실행환경_매뉴얼/사용자매뉴얼.pdf` |
-| | 오류·제약사항 | 이 파일의 "자주 나는 오류", "제약사항" |
-| **데이터 활용 명세** | 필수 데이터 사용 내역, 출처·이용조건, 전처리·분석 흐름, 외부 데이터·오픈소스 목록 | `3_데이터활용명세/데이터활용명세.pdf` (+ 상세 표 `DATA.md`, `DATA_CATALOG.md`, `COST_MODEL.md`) |
-| **결과 설명자료** | 문제 정의, Agent 구조, 주요 기능, 실행 결과, 검증 방법·한계, 센터 활용 방안 | `4_결과설명자료/결과설명자료.pdf` |
+| 교통 | 버스 정류소·노선 | 차량 미이용자의 교통 편의 비교 |
+| 의료 | 병·의원, 응급실 정보 | 의료시설 접근성과 자녀 동반 조건 반영 |
+| 주거·비용 | 국토교통부 전월세 실거래가, 공개 가격 자료 | 지역별 상대 임대지수 및 예상 체류비용 계산 |
+| 계절·환경 | 기온·습도·풍속, 항공기 소음 등 | 계절별 생활환경 분석 |
+| 지역 생활 | 음식점, 상권, 관광지·축제, 유동인구 등 | 생활편의 및 방문·여가 환경 비교 |
 
-각 PDF 와 같은 내용의 `.md` 파일도 함께 들어 있습니다.
+**데이터 처리 흐름:** 원천 데이터 수집 → 정제·지역 매핑 → 14개 생활권별 지표 산출 → 추천 및 비용 계산 → 리포트·Agent 활용
 
----
+> **해석 시 유의사항:** 표시되는 체류비용은 실제 예약 가능한 숙소의 견적이 아니라 공개 자료와 가정을 결합한 **비교용 추정치**입니다. CCTV·신고 관련 수치 등은 개인의 안전을 직접 보장하는 지표가 아닙니다. 출처·계산 방식과 세부 제약은 `docs/` 문서를 참고하세요.
 
-## 설치·실행
+## 🛠 기술 스택
 
-### 요구 사항
-- **Python 3.10 이상** (3.13 에서 검증)
-- 인터넷: 설치할 때 `pip` 다운로드에만 필요. Claude 키를 넣으면 상담 Agent 가 Anthropic API 를 호출합니다.
-- 센터 PC 사양(Intel i7-8700 / GTX 1060 / RAM 32GB)으로 충분합니다. 로컬 LLM 을 쓰지 않고, 데이터는 미리 가공한 CSV(약 50KB)만 읽습니다. GPU 는 쓰지 않습니다.
+| 영역 | 기술 |
+|---|---|
+| Frontend | HTML, CSS, JavaScript |
+| Backend / API | Python, FastAPI, Uvicorn |
+| AI Agent | Anthropic Claude API, Tool Use |
+| 데이터 처리 | Pandas, CSV, SQL |
+| 데이터베이스·수집 | Supabase (PostgreSQL, Edge Functions) |
+| 배포 | Vercel |
+| 테스트 | Pytest |
 
-### Windows (센터 PC 기준)
-명령 프롬프트(cmd)에서:
-```bat
-cd 1_실행소스코드
+## 🚀 로컬 실행
+
+**요구사항:** Python 3.10 이상
+
+```bash
+git clone https://github.com/jaeho222/bang-aeo-hwae.git
+cd bang-aeo-hwae
 python -m venv .venv
+```
+
+가상환경 활성화:
+
+```bash
+# Windows
 .venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env
-uvicorn backend.main:app --port 8000
-```
-브라우저에서 **http://localhost:8000** 을 엽니다. 끌 때는 cmd 창에서 `Ctrl + C`.
 
-### macOS / Linux
-```bash
-cd 1_실행소스코드
-python3 -m venv .venv
+# macOS / Linux
 source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn backend.main:app --port 8000
 ```
 
-### 두 가지 실행 모드
-| 모드 | 조건 | 동작 |
-|---|---|---|
-| **Claude Agent 모드** | `.env` 의 `ANTHROPIC_API_KEY` 에 키를 넣음 | 상담창 자유 질문을 Claude 가 해석해 도구 7개를 골라 쓰고, 필요하면 리포트 수정을 제안 |
-| **규칙 + 데이터 모드** | 키를 비워 둠 (기본) | 같은 도구·데이터를 정규식 분류로 호출해 답함. 추천·리포트·빠른 버튼은 두 모드가 똑같음 |
+의존성 설치 및 실행:
 
-지금 모드는 http://localhost:8000/api/health 의 `agent_mode` 값(`claude` / `mock`)이나 상담창 제목 옆 표시("기본 모드")로 확인합니다.
-
-### 평가용 Claude 키
-- 평가용 키는 대회 규정에 따라 **사용 한도를 걸고** 제출하며, 평가가 끝나면 폐기합니다.
-- 평가용 키가 들어 있으면 `1_실행소스코드/.env.example` 의 `ANTHROPIC_API_KEY=` 뒤에 적혀 있고, `.env` 로 복사하면 바로 Claude Agent 모드로 실행됩니다. 비어 있으면 규칙 + 데이터 모드로 실행되며, 직접 발급한 키를 넣어도 됩니다(https://console.anthropic.com).
-- 키가 한도에 걸리거나 만료되어도 서비스는 멈추지 않고 규칙 + 데이터 모드로 답합니다.
-
-### 테스트
 ```bash
-python -m pytest -q        # 22 passed
-```
-`tests/test_agent.py` 는 가짜 Claude 응답으로 도구 루프(여러 도구 동시 호출, 도구 오류 복구, 리포트 수정 제안)를 키 없이 검증합니다.
+pip install -r requirements.txt
 
----
+# Windows
+copy .env.example .env
+# macOS / Linux: cp .env.example .env
 
-## 환경변수 (`.env`)
-
-| 이름 | 기본값 | 설명 | 실행에 필요? |
-|---|---|---|---|
-| `ANTHROPIC_API_KEY` | (비어 있음) | Claude API 키. 비우면 규칙 + 데이터 모드 | 선택 |
-| `CLAUDE_MODEL` | `claude-haiku-5-5` | 상담 Agent 모델 | 선택 |
-| `AGENT_MODE` | `auto` | `auto`(키 있으면 claude) / `claude` / `mock` | 선택 |
-| `AGENT_MAX_TURNS` | `5` | 질문 하나에 도구 호출 루프 최대 횟수 | 선택 |
-| `AGENT_MAX_TOKENS` | `1500` | 답 한 번의 최대 토큰 | 선택 |
-| `AGENT_TIMEOUT` | `25` | API 한 번 기다리는 초 | 선택 |
-| `AGENT_RATE_PER_MIN` | `8` | IP 하나가 1분에 보낼 수 있는 자유 질문 수 | 선택 |
-| `DOLMONG_DIALECT` | `1` | 돌몽이 대사 끝 어미를 제주어로 (`0` 이면 표준어) | 선택 |
-| `REGION_METRICS_PATH` | `data/processed/region_metrics.csv` | 동네 지표 파일 | 선택 |
-| `DATA_GO_KR_KEY` (Supabase 시크릿) | – | 공공데이터포털 인증키 — 데이터를 다시 만들 때 `ingest-molit` 이 읽음 | 아니오 |
-| `JEJU_HUB_KEY` (Supabase 시크릿) | – | 제주데이터허브 API 키 — 데이터를 다시 만들 때 Edge Function `ingest-hubapi` 가 읽음 | 아니오 |
-| `SUPABASE_DB_URL` | (비어 있음) | Supabase 연결 문자열 — 데이터를 다시 내보낼 때만 | 아니오 |
-
-**데이터 API 키는 제출물에 넣지 않았습니다** (대회 규정). 발급 방법:
-- 제주데이터허브: https://www.jejudatahub.net 회원가입 → 마이페이지 → 프로젝트 생성 → 데이터를 프로젝트에 담기 → 프로젝트 API 키 발급
-- 공공데이터포털: https://www.data.go.kr 회원가입 → 국토교통부 아파트·단독다가구·오피스텔 전월세 실거래가(15126474·15126472·15126475) 활용신청 → 마이페이지의 일반 인증키(Decoding)
-
----
-
-## 데이터를 처음부터 다시 만들려면 (선택)
-실행에는 필요 없습니다. `data/processed/*.csv` 에 가공 결과가 이미 들어 있습니다.
-1. Supabase 프로젝트를 **서울 리전**으로 만들고 `supabase/sql/00_setup.sql` 실행 (제주데이터허브가 해외 IP 를 막음)
-2. `supabase/functions/` 의 함수 4개 배포, 시크릿 `JEJU_HUB_KEY`, `DATA_GO_KR_KEY` 등록 (방법: `supabase/functions/README.md`)
-3. `10_ingest.sql` → `20_region_metrics.sql` → `25`~`29` → `30_care_points.sql` 순서로 실행
-4. `.env` 에 `SUPABASE_DB_URL` 을 넣고 `pip install "psycopg[binary]"` 후 `python -m data.build.export_supabase`
-
-자세한 흐름은 `3_데이터활용명세/데이터활용명세.pdf` 의 "전처리·분석 흐름" 참고.
-
----
-
-## 자주 나는 오류
-
-| 증상 | 원인 | 해결 |
-|---|---|---|
-| `'python'은(는) 내부 또는 외부 명령...` | Python 미설치 또는 PATH 미등록 | python.org 에서 3.10 이상 설치, 설치 첫 화면에서 "Add python.exe to PATH" 체크 |
-| `.venv\Scripts\activate` 가 PowerShell 에서 막힘 | 실행 정책 | cmd 를 쓰거나, PowerShell 에서 `Set-ExecutionPolicy -Scope Process RemoteSigned` |
-| `[Errno 10048] ... address already in use` | 8000 포트 사용 중 | `uvicorn backend.main:app --port 8001` 후 http://localhost:8001 |
-| `ModuleNotFoundError: No module named 'backend'` | 다른 폴더에서 실행 | `1_실행소스코드` 폴더 안에서 실행 |
-| 상담창에 "기본 모드" 표시 | 키 없음, 키 한도 초과, API 오류 | 정상 동작입니다. Claude 모드를 원하면 `.env` 의 키 확인 후 서버 재시작 |
-| "질문이 많아서 잠깐 기본 모드로 답했어요" | IP 당 1분 8개 제한 | 1분 뒤 다시 질문, 또는 `AGENT_RATE_PER_MIN` 을 늘림 |
-| 동네 사진이 회색, 글꼴이 다름 | 인터넷 차단으로 위키미디어 사진·Pretendard CDN 을 못 불러옴 | 기능에는 영향 없음 |
-| 첫 화면 문답이 안 뜸 | 이미 한 번 봤음 (브라우저에 저장) | 주소 뒤에 `?start=1` |
-
-## 제약사항
-- **비용은 추정치입니다.** 숙소 권역 기준가·렌터카·식비 단가는 공개 가이드 기반 가정값이고, 동네 간 차이는 국토부 전월세 실거래가 임대지수로 반영합니다. 화면의 ±15% 범위는 통계적 신뢰구간이 아닙니다.
-- **데이터 시점이 서로 다릅니다.** 기후 2000~2021, 렌터카 체류 2021 하반기, 유동인구 2025-10, 상가·병원 2025-09, 전월세 2025-11~2026-10.
-- **비교 단위는 14개 생활권**(읍·면, 제주시·서귀포시 동지역 묶음)입니다. 마을·건물 단위 추천은 하지 않습니다.
-- 교통·편의·안전 점수는 정류장 수, 시설 수, CCTV 수 같은 **대리 지표**입니다. 버스 시간표·배차, 실제 매물, 계약·전입 같은 행정 정보는 제공하지 않고 공식 문의처(제주120만덕콜센터 등)를 안내합니다.
-- Claude Agent 모드는 외부 API 라서 답에 몇 초가 걸리고, 드물게 질문 의도를 잘못 읽을 수 있습니다. 숫자는 도구 결과만 쓰도록 막아 두었고, 답마다 "돌몽이가 확인한 것"(호출한 도구)과 참고 데이터를 함께 보여 줍니다.
-- 사용량 제한(IP 당 1분 8개)은 서버 메모리 기준이라 서버가 다시 시작되면 초기화됩니다. 최종 비용 상한은 Anthropic 콘솔의 사용 한도로 막습니다.
-
----
-
-## 폴더 구조
-```
-돌몽이키우기_최종결과물/
-├─ README.md                      ← 지금 이 파일 (실행환경·매뉴얼)
-├─ 1_실행소스코드/
-│  ├─ backend/                    FastAPI 서버, Agent, 도구
-│  │  ├─ main.py                  API (/api/estimate, /api/consult, /api/rehearsal ...)
-│  │  ├─ agent/dolmong_agent.py   ★ 돌몽이 상담 Agent (Claude tool-use 루프)
-│  │  ├─ agent/consult.py         규칙 + 데이터 모드 (LLM 없이)
-│  │  └─ tools/                   비용·점수·지수·리허설·근거 계산 (순수 파이썬)
-│  ├─ frontend/                   화면 (HTML/CSS/JS, 빌드 없음)
-│  ├─ data/processed/             가공된 동네 데이터 CSV (실행 시 읽는 파일)
-│  ├─ supabase/                   데이터 수집 함수 + 전처리 SQL
-│  ├─ data/build/                 Supabase → CSV 내보내기
-│  ├─ prompts/                    프롬프트 사본
-│  ├─ tests/                      pytest 22개
-│  ├─ docs/                       DATA.md, COST_MODEL.md, DATA_CATALOG.md
-│  ├─ MODELS_AND_LIBRARIES.md     사용 모델·라이브러리·외부 서비스
-│  ├─ README_개발자.md            팀 내부 개발 가이드
-│  ├─ requirements.txt, .env.example, index.py(Vercel 진입점)
-├─ 2_실행환경_매뉴얼/  사용자매뉴얼.pdf (.md)
-├─ 3_데이터활용명세/   데이터활용명세.pdf (.md), DATA.md, DATA_CATALOG.md, COST_MODEL.md
-└─ 4_결과설명자료/     결과설명자료.pdf (.md)
+uvicorn backend.main:app --reload
 ```
 
-## 팀·라이선스
-- 팀: 돌몽이키우기
-- 캐릭터 돌몽이: 팀 자체 제작
-- 대회 규정에 따라 결과물의 권리는 제주빅데이터센터에 귀속됩니다.
+브라우저에서 **http://localhost:8000** 으로 접속합니다.
+
+- 로컬에서 Claude 상담을 사용하려면 `.env`의 `ANTHROPIC_API_KEY`에 본인의 키를 설정하세요.
+- 키가 없는 로컬 환경에서는 규칙·데이터 기반 상담 모드로 동작할 수 있습니다. **이는 배포된 웹에서의 Claude Agent 연동 상태와는 별개**입니다.
+- `.env`, 실제 API 키, DB 접속 정보는 커밋하지 마세요.
+
+테스트:
+
+```bash
+python -m pytest -q
+```
+
+FastAPI API 문서: `http://localhost:8000/docs`
+
+## 📂 프로젝트 구조
+
+```text
+bang-aeo-hwae/
+├── backend/
+│   ├── agent/           # Claude Agent, 프롬프트 및 상담 처리
+│   ├── tools/           # 비용·추천·지역정보 등 분석 함수
+│   ├── main.py          # FastAPI 엔드포인트
+│   └── schema.py        # 사용자 조건 스키마
+├── frontend/            # 서비스 화면 및 정적 리소스
+├── data/
+│   ├── processed/       # 서비스에서 사용하는 가공 데이터
+│   └── build/           # 수집·전처리·내보내기 파이프라인
+├── supabase/            # 데이터 적재 및 SQL/Edge Functions
+├── docs/                # 데이터·비용 모델 상세 문서
+├── tests/               # 자동 테스트
+├── requirements.txt
+├── .env.example
+└── README.md
+```
+
+## 🧪 구현 및 검증
+
+- 사용 조건에 따른 생활권 추천 및 체류비용 계산
+- Claude Agent의 데이터 조회·비교·조건 변경 제안 흐름을 배포 웹에서 확인
+- `pytest` 자동 테스트 **22개 통과** (제출 결과 기준)
+- 추천 지표와 비용 추정의 계산 기준 및 제한사항 문서화
+
+자동 테스트 결과는 계산·도구 연동 코드에 대한 검증이며, 실제 숙소 시세에 대한 예측 정확도나 전체 사용자 만족도를 의미하지는 않습니다.
+
+## 📚 추가 자료
+
+- [데이터 활용 및 출처](docs/DATA.md)
+- [데이터 목록](docs/DATA_CATALOG.md)
+- [비용 추정 모델](docs/COST_MODEL.md)
+
+## 👥 팀
+
+**고등어회** — 제주 AI·빅데이터 활용 AI Agent 개발 챌린지 출품작
+
+---
+
+<div align="center">
+
+**제주에서 살아볼 동네를 고르는 일, 돌몽이와 함께.**
+
+</div>
