@@ -728,3 +728,7 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
 @keyframes nudge-wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-6deg); } }
 @media (max-width: 600px) { .dolmong-nudge { right: 12px; bottom: 76px; } .dolmong-nudge-bubble { max-width: 200px; } .dolmong-nudge-img { width: 60px; height: 60px; } }
 @media (prefers-reduced-motion: reduce) { .dolmong-nudge, .dolmong-nudge-img { animation: none; } }
+
+/* 로고 옆 '- 나의 제주 살이 동모' (제주한라산체, 작게) */
+.logo-sub { margin-left: 8px; font: 400 15px var(--voice); color: var(--ink-2); white-space: nowrap; }
+@media (max-width: 600px) { .logo-sub { margin-left: 6px; font-size: 12px; } }
