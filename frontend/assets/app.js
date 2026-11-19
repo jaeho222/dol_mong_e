@@ -43,7 +43,7 @@ function init() {
 
   // 가장 중요한 것 3가지: 누른 순서 = 중요도 (3·2·1 가중치는 백엔드 region._weights)
   state.priorities = [];
-  $("#f-prio").insertAdjacentHTML("beforeend", CFG.priorities.map((p) =>   
+  $("#prio-items").insertAdjacentHTML("beforeend", CFG.priorities.map((p) =>   
   `<button type="button" class="pchip" data-k="${escapeHtml(p.key)}">
     <img class="pchip-icon"
         src="assets/icons/${encodeURIComponent(p.icon)}"

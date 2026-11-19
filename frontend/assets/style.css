@@ -592,3 +592,107 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
   font-size: 14px;
   font-weight: 600;
 }
+
+
+/* 중요도 선택: 제목 아래 아이콘 9개 한 줄 */
+.opts.prio {
+  display: block;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.opts.prio legend {
+  float: none;
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.opts.prio legend small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.prio-scroll {
+  width: 100%;
+  overflow-x: auto;
+  padding: 6px 4px 10px;
+}
+
+.prio-items {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(100px, 1fr));
+  gap: 8px;
+  min-width: 964px;
+}
+
+.prio-items .pchip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 6px;
+  font-size: 13px;
+}
+
+
+/* 돌몽이랑 다시 고르기 버튼 */
+.redo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-left: auto;
+  padding: 8px 16px 8px 8px;
+  min-height: 52px;
+  border: 2px solid #e6b56d;
+  border-radius: 999px;
+  background: #fff0d7;
+  color: #794817;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 3px 9px rgba(143, 89, 27, 0.10);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.redo:hover {
+  background: #ffe2ad;
+  border-color: #d99b45;
+  color: #794817;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(143, 89, 27, 0.18);
+}
+
+.redo-dolmong {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.redo-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .redo {
+    margin-left: 0;
+    font-size: 13px;
+    min-height: 46px;
+  }
+
+  .redo-dolmong {
+    width: 30px;
+    height: 30px;
+  }
+}
