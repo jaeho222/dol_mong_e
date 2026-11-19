@@ -103,7 +103,7 @@ def test_consult_without_key_uses_rules(monkeypatch):
 def test_activity_without_data_does_not_error():
     out = ag.run_tool("ask_data", {"topic": "activity", "region_id": "aewol", "question": "서핑"},
                       Conditions.from_dict(COND), _ctx())
-    assert "없어요" in "".join(out["facts"])
+    assert "모르는" in "".join(out["facts"]) and "120" in "".join(out["facts"])
 
 
 def test_no_proposal_when_nothing_changes():
