@@ -711,3 +711,20 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
     height: 30px;
   }
 }
+
+/* 문답 뒤 '나 여기 있수다' 안내 (PR #26) — 오른쪽 아래 돌몽이 버튼 바로 위에 뜬다 */
+.dolmong-nudge { position: fixed; right: 20px; bottom: 92px; z-index: 61; animation: nudge-in .35s ease-out; }
+.dolmong-nudge[hidden] { display: none; }
+.dolmong-nudge-talk { display: flex; align-items: flex-end; gap: 6px; border: 0; padding: 0; background: none; cursor: pointer; text-align: left; font: inherit; color: var(--ink); }
+.dolmong-nudge-bubble { position: relative; max-width: 230px; padding: 12px 14px; background: #fff; border: 1.5px solid var(--brand); border-radius: 14px 14px 4px 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14); font-size: 13.5px; line-height: 1.5; }
+.dolmong-nudge-bubble strong { display: block; margin-bottom: 2px; font: 400 16px var(--voice); color: var(--brand-dark); }
+.dolmong-nudge-img { width: 72px; height: 72px; object-fit: contain; flex: none; animation: nudge-wave 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+.dolmong-nudge-talk:hover .dolmong-nudge-bubble { background: var(--brand-tint); }
+.dolmong-nudge-close { position: absolute; top: -10px; left: -10px; width: 26px; height: 26px; border: 1px solid var(--line); border-radius: 50%;
+  background: #fff; color: var(--ink-2); font-size: 16px; line-height: 1; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.12); z-index: 1; }
+.cs-fab[aria-expanded="true"] ~ .dolmong-nudge, body.cs-docked .dolmong-nudge { display: none; }
+@keyframes nudge-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes nudge-wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-6deg); } }
+@media (max-width: 600px) { .dolmong-nudge { right: 12px; bottom: 76px; } .dolmong-nudge-bubble { max-width: 200px; } .dolmong-nudge-img { width: 60px; height: 60px; } }
+@media (prefers-reduced-motion: reduce) { .dolmong-nudge, .dolmong-nudge-img { animation: none; } }
