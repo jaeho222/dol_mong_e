@@ -132,3 +132,11 @@ def test_dialect_is_consistent_and_sentence_final_only():
 def test_internal_names_never_shown():
     assert ag.clean_answer("`transit`(버스·도보) 정보도 볼까요? 애월읍(aewol)이 좋아요") == "버스·도보 정보도 볼까요? 애월읍이 좋아요"
     assert ag.clean_source("비용 계산식·추천 점수 (docs/COST_MODEL.md, docs/DATA.md)") == "비용 계산식·추천 점수"
+
+
+def test_icons_and_emoji():
+    from backend.agent.icons import pick_icon, strip_emoji
+    assert strip_emoji("🍜 식당\n- [서양국수](u) ★4.8 → 좋아요 ☎️ 120") == "식당\n- [서양국수](u) ★4.8 → 좋아요 120"
+    assert pick_icon("근처 병원 있어?", "병원 24곳", ["medical"]) == "medical"
+    assert pick_icon("애월이랑 한림 비교해줘", "한림이 점수가 높아요", []) is None
+    assert pick_icon("아이랑 소아과", "", ["medical", "kids"]) is None  # 두 주제가 비슷하면 안 붙인다

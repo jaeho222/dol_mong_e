@@ -576,3 +576,32 @@ a.rh-place:hover { background: var(--brand); color: #fff; }
 .cs-msgs .msg.bot.loading .loader p { font-size: 14px; height: 2.9em; min-height: 2.9em; max-width: none; margin: 0;
   display: flex; align-items: center; justify-content: center; }
 .cs-msgs .msg.bot.loading .loader-stage img { width: 100%; }
+
+/* 돌몽이 전용 중요도 선택 아이콘 */
+.pchip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 15px;
+  min-height: 46px;
+}
+
+.pchip-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.pchip span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 상담창 돌몽이 아이콘 (주제가 맞을 때만) */
+.cs-msgs > * { flex-shrink: 0; }  /* 말풍선이 줄어들어 글이 넘치지 않게 */
+.cs-msgs .msg.bot.has-ico { position: relative; padding-left: 64px; min-height: 64px; }
+.cs-ico { position: absolute; left: 8px; top: 8px; width: 48px; height: 48px; object-fit: contain; }
+.qr button { display: inline-flex; align-items: center; gap: 5px; }
+.qr button img { width: 22px; height: 22px; object-fit: contain; margin: -4px 0 -4px -5px; }
