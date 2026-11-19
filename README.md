@@ -76,20 +76,39 @@ python scripts/build_static_demo.py   # → dist/demo.html
 
 ```mermaid
 flowchart LR
-  U[사용자] -->|폼 입력| F1[/POST /api/estimate/]
-  U -->|자연어| F2[/POST /api/chat/]
-  F2 --> A{AGENT_MODE}
-  A -->|키 있음| C[Claude Agent<br/>tool-use 루프]
-  A -->|키 없음| M[Mock Agent<br/>규칙 기반 파서]
-  C & M --> R[(도구 등록소<br/>tools/registry.py)]
-  F1 --> T2
-  R --> T1[list_regions]
-  R --> T2[rank_regions]
-  R --> T3[estimate_total_cost]
-  R --> T4[get_region_detail]
-  T1 & T2 & T3 & T4 --> D[(region_metrics.csv<br/>지역 × 지표 테이블)]
-  B[data/build/*<br/>데이터허브·공공데이터 수집] -.-> D
+  U[사용자] -->|조건 입력·온보딩| F1[/POST /api/estimate/]
+  F1 --> REP[동네 추천 리포트]
+  U -->|오른쪽 아래 돌몽이 창| F2[/POST /api/consult/]
+  F2 -->|빠른 버튼| RULE[규칙 + 데이터<br/>consult.py]
+  F2 -->|자유 질문, 키 있음| AG[돌몽이 Agent<br/>Claude tool-use 루프<br/>dolmong_agent.py]
+  F2 -.->|키 없음·오류·사용량 초과| RULE
+  AG --> TL[(도구 7개)]
+  TL --> T1[ask_data<br/>생활 정보 20주제]
+  TL --> T2[rank_regions · compare_regions<br/>estimate_cost · get_region_detail]
+  TL --> T3[rehearse]
+  TL --> T4[update_report]
+  T4 -->|조건 폼 + 리포트 다시 계산| REP
+  T1 & T2 & T3 --> D[(data/processed<br/>제주데이터허브 가공 데이터)]
 ```
+
+### 🤖 돌몽이 상담 Agent (`backend/agent/dolmong_agent.py`)
+
+화면 어디서나 오른쪽 아래 **돌몽이에게 물어보기** 버튼으로 연다. 지금 보고 있는 리포트(조건·순위·열어 본 동네)를 Agent 가 같이 본다.
+
+| 질문 유형 | 예시 | Agent 행동 |
+|---|---|---|
+| 설명 | "왜 애월이 1위야?" | 리포트 요약 또는 `ask_data(why)` |
+| 탐색 | "한림이랑 비교하면?", "근처 소아과?" | `compare_regions`, `ask_data(medical)` 로 새로 조회 |
+| 조정 | "차 없이 두 달이면? 리포트도 바꿔줘" | `rank_regions(changes)` 로 계산 → `update_report` 로 폼·리포트 갱신 |
+
+**판단 및 자율 수행 범위**
+- **Claude (판단)**: 질문 해석, 도구 선택·순서, 조건을 바꿔 다시 계산할지, 리포트를 바꿀지, 답 문장 구성
+- **도구 (사실)**: 모든 숫자·장소·출처. Claude 는 숫자를 만들지 않는다 (시스템 프롬프트 규칙 1)
+- **사용자 (결정)**: 리포트가 바뀌어도 조건 폼에 그대로 반영되므로 언제든 다시 바꿀 수 있다
+
+**안전장치** — 빠른 버튼은 LLM 없이 규칙으로 즉시 답(비용 0) · 모델 Haiku, 도구 루프 최대 `AGENT_MAX_TURNS`(5)회, 답 `AGENT_MAX_TOKENS`(900) · 시스템 프롬프트·도구 정의 프롬프트 캐싱 · IP당 분당 `AGENT_RATE_PER_MIN`(8)회 · 키는 서버 환경변수에만(프론트로 안 감) · 키 없음/오류/초과 시 규칙 답으로 자동 전환 · 답마다 근거 출처와 **"돌몽이가 확인한 것"**(도구 호출 과정) 공개
+
+테스트: `tests/test_agent.py` 가 가짜 Claude 로 도구 루프(여러 도구 동시 호출, 도구 오류 복구, 리포트 갱신)를 키 없이 검증한다.
 
 **핵심 설계 3가지**
 
@@ -102,7 +121,8 @@ flowchart LR
 | `GET /api/health` | 현재 모드(claude/mock), 더미 데이터 여부 |
 | `GET /api/regions` | 지역 목록 |
 | `POST /api/estimate` | `{"conditions": {...}, "top_k": 6}` → 순위·비용 (LLM 안 씀) |
-| `POST /api/chat` | `{"message": "..."}` → `{answer, ranked, trace, mode}` |
+| `POST /api/consult` | `{region_id, conditions, message, intent, history}` → `{answer, sources, trace, report_update, quick_replies, mode}` |
+| `POST /api/chat` | (예전 자연어 추천) `{"message": "..."}` → `{answer, ranked, trace, mode}` |
 
 `/docs` 에 FastAPI 자동 문서(Swagger)가 있다.
 

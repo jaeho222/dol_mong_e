@@ -1,6 +1,6 @@
 // 돌몽이 프론트엔드 (빌드 도구 없는 바닐라 JS)
 // ① 검색바·돌몽이 타일 → /api/estimate   ② 추천 동네: 목록 + 지도   ③ 선택한 동네: 비용·돌몽이 한마디·생활 점수·세심 체크·지수
-// ④ 돌몽이 상담 → /api/chat (Agent)
+// ④ 돌몽이 상담 (오른쪽 아래 플로팅 창) → /api/consult — 버튼은 규칙, 자유 질문은 Claude Agent 가 도구를 골라 쓰고 리포트를 바꾼다
 const CFG = window.APP_CONFIG;
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -42,11 +42,6 @@ function init() {
 
   // 가장 중요한 것 3가지: 누른 순서 = 중요도 (3·2·1 가중치는 백엔드 region._weights)
   state.priorities = [];
-  const drawPrio = () => $$("#f-prio .pchip").forEach((b) => {
-    const i = state.priorities.indexOf(b.dataset.k);
-    b.classList.toggle("on", i >= 0);
-    b.dataset.n = i >= 0 ? i + 1 : "";
-  });
   $("#f-prio").insertAdjacentHTML("beforeend", CFG.priorities.map((p) =>
     `<button type="button" class="pchip" data-k="${escapeHtml(p.key)}">${escapeHtml(p.label)}</button>`).join(""));
   $$("#f-prio .pchip").forEach((b) => b.onclick = () => {
@@ -67,24 +62,23 @@ function init() {
   // 첫 방문 문답 다시 열기 (예전 '돌몽이랑 고르기' 타일)
   $("#redo-ob").onclick = () => window.startOnboarding?.();
 
-  // 상담 (리포트 맨 아래)
-  $$("[data-go-consult]").forEach((b) => b.onclick = (e) => { e.preventDefault(); goConsult(); });
+  // 상담 (오른쪽 아래 플로팅 창)
+  initConsult();
   // 근거 '?' 버튼 (renderDetail 이 다시 그려도 동작하도록 위임)
   $("#detail-in").addEventListener("click", (e) => {
     const q = e.target.closest("[data-ev]");
     if (q) { const box = $("#" + q.dataset.ev); box.hidden = !box.hidden; q.setAttribute("aria-expanded", String(!box.hidden)); return; }
     const tab = e.target.closest("[data-rh]");
     if (tab) { drawRehearsal(tab.dataset.rh); return; }
-    const chip = e.target.closest("[data-qr]");
-    if (chip) consultAsk("", chip.dataset.qr, chip.textContent);
-  });
-  $("#detail-in").addEventListener("submit", (e) => {
-    if (e.target.id !== "cs-form") return;
-    e.preventDefault(); const t = $("#cs-text").value.trim(); if (t) consultAsk(t);
   });
 
   api("/api/health").then((h) => {
     state.agentMode = h.agent_mode;
+    const m = $("#cs-mode");
+    m.hidden = false;
+    m.textContent = h.agent_mode === "claude" ? "AI Agent" : "기본 모드";
+    m.classList.toggle("off", h.agent_mode !== "claude");
+    m.title = h.agent_mode === "claude" ? "자유 질문은 AI Agent 가 도구를 골라 답해요" : "API 키가 없어 규칙 + 데이터로만 답해요";
     if (h.dummy_data) {
       $("#data-note").hidden = false;
       $("#data-note").textContent = "지금은 동네 지표가 더미 데이터예요. 제주데이터허브 실제 데이터로 바꾸는 중이에요.";
@@ -95,6 +89,14 @@ function init() {
   document.fonts?.ready.then(() => state.data?.results.length && drawMap(state.data.results));
   // 돌몽이 말투 규칙(jeju_rules.json)을 받은 뒤 첫 계산 → 한마디가 처음부터 제주 어미로
   (window.jejuReady || Promise.resolve()).finally(() => runEstimate(false));
+}
+
+function drawPrio() {
+  $$("#f-prio .pchip").forEach((b) => {
+    const i = state.priorities.indexOf(b.dataset.k);
+    b.classList.toggle("on", i >= 0);
+    b.dataset.n = i >= 0 ? i + 1 : "";
+  });
 }
 
 function heroPhoto() {
@@ -389,18 +391,8 @@ function renderDetail(r) {
         <div class="rh-tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-rh="weekday">평일</button><button type="button" role="tab" aria-selected="false" data-rh="weekend">주말</button></div></div>
       <ol class="rh-list" id="rh-list"><li>${loaderHTML("small")}</li></ol>
       <p class="rh-notes" id="rh-notes"></p>
-    </section>
-    <section class="consult" id="consult" aria-label="돌몽이 상담">
-      <div class="cs-head"><img src="${CFG.pose.done}" alt="" width="40" height="40" />
-        <div><b>돌몽이가 알려주쿠다</b><span>${escapeHtml(r.name)} 리포트 기준 · 공공데이터로만 답해요</span></div></div>
-      <div class="cs-msgs" id="cs-msgs" aria-live="polite"></div>
-      <form class="cs-ask" id="cs-form">
-        <input id="cs-text" autocomplete="off" placeholder="예) 예산을 30만원 정도 줄이고 싶은데, 어디서 줄일까?" aria-label="돌몽이에게 물어볼 내용" />
-        <button class="send" aria-label="보내기"><svg class="ico"><use href="#i-send"/></svg></button>
-      </form>
-      <p class="cs-foot">답은 비용 계산식과 공공데이터 지표로만 만들어요. 데이터로 답하기 어려운 건 제주120만덕콜센터(국번 없이 120)로 안내해요.</p>
     </section>`;
-  startConsult(r);
+  consultSetRegion(r);
   startRehearsal(r);
 }
 
@@ -458,13 +450,30 @@ function josa(word, withJong, without) {
   return c >= 0 && c <= 11171 && c % 28 ? withJong : without;
 }
 
-// ④ 상담 (리포트 맨 아래) ─────────────────────────
-// 은행 앱 상담 챗봇처럼: 인사 + 빠른 버튼 → 자유 질문. 지금 보는 동네와 조건을 같이 보낸다.
-const consult = { region: null, history: [] };
+// ④ 돌몽이 상담 (플로팅 창) ───────────────────────
+// 오른쪽 아래 버튼으로 어디서나 연다. 지금 보는 동네·조건을 같이 보내고,
+// 자유 질문은 Agent 가 도구를 골라 답하며(trace 로 과정 공개), 필요하면 report_update 로 리포트를 바꾼다.
+const consult = { region: null, history: [], greeted: false, busy: false };
 
-function goConsult() {
-  const el = $("#consult");
-  if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(() => $("#cs-text")?.focus(), 400); }
+function initConsult() {
+  $("#cs-fab").onclick = () => toggleConsult(true);
+  $("#cs-close").onclick = () => toggleConsult(false);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#cs-panel").hidden) toggleConsult(false); });
+  $("#cs-panel").addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-qr]");
+    if (chip) consultAsk("", chip.dataset.qr, chip.textContent);
+  });
+  $("#cs-form").onsubmit = (e) => { e.preventDefault(); const t = $("#cs-text").value.trim(); if (t) consultAsk(t); };
+}
+
+function toggleConsult(open) {
+  $("#cs-panel").hidden = !open;
+  $("#cs-fab").setAttribute("aria-expanded", String(open));
+  if (open) {
+    if (!consult.greeted && consult.region) greetConsult();
+    setTimeout(() => $("#cs-text").focus(), 50);
+    scrollMsgs();
+  } else $("#cs-fab").focus();
 }
 
 function consultBody(extra) {
@@ -472,13 +481,23 @@ function consultBody(extra) {
   return { region_id: r.region_id, conditions: { ...r.cost.conditions, priorities: state.priorities || [] }, history: consult.history.slice(-8), ...extra };
 }
 
-async function startConsult(r) {
-  consult.region = r; consult.history = [];
+// 리포트에서 다른 동네를 열면 상담 기준도 그 동네로 (대화는 이어진다)
+function consultSetRegion(r) {
+  const before = consult.region?.region_id;
+  consult.region = r;
+  $("#cs-where").textContent = `${r.name} 리포트 기준 · 공공데이터로만 답해요`;
+  if (before && before !== r.region_id && consult.greeted) csNote(`📍 이제 ${r.name} 리포트 기준으로 답해요`);
+  if (!$("#cs-panel").hidden && !consult.greeted) greetConsult();
+}
+
+async function greetConsult() {
+  consult.greeted = true;
   try { csBot(await api("/api/consult", consultBody({}))); } catch (e) { csAdd("bot").textContent = "상담을 불러오지 못했어요."; }
 }
 
 async function consultAsk(text, intent, label) {
-  if (!consult.region) return;
+  if (!consult.region || consult.busy) return;
+  consult.busy = true;
   $("#cs-text").value = "";
   csAdd("user").textContent = text || label;
   $$("#cs-msgs .qr").forEach((x) => x.remove());   // 지난 빠른 버튼은 치운다
@@ -487,21 +506,62 @@ async function consultAsk(text, intent, label) {
     const res = await api("/api/consult", consultBody({ message: text || "", intent: intent || null }));
     loading.remove(); csBot(res);
     consult.history.push({ role: "user", content: text || label }, { role: "assistant", content: res.answer });
+    if (res.report_update) applyReportUpdate(res.report_update);
   } catch (e) {
     loading.classList.remove("loading");
     loading.textContent = `답을 만들지 못했어요. 제주120만덕콜센터(국번 없이 120)로 물어봐 주세요. (${e.message})`;
-  }
+  } finally { consult.busy = false; }
 }
 
 function csBot(res) {
   const el = csAdd("bot");
   el.innerHTML = res.answer.split("\n").map((l) => `<p class="${/^\s+└/.test(l) ? "sub" : ""}">${linkify(mdLite(l.trim()))}</p>`).join("");
   if (res.sources?.length) el.insertAdjacentHTML("beforeend", `<p class="cs-src">근거: ${res.sources.map(escapeHtml).join(" · ")}</p>`);
+  if (res.trace?.length) {
+    const who = res.mode === "agent" ? "돌몽이(AI Agent)가 확인한 것" : "돌몽이가 확인한 것";
+    el.insertAdjacentHTML("beforeend", `<details class="cs-trace"><summary>${who} ${res.trace.length}단계</summary><ol>${res.trace.map((t) =>
+      `<li class="${t.error ? "err" : ""}">${escapeHtml(t.label || TOOL_LABEL[t.tool] || t.tool)}${t.error ? " (다시 시도)" : ""}</li>`).join("")}</ol></details>`);
+  }
+  if (res.fallback === "rate_limited") csNote("질문이 많아서 잠깐 기본 모드로 답했어요");
   if (res.quick_replies?.length) {
     el.insertAdjacentHTML("afterend", `<div class="qr">${res.quick_replies.map((q) => `<button type="button" data-qr="${q.id}">${escapeHtml(q.label)}</button>`).join("")}</div>`);
   }
-  const box = $("#cs-msgs"); requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+  scrollMsgs();
 }
+
+// Agent 가 리포트를 바꾸자고 하면: 조건 입력 폼에 그대로 넣고 다시 계산 (사용자가 폼에서 다시 바꿀 수 있다)
+function applyReportUpdate(u) {
+  const c = u.conditions || {};
+  if (c.start_date) {
+    const v = c.start_date.slice(0, 7), sel = $("#f-month");
+    if (![...sel.options].some((o) => o.value === v)) sel.add(new Option(`${v.slice(0, 4)}년 ${+v.slice(5)}월`, v));
+    sel.value = v;
+  }
+  if (c.days) {
+    const sel = $("#f-days");
+    if (![...sel.options].some((o) => +o.value === c.days)) sel.add(new Option(period(c.days), String(c.days)));
+    sel.value = String(c.days);
+  }
+  if (c.people) setPeople(c.people);
+  if ("car" in c) $("#f-car").value = String(!!c.car);
+  if ("budget_total" in c) {
+    const sel = $("#f-budget"), v = c.budget_total ? String(c.budget_total) : "";
+    if (v && ![...sel.options].some((o) => o.value === v)) sel.add(new Option(`${(+v).toLocaleString()}만 원 이하`, v));
+    sel.value = v;
+  }
+  $$("#f-opts input").forEach((x) => { if (x.dataset.k in c) x.checked = !!c[x.dataset.k]; });
+  if (c.priorities) { state.priorities = c.priorities.slice(0, 3); drawPrio(); }
+  if (u.select_region_id) state.selected = u.select_region_id;
+  csNote(`🔄 리포트를 바꿨어요${u.reason ? `: ${u.reason}` : ""}`, "update");
+  runEstimate(false, true);
+}
+
+function csNote(text, cls = "") {
+  const el = csAdd("note " + cls);
+  el.textContent = text;
+}
+
+function scrollMsgs() { const box = $("#cs-msgs"); requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; }); }
 
 // [이름](https://...) → 새 탭 링크 (상담 답변의 구글 지도 링크)
 function linkify(html) {
@@ -512,7 +572,7 @@ function csAdd(cls) {
   const el = document.createElement("div");
   el.className = "msg " + cls;
   $("#cs-msgs").appendChild(el);
-  const box = $("#cs-msgs"); requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+  scrollMsgs();
   return el;
 }
 
