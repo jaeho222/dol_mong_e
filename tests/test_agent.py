@@ -127,3 +127,8 @@ def test_dialect_is_consistent_and_sentence_final_only():
     from backend.tools.jeju import jeju
     assert jeju("주요 관광지예요. 많아요\n좋겠네요! 필요해요?") == "주요 관광지우다. 많수다\n좋겠수다! 필요허우꽈?"
     assert jeju("19만 원 저렴해요(301만 원 vs 320만 원). 제주시(원도심) 주요(대표) 곳") == "19만 원 저렴허우다(301만 원 vs 320만 원). 제주시(원도심) 주요(대표) 곳"
+
+
+def test_internal_names_never_shown():
+    assert ag.clean_answer("`transit`(버스·도보) 정보도 볼까요? 애월읍(aewol)이 좋아요") == "버스·도보 정보도 볼까요? 애월읍이 좋아요"
+    assert ag.clean_source("비용 계산식·추천 점수 (docs/COST_MODEL.md, docs/DATA.md)") == "비용 계산식·추천 점수"

@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from backend import config
 from backend.agent.consult import greeting, run_consult
-from backend.agent.dolmong_agent import allow, run_agent as run_dolmong
+from backend.agent.dolmong_agent import allow, clean_source, run_agent as run_dolmong
 from backend.agent import run_agent
 from backend.tools.data_loader import data_is_dummy
 from backend.tools.jeju import jeju
@@ -77,6 +77,7 @@ def consult(req: ConsultRequest, request: Request):
         else:
             fallback = None
         out = run_consult(req.message, req.region_id, req.conditions, req.intent, req.history)
+        out["sources"] = list(dict.fromkeys(clean_source(x) for x in out.get("sources", [])))
         return out | ({"fallback": fallback} if fallback else {})
     except KeyError as e:
         raise HTTPException(400, str(e))
