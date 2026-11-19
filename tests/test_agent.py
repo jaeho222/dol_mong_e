@@ -110,3 +110,14 @@ def test_no_proposal_when_nothing_changes():
     ctx = _ctx()
     out = ag.run_tool("propose_report_change", {"changes": {"days": 30}}, Conditions.from_dict(COND), ctx)
     assert out["ok"] is False and ctx["report_update"] is None
+
+
+def test_nudge_when_asks_without_proposal():
+    fake = FakeClaude([
+        NS(stop_reason="end_turn", content=[_text("차 없이 지내면 서귀포가 좋아요. 리포트를 수정해 드릴까요?")]),
+        NS(stop_reason="tool_use", content=[_tool("1", "propose_report_change", {"changes": {"car": False}})]),
+        NS(stop_reason="end_turn", content=[_text("차 없이 지내면 서귀포가 좋아요. 리포트를 수정해 드릴까요?")]),
+    ])
+    out = ag.run_agent("차 없이 갈 거야", "aewol", COND, client=fake)
+    assert out["report_update"]["conditions"] == {"car": False}
+    assert len(fake.calls) == 3
