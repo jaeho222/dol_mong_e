@@ -97,7 +97,7 @@ def test_consult_without_key_uses_rules(monkeypatch):
     monkeypatch.setattr(config, "AGENT_MODE", "mock")
     r = TestClient(app).post("/api/consult", json={"region_id": "aewol", "conditions": COND, "message": "근처 병원 있어?"})
     body = r.json()
-    assert r.status_code == 200 and body["mode"] == "rule" and body["trace"]
+    assert r.status_code == 200 and body["mode"] == "rule" and not body.get("trace")
 
 
 def test_activity_without_data_does_not_error():
@@ -121,3 +121,8 @@ def test_nudge_when_asks_without_proposal():
     out = ag.run_agent("차 없이 갈 거야", "aewol", COND, client=fake)
     assert out["report_update"]["conditions"] == {"car": False}
     assert len(fake.calls) == 3
+
+
+def test_dialect_is_consistent_and_sentence_final_only():
+    from backend.tools.jeju import jeju
+    assert jeju("주요 관광지예요. 많아요\n좋겠네요! 필요해요?") == "주요 관광지우다. 많수다\n좋겠수다! 필요허우꽈?"

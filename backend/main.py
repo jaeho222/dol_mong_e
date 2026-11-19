@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from backend import config
 from backend.agent.consult import greeting, run_consult
-from backend.agent.dolmong_agent import TOPIC_LABEL, allow, run_agent as run_dolmong
+from backend.agent.dolmong_agent import allow, run_agent as run_dolmong
 from backend.agent import run_agent
 from backend.tools.data_loader import data_is_dummy
 from backend.tools.jeju import jeju
@@ -77,9 +77,6 @@ def consult(req: ConsultRequest, request: Request):
         else:
             fallback = None
         out = run_consult(req.message, req.region_id, req.conditions, req.intent, req.history)
-        it = out.get("intent")
-        out["trace"] = [{"tool": "rule", "label": f"질문 분류: {TOPIC_LABEL.get(it, '데이터 밖 질문')}"}] + (
-            [{"tool": "data", "label": "규칙대로 데이터 찾기"}] if it in TOPIC_LABEL and it != "contact" else [])
         return out | ({"fallback": fallback} if fallback else {})
     except KeyError as e:
         raise HTTPException(400, str(e))
