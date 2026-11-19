@@ -100,8 +100,8 @@ Agent 도구 7종: `ask_data`, `rank_regions`, `compare_regions`, `estimate_cost
 **요구사항:** Python 3.10 이상
 
 ```bash
-git clone https://github.com/jaeho222/bang-aeo-hwae.git
-cd bang-aeo-hwae
+git clone https://github.com/jaeho222/dol_mong_e.git
+cd dol_mong_e
 python -m venv .venv
 ```
 
