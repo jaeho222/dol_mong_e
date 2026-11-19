@@ -34,7 +34,12 @@ const J = (t) => (window.jeju ? window.jeju(t) : t);
     document.body.appendChild(root);
     document.body.classList.add("ob-open");
     root.querySelector(".ob-back").onclick = () => go(i - 1);
-    root.querySelector(".ob-skip").onclick = () => close();
+    root.querySelector(".ob-skip").onclick = () => {
+      close();
+      requestAnimationFrame(() => {
+        window.showDolmongNudge?.();
+      });
+    };
     root.addEventListener("keydown", onKey);
     render();
   }
